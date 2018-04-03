@@ -1,0 +1,66 @@
+\documentclass{scrartcl}
+\setcounter{tocdepth}{4}
+\setcounter{secnumdepth}{4}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx} 
+\usepackage{tabularx}
+\usepackage{listings}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{scrpage2}
+\usepackage{tikz}
+\usepackage[top=3.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm,headheight=110pt]{geometry}
+
+\title{Anperi}
+\subtitle{Projekt SS 2018\\ Projektbeschreibung \\  SS2018}
+\author{Jannes Peters - 590252 \\ Adrian Kurth - 590289 \\ Jesse Nis Arff - 590245}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\newpage
+\renewcommand\contentsname{Inhalt}
+\tableofcontents{}
+\newpage
+
+\pagestyle{scrheadings}
+\addtolength{\voffset}{-15pt}
+\ihead{\textbf{Projekt SS 2018}}  
+\chead{Projekt: Anperi \\ Dok.-Typ: Anforderungsliste}
+\ohead{Datum: \today}
+\setheadsepline{0.4pt}
+
+\section{Beschreibung}
+\textbf{Androidgeräte als PC-Peripherie (I/O-Controller)}\\
+Die meisten PC-Nutzer nutzen auch mobile Endgeräte wie Smart­phones oder Tablets. Es existieren bereits Apps, die es ermöglichen, ein Tablet als weiteren (Touch-)Bildschirm an einem PC zu nutzen. Diese Apps sind jedoch in der Regel recht allgemein gehalten.\\
+In diesem Projekt soll eine Schnittstelle in Form einer Programm­bibliothek (Java/C\#/C++) und einer Android-App als Gegenstück entwickelt werden. Dies soll es unterschiedlicher Software erlauben, durch individuelle Erweiterungen ein Tablet oder Smartphone als Anzeige- und Eingabe­medium zu nutzen und dabei gezielt auf die Anforderungen der zu bedienenden Software einzugehen.
+\section{Komponenten}
+\begin{itemize}
+	\item Android-App
+	\item C\#-Schnittstelle
+	\item Java-Schnittstelle
+	\item Verbindungsserver
+\end{itemize}
+\section{Anforderungen}
+\subsection{Primäre Anforderungen}
+\begin{itemize}
+	\item dynamische GUI-Erstellung
+	\item Senden/Empfangen von GUI-Events zwischen PC/Android-App
+	\item erstmaliges Verbinden mit Verbindungs-Code, danach automatisch
+	\item Kopplung von mehreren Android-Geräten mit dem PC
+\end{itemize}
+\subsection{Sekundäre Anforderungen}
+\begin{itemize}
+	\item Testprogramm, welches die Schnittstelle verwendet
+\end{itemize}
+\section{Zeitplan}
+\begin{description}
+	\item[06.04.2018] Erstellen der Anforderungen und des Zeitplans
+	\item[20.04.2018] Prototyp für Verbindung zwischen den Geräten
+	\item[04.05.2018] C\#- und Android-Schnittstelle
+	\item[18.05.2018] dynamisches Erstellen der GUI
+	\item[01.06.2018] Java-Schnittstelle
+	\item[15.06.2018] Fertigstellung
+\end{description}
+\end{document}
