@@ -13,6 +13,13 @@ bin/
 gen/
 out/
 
+# TexStudio files
+*.synctex.gz
+*.toc
+*.aux
+*.fdb_latexmk
+*.fls
+
 # Gradle files
 .gradle/
 build/
