@@ -7,10 +7,23 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.6" />
     <PackageReference Include="Microsoft.AspNetCore.WebSockets" Version="2.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
 
   <ItemGroup>
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="JJA.Anperi.Api">
+      <HintPath>..\..\..\src\Apis\JJA.Anperi.Api\bin\Debug\netcoreapp2.0\JJA.Anperi.Api.dll</HintPath>
+    </Reference>
+    <Reference Include="JJA.Anperi.Api.SharedMessages">
+      <HintPath>..\..\..\src\Apis\JJA.Anperi.Api.SharedMessages\bin\Debug\netcoreapp2.0\JJA.Anperi.Api.SharedMessages.dll</HintPath>
+    </Reference>
+    <Reference Include="JJA.Anperi.PeripheralApi">
+      <HintPath>..\..\..\src\Apis\JJA.Anperi.PeripheralApi\bin\Debug\netcoreapp2.0\JJA.Anperi.PeripheralApi.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

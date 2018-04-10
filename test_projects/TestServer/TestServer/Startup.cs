@@ -6,6 +6,8 @@ using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using JJA.Anperi.Api;
+using JJA.Anperi.Api.SharedMessages;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -13,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 namespace TestServer
 {
@@ -71,8 +74,24 @@ namespace TestServer
                             }
                             else
                             {
-                                await socket.SendAsync(new ArraySegment<byte>(buffer, 0, wrr.Count), wrr.MessageType,
-                                    wrr.EndOfMessage, CancellationToken.None);
+                                string msg = Encoding.UTF8.GetString(buffer, 0, wrr.Count);
+                                try
+                                {
+                                    JsonApiObject jap = JsonApiObject.Deserialize(msg);
+                                    await socket.SendAsync(
+                                        new ArraySegment<byte>(Encoding.UTF8.GetBytes(
+                                            $"Clean JSON: {jap.Serialize()}")),
+                                        WebSocketMessageType.Text, true, CancellationToken.None);
+                                }
+                                catch (JsonReaderException ex)
+                                {
+                                    string answer =
+                                        SharedMessageJsonApiObjectFactory.CreateError(
+                                            $"Couldn't parse JSON: {ex.Message}").Serialize();
+                                    await socket.SendAsync(
+                                        new ArraySegment<byte>(Encoding.UTF8.GetBytes(answer)),
+                                        WebSocketMessageType.Text, true, CancellationToken.None);
+                                }
                             }
                             wrr = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
                         }
