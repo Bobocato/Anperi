@@ -16,13 +16,24 @@
 
   <ItemGroup>
     <Reference Include="JJA.Anperi.Api">
-      <HintPath>..\..\..\src\Apis\JJA.Anperi.Api\bin\Debug\netcoreapp2.0\JJA.Anperi.Api.dll</HintPath>
+      <HintPath>..\..\..\src\Apis\cs\binaries\Debug\JJA.Anperi.Api.dll</HintPath>
+      <Private>true</Private>
     </Reference>
     <Reference Include="JJA.Anperi.Api.SharedMessages">
-      <HintPath>..\..\..\src\Apis\JJA.Anperi.Api.SharedMessages\bin\Debug\netcoreapp2.0\JJA.Anperi.Api.SharedMessages.dll</HintPath>
+      <HintPath>..\..\..\src\Apis\cs\binaries\Debug\JJA.Anperi.Api.SharedMessages.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="JJA.Anperi.DeviceApi">
+      <HintPath>..\..\..\src\Apis\cs\binaries\Debug\JJA.Anperi.DeviceApi.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="JJA.Anperi.HostApi">
+      <HintPath>..\..\..\src\Apis\cs\binaries\Debug\JJA.Anperi.HostApi.dll</HintPath>
+      <Private>true</Private>
     </Reference>
     <Reference Include="JJA.Anperi.PeripheralApi">
-      <HintPath>..\..\..\src\Apis\JJA.Anperi.PeripheralApi\bin\Debug\netcoreapp2.0\JJA.Anperi.PeripheralApi.dll</HintPath>
+      <HintPath>..\..\..\src\Apis\cs\binaries\Debug\JJA.Anperi.PeripheralApi.dll</HintPath>
+      <Private>true</Private>
     </Reference>
   </ItemGroup>
 

@@ -78,6 +78,7 @@ namespace TestServer
                                 try
                                 {
                                     JsonApiObject jap = JsonApiObject.Deserialize(msg);
+                                    if (jap == null) throw new JsonReaderException("Can't parse empty string as JSON.");
                                     await socket.SendAsync(
                                         new ArraySegment<byte>(Encoding.UTF8.GetBytes(
                                             $"Clean JSON: {jap.Serialize()}")),
