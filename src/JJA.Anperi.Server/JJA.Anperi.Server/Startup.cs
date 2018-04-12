@@ -32,11 +32,14 @@ namespace JJA.Anperi.Server
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                //make debug website available in webroot
-                app.UseFileServer();
             }
             //uncomment if needed
             //app.UseMvc();
+            if (Convert.ToBoolean(Configuration["ServerStartupSettings:StartFileServer"]))
+            {
+                //make debug website available in webroot
+                app.UseFileServer();
+            }
 
             bool webSocketReceiveBufferSizeValid = int.TryParse(Configuration["ServerStartupSettings:WebSocketReceiveBufferSize"], out int webSocketReceiveBufferSize);
             if (!webSocketReceiveBufferSizeValid) webSocketReceiveBufferSize = (16 * 1024);
@@ -47,13 +50,6 @@ namespace JJA.Anperi.Server
                 ReceiveBufferSize = webSocketReceiveBufferSize
             });
             app.UseAnperiWebSocket("/ws-api", webSocketReceiveBufferSize, appLifetime.ApplicationStopping);
-
-            appLifetime.ApplicationStopping.Register(
-                () =>
-                {
-                    Console.Write("test");
-                }
-            );
         }
     }
 }
