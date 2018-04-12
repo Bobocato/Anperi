@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Anperi</string>
+    <string name="trying_to_connect">Trying to connect</string>
+    <string name="new_user_message">This is your first time using our App. \n So please wait a minute until the pairing code is loaded!</string>
+    <string name="ok">Ok</string>
+    <string name="never_again">Never show this again</string>
+    <string name="preference_file_key">com.jannes-peters.anperi.PAIRING_KEY</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>
