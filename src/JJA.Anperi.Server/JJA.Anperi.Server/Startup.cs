@@ -49,7 +49,9 @@ namespace JJA.Anperi.Server
                 KeepAliveInterval = TimeSpan.FromSeconds(20),
                 ReceiveBufferSize = webSocketReceiveBufferSize
             });
-            app.UseAnperiWebSocket("/ws-api", webSocketReceiveBufferSize, appLifetime.ApplicationStopping);
+            string anperiWebSocketApiPath = Configuration["ServerStartupSettings:AnperiWebSocketApiPath"];
+            if (string.IsNullOrEmpty(anperiWebSocketApiPath)) anperiWebSocketApiPath = "/api/ws";
+            app.UseAnperiWebSocket(anperiWebSocketApiPath, webSocketReceiveBufferSize, appLifetime.ApplicationStopping);
         }
     }
 }
