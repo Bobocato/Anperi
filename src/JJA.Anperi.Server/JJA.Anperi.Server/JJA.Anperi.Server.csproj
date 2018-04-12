@@ -20,15 +20,19 @@
   <ItemGroup>
     <Reference Include="JJA.Anperi.Api">
       <HintPath>..\..\Apis\cs\binaries\Debug\JJA.Anperi.Api.dll</HintPath>
+      <Private>true</Private>
     </Reference>
     <Reference Include="JJA.Anperi.Api.SharedMessages">
       <HintPath>..\..\Apis\cs\binaries\Debug\JJA.Anperi.Api.SharedMessages.dll</HintPath>
+      <Private>true</Private>
     </Reference>
     <Reference Include="JJA.Anperi.HostApi">
       <HintPath>..\..\Apis\cs\binaries\Debug\JJA.Anperi.HostApi.dll</HintPath>
+      <Private>true</Private>
     </Reference>
     <Reference Include="JJA.Anperi.PeripheralApi">
       <HintPath>..\..\Apis\cs\binaries\Debug\JJA.Anperi.PeripheralApi.dll</HintPath>
+      <Private>true</Private>
     </Reference>
   </ItemGroup>
 
