@@ -13,16 +13,16 @@ namespace JJA.Anperi.DeviceApi
 
     public static class DeviceJsonApiObjectFactory
     {
-        private static JsonApiObject CreateContextDevice(MessageTypes msgType, DeviceRequestCode msgCode, object data = null)
+        private static JsonApiObject CreateContextDevice(JsonApiMessageTypes msgType, DeviceRequestCode msgCode, object data = null)
         {
-            return new JsonApiObject(ContextTypes.device, msgType, msgCode.ToString(), data);
+            return new JsonApiObject(JsonApiContextTypes.device, msgType, msgCode.ToString(), data);
         }
 
         public static JsonApiObject CreateDebugRequest(string msg)
         {
             if (msg == null) throw new ArgumentNullException(nameof(msg));
 
-            return CreateContextDevice(MessageTypes.message, DeviceRequestCode.debug, new { msg });
+            return CreateContextDevice(JsonApiMessageTypes.message, DeviceRequestCode.debug, new { msg });
         }
 
     }
