@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.6" />
+    <PackageReference Include="MySql.Data.EntityFrameworkCore" Version="6.10.6" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
 
@@ -18,17 +19,24 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\JJA.Anperi.Server.Model\JJA.Anperi.Server.Model.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="JJA.Anperi.Api">
       <HintPath>..\..\Apis\cs\binaries\Debug\JJA.Anperi.Api.dll</HintPath>
+      <Private>true</Private>
     </Reference>
-    <Reference Include="JJA.Anperi.Api.SharedMessages">
-      <HintPath>..\..\Apis\cs\binaries\Debug\JJA.Anperi.Api.SharedMessages.dll</HintPath>
+    <Reference Include="JJA.Anperi.Api.Shared">
+      <HintPath>..\..\Apis\cs\binaries\Debug\JJA.Anperi.Api.Shared.dll</HintPath>
     </Reference>
     <Reference Include="JJA.Anperi.HostApi">
       <HintPath>..\..\Apis\cs\binaries\Debug\JJA.Anperi.HostApi.dll</HintPath>
+      <Private>true</Private>
     </Reference>
     <Reference Include="JJA.Anperi.PeripheralApi">
       <HintPath>..\..\Apis\cs\binaries\Debug\JJA.Anperi.PeripheralApi.dll</HintPath>
+      <Private>true</Private>
     </Reference>
   </ItemGroup>
 

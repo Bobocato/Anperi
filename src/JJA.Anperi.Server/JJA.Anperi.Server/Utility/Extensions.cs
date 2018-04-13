@@ -54,7 +54,15 @@ namespace JJA.Anperi.Server.Utility
         {
             WebSocketStringResult res = await socket.ReceiveString(buffer, cancellationToken);
             var result = new WebSocketApiResult {SocketResult = res.SocketResult};
-            if (!string.IsNullOrEmpty(res.Message))
+            if (res.SocketResult.MessageType != WebSocketMessageType.Text)
+            {
+                result.JsonException = new JsonException("Can't read binary messages as JSON.");
+            }
+            else if (res.Message == "")
+            {
+                result.JsonException = new JsonException("The message was empty.");
+            }
+            else if (res.Message != null)
             {
                 try
                 {

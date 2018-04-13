@@ -7,11 +7,11 @@ using Newtonsoft.Json;
 namespace JJA.Anperi.Api
 {
     // ReSharper disable InconsistentNaming
-    public enum ContextTypes
+    public enum JsonApiContextTypes
     {
         server, device
     }
-    public enum MessageTypes
+    public enum JsonApiMessageTypes
     {
         request, response, message
     }
@@ -20,23 +20,20 @@ namespace JJA.Anperi.Api
     {
         public JsonApiObject() { }
 
-        public JsonApiObject(ContextTypes contextType, MessageTypes messageType, string messageCode, object data = null)
+        public JsonApiObject(JsonApiContextTypes contextType, JsonApiMessageTypes messageType, string messageCode, object data = null)
         {
-            context = contextType.ToString();
-            message_type = messageType.ToString();
+            context = contextType;
+            message_type = messageType;
             message_code = messageCode;
             this.data = data;
         }
 
         [JsonProperty]
-        public string context { get; internal set; }
-
+        public JsonApiContextTypes context { get; internal set; }
         [JsonProperty]
-        public string message_type { get; internal set; }
-
+        public JsonApiMessageTypes message_type { get; internal set; }
         [JsonProperty]
         public string message_code { get; internal set; }
-
         [JsonProperty]
         public object data { get; internal set; }
 

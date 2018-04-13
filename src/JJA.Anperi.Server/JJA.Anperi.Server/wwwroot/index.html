@@ -37,7 +37,7 @@
     if (currUrl.port !== "") {
         wsUrl.port = currUrl.port;
     }
-    wsUrl.pathname = "/ws-api";
+    wsUrl.pathname = "/api/ws";
     document.getElementById('server').value = wsUrl.toString();
     var ws;
     function openSocket() {
