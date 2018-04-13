@@ -22,8 +22,11 @@ namespace JJA.Anperi.PeripheralApi
         public static JsonApiObject CreateGetPairingCodeResponse(string code)
         {
             if (code == null) throw new ArgumentNullException(nameof(code));
-            
-            return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.response, PeripheralRequestCode.get_pairing_code.ToString(), new { code });
+            Dictionary<string, dynamic> data = new Dictionary<string, dynamic>
+            {
+                {"code", code}
+            };
+            return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.response, PeripheralRequestCode.get_pairing_code.ToString(), data);
         }
 
     }

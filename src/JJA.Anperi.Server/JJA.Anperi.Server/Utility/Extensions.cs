@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.WebSockets;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using JJA.Anperi.Api;
+using JJA.Anperi.Server.Model;
 using Newtonsoft.Json;
 
 namespace JJA.Anperi.Server.Utility
@@ -75,6 +77,5 @@ namespace JJA.Anperi.Server.Utility
             }
             return result;
         }
-
     }
 }

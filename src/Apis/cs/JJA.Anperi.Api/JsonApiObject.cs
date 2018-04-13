@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace JJA.Anperi.Api
 {
@@ -20,7 +21,7 @@ namespace JJA.Anperi.Api
     {
         public JsonApiObject() { }
 
-        public JsonApiObject(JsonApiContextTypes contextType, JsonApiMessageTypes messageType, string messageCode, object data = null)
+        public JsonApiObject(JsonApiContextTypes contextType, JsonApiMessageTypes messageType, string messageCode, Dictionary<string, dynamic> data = null)
         {
             context = contextType;
             message_type = messageType;
@@ -29,13 +30,15 @@ namespace JJA.Anperi.Api
         }
 
         [JsonProperty]
+        [JsonConverter(typeof(StringEnumConverter))]
         public JsonApiContextTypes context { get; internal set; }
         [JsonProperty]
+        [JsonConverter(typeof(StringEnumConverter))]
         public JsonApiMessageTypes message_type { get; internal set; }
         [JsonProperty]
         public string message_code { get; internal set; }
         [JsonProperty]
-        public object data { get; internal set; }
+        public Dictionary<string, dynamic> data { get; internal set; }
 
         public string Serialize()
         {

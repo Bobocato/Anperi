@@ -12,14 +12,14 @@ using Microsoft.AspNetCore.Http;
 
 namespace JJA.Anperi.Server
 {
-    public class ActiveWebSocketConnection
+    public class AuthenticatedWebSocketConnection
     {
         private readonly HttpContext _context;
         private readonly WebSocket _socket;
         private readonly byte[] _buffer;
         private readonly RegisteredDevice _device;
 
-        public ActiveWebSocketConnection(HttpContext context, WebSocket socket, byte[] buffer, RegisteredDevice device)
+        public AuthenticatedWebSocketConnection(HttpContext context, WebSocket socket, byte[] buffer, RegisteredDevice device, AnperiDbContext dbContext)
         {
             _context = context;
             _socket = socket;
@@ -27,7 +27,7 @@ namespace JJA.Anperi.Server
             _device = device;
         }
 
-        public async Task Run(CancellationToken token)
+        public async Task<WebSocketCloseStatus> Run(CancellationToken token)
         {
             WebSocketApiResult apiObjectResult =
                 await _socket.ReceiveApiMessage(new ArraySegment<byte>(_buffer), token);
@@ -45,6 +45,7 @@ namespace JJA.Anperi.Server
 
                 apiObjectResult = await _socket.ReceiveApiMessage(new ArraySegment<byte>(_buffer), token);
             }
+            return apiObjectResult.SocketResult.CloseStatus.HasValue ? apiObjectResult.SocketResult.CloseStatus.Value : WebSocketCloseStatus.NormalClosure;
         }
 
         private async Task HandleApiMessage(JsonApiObject message, CancellationToken token)

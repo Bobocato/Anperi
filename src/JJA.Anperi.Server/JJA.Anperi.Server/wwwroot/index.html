@@ -21,6 +21,7 @@
         <input id="message" type="text" size="40">
         <button onclick="sendText()">Send Text</button>
         <button onclick="sendBinary()">Send Binary</button>
+        <button onclick="loginOrRegister()">Login</button>
     </p>
 
     <p>Use hexadecimal to send binary messages...</p>
@@ -63,6 +64,16 @@
                 log('received array buffer: ' + encodeHexString(new Uint8Array(e.data)));
             } else {
                 log('received: ' + e.data);
+                var obj = JSON.parse(e.data);
+                if (obj.message_type === "response") {
+                    if (obj.message_code === "register") {
+                        localStorage.setItem("token", obj.data.token);
+                    } else if (obj.message_code === "login") {
+                        if (obj.data.success == false) {
+                            localStorage.removeItem("token");
+                        }
+                    }
+                }
             }
         };
         ws.onerror = function () {
@@ -113,6 +124,29 @@
         var li = document.createElement('li');
         li.innerHTML = message;
         document.getElementById('messages').appendChild(li);
+    }
+    function loginOrRegister() {
+        let req;
+        if (localStorage.getItem("token") != null) {
+            req = JSON.stringify({
+                context: "server",
+                message_type: "request",
+                message_code: "login",
+                data: {
+                    token: localStorage.getItem("token"),
+                    device_type: "host"
+                }
+            });
+        } else {
+            req = JSON.stringify({
+                context: "server",
+                message_type: "request",
+                message_code: "register",
+                data: { device_type: "host" }
+            });
+        }
+        document.getElementById('message').value = req;
+        sendText();
     }
     if (sessionStorage.echoServer) {
         document.getElementById('server').value = sessionStorage.echoServer;

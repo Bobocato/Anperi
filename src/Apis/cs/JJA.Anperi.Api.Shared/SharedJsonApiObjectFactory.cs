@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace JJA.Anperi.Api.Shared
 {
@@ -16,13 +17,29 @@ namespace JJA.Anperi.Api.Shared
         login, register
     }
 
+    public enum SharedJsonDeviceType
+    {
+        host, peripheral
+    }
+
+    public class JsonLoginData
+    {
+        [JsonProperty]
+        public string token { get; set; }
+        [JsonProperty]
+        public string device_type { get; set; }
+    }
+
     public static class SharedJsonApiObjectFactory
     {
         public static JsonApiObject CreateError(string message)
         {
             if (message == null) throw new ArgumentNullException(nameof(message));
-            
-            return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.message, SharedJsonMessageCode.error.ToString(), new { message });
+            Dictionary<string, dynamic> data = new Dictionary<string, dynamic>
+            {
+                {"message", message}
+            };
+            return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.message, SharedJsonMessageCode.error.ToString(), data);
         }
 
         public static JsonApiObject CreatePartnerDisconnected()
@@ -30,26 +47,41 @@ namespace JJA.Anperi.Api.Shared
             return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.message, SharedJsonMessageCode.partner_disconnected.ToString());
         }
 
-        public static JsonApiObject CreateLoginRequest(string token)
+        public static JsonApiObject CreateLoginRequest(string token, SharedJsonDeviceType type)
         {
             if (token == null) throw new ArgumentNullException(nameof(token));
-
-            return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.request, SharedJsonRequestCode.login.ToString(), new { token });
+            Dictionary<string, dynamic> data = new Dictionary<string, dynamic>
+            {
+                { "device_type", type },
+                { "token", token }
+            };
+            return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.request, SharedJsonRequestCode.login.ToString(), data);
         }
         public static JsonApiObject CreateLoginResponse(bool success)
         {
-            return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.response, SharedJsonRequestCode.login.ToString(), new { success });
+            Dictionary<string, dynamic> data = new Dictionary<string, dynamic>
+            {
+                {"success", success}
+            };
+            return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.response, SharedJsonRequestCode.login.ToString(), data);
         }
 
-        public static JsonApiObject CreateRegisterRequest()
+        public static JsonApiObject CreateRegisterRequest(SharedJsonDeviceType type)
         {
-            return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.request, SharedJsonRequestCode.register.ToString());
+            Dictionary<string, dynamic> data = new Dictionary<string, dynamic>
+            {
+                {"device_type", type.ToString()}
+            };
+            return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.request, SharedJsonRequestCode.register.ToString(), data);
         }
         public static JsonApiObject CreateRegisterResponse(string token)
         {
             if (token == null) throw new ArgumentNullException(nameof(token));
-
-            return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.response, SharedJsonRequestCode.register.ToString(), new { token });
+            Dictionary<string, dynamic> data = new Dictionary<string, dynamic>
+            {
+                {"token", token}
+            };
+            return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.response, SharedJsonRequestCode.register.ToString(), data);
         }
     }
 }

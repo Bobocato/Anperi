@@ -31,6 +31,7 @@ namespace JJA.Anperi.Server
                 services.AddDbContext<AnperiDbContext>(o => o.UseInMemoryDatabase("JJA.Anperi.Server.InMemoryDb"));
             }
             else services.AddDbContext<AnperiDbContext>(o => o.UseMySQL(Configuration.GetConnectionString("MySqlConnectionString")));
+            //services.AddSingleton<AnperiWebSocketMiddleware, AnperiWebSocketMiddleware>();
 
         }
 
@@ -59,7 +60,13 @@ namespace JJA.Anperi.Server
             });
             string anperiWebSocketApiPath = Configuration["ServerStartupSettings:AnperiWebSocketApiPath"];
             if (string.IsNullOrEmpty(anperiWebSocketApiPath)) anperiWebSocketApiPath = "/api/ws";
-            app.UseAnperiWebSocket(anperiWebSocketApiPath, webSocketReceiveBufferSize, serviceProvider, appLifetime.ApplicationStopping);
+            var anperiOptions = new AnperiWebSocketMiddleware.Options
+            {
+                Path = anperiWebSocketApiPath,
+                RequestCancelToken = appLifetime.ApplicationStopping,
+                WsBufferSize = webSocketReceiveBufferSize
+            };
+            app.UseAnperiWebSocket(anperiOptions);
         }
     }
 }

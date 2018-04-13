@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using JJA.Anperi.Api;
+using Newtonsoft.Json;
 
 namespace JJA.Anperi.HostApi
 {
@@ -14,7 +15,7 @@ namespace JJA.Anperi.HostApi
 
     public static class HostJsonApiObjectFactory
     {
-        private static JsonApiObject CreateContextServer(JsonApiMessageTypes msgType, HostRequestCode msgCode, object data = null)
+        private static JsonApiObject CreateContextServer(JsonApiMessageTypes msgType, HostRequestCode msgCode, Dictionary<string, dynamic> data = null)
         {
             return new JsonApiObject(JsonApiContextTypes.server, msgType, msgCode.ToString(), data);
         }
@@ -22,12 +23,19 @@ namespace JJA.Anperi.HostApi
         public static JsonApiObject CreatePairingRequest(string code)
         {
             if (code == null) throw new ArgumentNullException(nameof(code));
-
-            return CreateContextServer(JsonApiMessageTypes.request, HostRequestCode.pair, new { code });
+            Dictionary<string, dynamic> data = new Dictionary<string, dynamic>
+            {
+                {"code", code}
+            };
+            return CreateContextServer(JsonApiMessageTypes.request, HostRequestCode.pair, data);
         }
         public static JsonApiObject CreatePairingResponse(bool success)
         {
-            return CreateContextServer(JsonApiMessageTypes.response, HostRequestCode.pair, new { success });
+            Dictionary<string, dynamic> data = new Dictionary<string, dynamic>
+            {
+                {"success", success}
+            };
+            return CreateContextServer(JsonApiMessageTypes.response, HostRequestCode.pair, data);
         }
 
         public class ApiPeripheral
@@ -41,16 +49,28 @@ namespace JJA.Anperi.HostApi
         }
         public static JsonApiObject CreateAvailablePeripheralResponse(IEnumerable<ApiPeripheral> devices)
         {
-            return CreateContextServer(JsonApiMessageTypes.response, HostRequestCode.get_available_peripherals, new { devices });
+            Dictionary<string, dynamic> data = new Dictionary<string, dynamic>
+            {
+                {"devices", devices}
+            };
+            return CreateContextServer(JsonApiMessageTypes.response, HostRequestCode.get_available_peripherals, data);
         }
 
         public static JsonApiObject CreateConnectToPeripheralRequest(int id)
         {
-            return CreateContextServer(JsonApiMessageTypes.request, HostRequestCode.connect_to_peripheral, new { id });
+            Dictionary<string, dynamic> data = new Dictionary<string, dynamic>
+            {
+                {"id", id}
+            };
+            return CreateContextServer(JsonApiMessageTypes.request, HostRequestCode.connect_to_peripheral, data);
         }
         public static JsonApiObject CreateConnectToPeripheralResponse(bool success)
         {
-            return CreateContextServer(JsonApiMessageTypes.response, HostRequestCode.connect_to_peripheral, new { success });
+            Dictionary<string, dynamic> data = new Dictionary<string, dynamic>
+            {
+                {"success", success}
+            };
+            return CreateContextServer(JsonApiMessageTypes.response, HostRequestCode.connect_to_peripheral, data);
         }
 
         public static JsonApiObject CreateDisconnectFromPeripheralRequest()
@@ -59,7 +79,11 @@ namespace JJA.Anperi.HostApi
         }
         public static JsonApiObject CreateDisconnectFromPeripheralResponse(bool success)
         {
-            return CreateContextServer(JsonApiMessageTypes.response, HostRequestCode.disconnect_from_peripheral, new { success });
+            Dictionary<string, dynamic> data = new Dictionary<string, dynamic>
+            {
+                {"success", success}
+            };
+            return CreateContextServer(JsonApiMessageTypes.response, HostRequestCode.disconnect_from_peripheral, data);
         }
     }
 }
