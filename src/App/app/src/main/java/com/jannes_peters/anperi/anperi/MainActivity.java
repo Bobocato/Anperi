@@ -1,8 +1,6 @@
 package com.jannes_peters.anperi.anperi;
 
 import android.app.AlertDialog;
-import android.app.Fragment;
-import android.app.FragmentManager;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.util.Log;
@@ -10,16 +8,37 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.TextView;
 
+import com.neovisionaries.ws.client.WebSocket;
+import com.neovisionaries.ws.client.WebSocketAdapter;
+import com.neovisionaries.ws.client.WebSocketException;
+import com.neovisionaries.ws.client.WebSocketFrame;
+import com.neovisionaries.ws.client.WebSocketListener;
+
+import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "jja.anperi";
     private String key = "";
     private KeyFragment keyFragment;
     private LoadingFragment loadingFragment;
+    public WebSocket ws;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)  {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        //Start MyWebSocket
+        try {
+            ws = MyWebSocket.getInstance();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (WebSocketException e) {
+            e.printStackTrace();
+        }
+        addWsListeners();
         //Create Fragments and show loading fragment
         keyFragment = new KeyFragment();
         loadingFragment = new LoadingFragment();
@@ -44,6 +63,30 @@ public class MainActivity extends AppCompatActivity {
         } else {
             showKey();
         }
+    }
+
+    private void addWsListeners(){
+        List<WebSocketListener> webSocketListenerList = new LinkedList<WebSocketListener>();
+        webSocketListenerList.add(new WebSocketAdapter(){
+            @Override
+            public void onDisconnected(WebSocket websocket, WebSocketFrame serverCloseFrame, WebSocketFrame clientCloseFrame, boolean closedByServer){
+                Log.v(TAG, "Connection closed" + websocket.toString());
+            }
+        });
+        webSocketListenerList.add(new WebSocketAdapter(){
+            @Override
+            public void onTextMessage(WebSocket websocket, String message) {
+                Log.v(TAG, "Message received: " + message);
+            }
+        });
+        webSocketListenerList.add(new WebSocketAdapter(){
+            @Override
+            public void onConnected(WebSocket websocket, Map<String,List<String>> headers){
+                Log.v(TAG, "Connection established" + headers.toString());
+                ws.sendText("Hallo Test");
+            }
+        });
+        ws.addListeners(webSocketListenerList);
     }
 
     private void showKey() {
