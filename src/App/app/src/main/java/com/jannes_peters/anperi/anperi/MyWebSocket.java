@@ -12,9 +12,9 @@ public class MyWebSocket {
     private static final String TAG = "jja.anperi";
     private static com.neovisionaries.ws.client.WebSocket instance;
     //WS variables
+    //private static final String server = "ws://10.0.2.2:62411/api/ws";
     private static final String server = "ws://echo.websocket.org";
     private static final int timeout = 500;
-    private WebSocketFactory factory;
 
     MyWebSocket() {
     }
