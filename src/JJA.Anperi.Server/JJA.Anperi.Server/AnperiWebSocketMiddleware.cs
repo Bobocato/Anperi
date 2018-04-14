@@ -6,6 +6,7 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using BCrypt.Net;
 using JJA.Anperi.Api;
 using JJA.Anperi.Api.Shared;
 using JJA.Anperi.Server.Model;
@@ -97,7 +98,15 @@ namespace JJA.Anperi.Server
                         }
                         if (!string.IsNullOrEmpty(token))
                         {
-                            RegisteredDevice device = dbContext.RegisteredDevices.SingleOrDefault(d => d.Token == token);
+                            RegisteredDevice device = null;
+                            try
+                            {
+                                device = dbContext.RegisteredDevices.SingleOrDefault(d => d.Token.Equals(token, StringComparison.InvariantCulture));
+                            }
+                            catch (BcryptAuthenticationException ex)
+                            {
+                                _logger.LogError("Error verifying hash.", ex);
+                            }
                             if (device != null)
                             {
                                 closeStatus = await LoginDevice(ctx, socket, buffer, device, dbContext);
@@ -155,7 +164,7 @@ namespace JJA.Anperi.Server
         private async Task<WebSocketCloseStatus> LoginDevice(HttpContext context, WebSocket socket, byte[] buffer, RegisteredDevice device, AnperiDbContext dbContext)
         {
             await socket.SendJson(SharedJsonApiObjectFactory.CreateLoginResponse(true));
-            var connection = new AuthenticatedWebSocketConnection(context, socket, buffer, device, dbContext);
+            var connection = new AuthenticatedWebSocketConnection(context, socket, buffer, device, dbContext, _logger);
             return await connection.Run(_options.Value.RequestCancelToken);
         }
     }

@@ -15,6 +15,7 @@ namespace JJA.Anperi.HostApi
 
     public static class HostJsonApiObjectFactory
     {
+
         private static JsonApiObject CreateContextServer(JsonApiMessageTypes msgType, HostRequestCode msgCode, Dictionary<string, dynamic> data = null)
         {
             return new JsonApiObject(JsonApiContextTypes.server, msgType, msgCode.ToString(), data);
