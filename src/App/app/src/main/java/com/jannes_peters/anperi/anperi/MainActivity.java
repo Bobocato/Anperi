@@ -24,10 +24,11 @@ public class MainActivity extends AppCompatActivity {
     private String key = "";
     private KeyFragment keyFragment;
     private LoadingFragment loadingFragment;
+    private TestFragment testFragment;
     public WebSocket ws;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState)  {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         //Start MyWebSocket
@@ -42,12 +43,13 @@ public class MainActivity extends AppCompatActivity {
         //Create Fragments and show loading fragment
         keyFragment = new KeyFragment();
         loadingFragment = new LoadingFragment();
-        showLoad();
+        testFragment = new TestFragment();
+        showTest();
         //Show an dialog box if the user hasn't used the app before or show the key on screen
         SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.preference_file_key), this.MODE_PRIVATE);
         String key = sharedPref.getString(getString(R.string.preference_file_key), null);
         if (key == null) {
-            //Request a key
+            //TODO:Request a key
 
             //Dialog Box
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -65,25 +67,34 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void addWsListeners(){
+    private void addWsListeners() {
         List<WebSocketListener> webSocketListenerList = new LinkedList<WebSocketListener>();
-        webSocketListenerList.add(new WebSocketAdapter(){
+        webSocketListenerList.add(new WebSocketAdapter() {
             @Override
-            public void onDisconnected(WebSocket websocket, WebSocketFrame serverCloseFrame, WebSocketFrame clientCloseFrame, boolean closedByServer){
-                Log.v(TAG, "Connection closed" + websocket.toString());
+            public void onConnectError(WebSocket websocket, WebSocketException cause) {
+                Log.v(TAG, "ERROR with the connection: " + websocket.toString());
+                Log.v(TAG, cause.toString());
             }
         });
-        webSocketListenerList.add(new WebSocketAdapter(){
+        webSocketListenerList.add(new WebSocketAdapter() {
+            @Override
+            public void onDisconnected(WebSocket websocket, WebSocketFrame serverCloseFrame, WebSocketFrame clientCloseFrame, boolean closedByServer) {
+                Log.v(TAG, "Connection closed " + websocket.toString());
+            }
+        });
+        webSocketListenerList.add(new WebSocketAdapter() {
             @Override
             public void onTextMessage(WebSocket websocket, String message) {
                 Log.v(TAG, "Message received: " + message);
+                //For testing purposes
+                testFragment.messageText.setText(testFragment.messageText.getText() + "\n" + message);
             }
         });
-        webSocketListenerList.add(new WebSocketAdapter(){
+        webSocketListenerList.add(new WebSocketAdapter() {
             @Override
-            public void onConnected(WebSocket websocket, Map<String,List<String>> headers){
-                Log.v(TAG, "Connection established" + headers.toString());
-                ws.sendText("Hallo Test");
+            public void onConnected(WebSocket websocket, Map<String, List<String>> headers) {
+                Log.v(TAG, "Connection established " + headers.toString());
+                //ws.sendText("{\"context\":\"server\",\"message_type\":\"request\",\"message_code\":\"login\",\"data\":{\"device_type\":\"peripheral\"}}");
             }
         });
         ws.addListeners(webSocketListenerList);
@@ -101,6 +112,12 @@ public class MainActivity extends AppCompatActivity {
     private void showLoad() {
         getFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, loadingFragment)
+                .commit();
+    }
+
+    private void showTest() {
+        getFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, testFragment)
                 .commit();
     }
 }

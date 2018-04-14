@@ -5,7 +5,11 @@
     <string name="ok">Ok</string>
     <string name="never_again">Never show this again</string>
     <string name="preference_file_key">com.jannes-peters.anperi.PAIRING_KEY</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="preference_file_token">com.jannes-peters.anperi.TOKEN</string>
+    <string name="test_page">This is just a test page</string>
+    <string name="btnLogin">Login</string>
+    <string name="btnRequestCode">Request Code</string>
+    <string name="btnRegister">Register</string>
+    <string name="testMessageBox">The messages will be shown here</string>
+    <string name="no_key">Please register first</string>
 </resources>
