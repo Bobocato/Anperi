@@ -19,5 +19,20 @@ namespace JJA.Anperi.Server.Utility
             }
             return token;
         }
+
+        public static string CreatePairingCode(int length = 6)
+        {
+            string code = "";
+            using (var rng = new RNGCryptoServiceProvider())
+            {
+                byte[] buffer = new byte[length];
+                rng.GetBytes(buffer);
+                foreach (byte b in buffer)
+                {
+                    code += (b % 10).ToString();
+                }
+            }
+            return code;
+        }
     }
 }

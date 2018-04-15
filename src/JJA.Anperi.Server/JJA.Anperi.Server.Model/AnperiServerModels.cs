@@ -44,7 +44,7 @@ namespace JJA.Anperi.Server.Model
     {
         public int Id { get; set; }
         [Required]
-        [StringLength(255)]
+        [StringLength(100)]
         public string Token { get; set; }
     }
 

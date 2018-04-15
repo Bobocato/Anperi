@@ -134,7 +134,7 @@
                 message_code: "login",
                 data: {
                     token: localStorage.getItem("token"),
-                    device_type: "host"
+                    device_type: "peripheral"
                 }
             });
         } else {
@@ -142,7 +142,7 @@
                 context: "server",
                 message_type: "request",
                 message_code: "register",
-                data: { device_type: "host" }
+                data: { device_type: "peripheral" }
             });
         }
         document.getElementById('message').value = req;
