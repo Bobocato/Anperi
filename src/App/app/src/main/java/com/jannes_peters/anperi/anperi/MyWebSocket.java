@@ -13,7 +13,7 @@ public class MyWebSocket {
     private static com.neovisionaries.ws.client.WebSocket instance;
     //WS variables
     //private static final String server = "ws://10.0.2.2:62411/api/ws";
-    private static final String server = "ws://echo.websocket.org";
+    private static String server = "ws://echo.websocket.org";
     private static final int timeout = 500;
 
     MyWebSocket() {
@@ -26,7 +26,11 @@ public class MyWebSocket {
         return instance;
     }
 
-    private static com.neovisionaries.ws.client.WebSocket create() throws IOException, WebSocketException {
+    public static void setServer(String server){
+        MyWebSocket.server = server;
+    }
+
+    private static com.neovisionaries.ws.client.WebSocket create() throws IOException {
         Log.v(TAG, "Create MyWebSocket was called");
         return new WebSocketFactory()
                 .setConnectionTimeout(timeout)
@@ -34,4 +38,5 @@ public class MyWebSocket {
                 .addExtension(WebSocketExtension.PERMESSAGE_DEFLATE)
                 .connectAsynchronously();
     }
+
 }

@@ -41,8 +41,8 @@ public class TestFragment extends Fragment {
         btnLogin.setOnClickListener(new Button.OnClickListener(){
             public void onClick(View v){
                 //Get the token if there is one
-                SharedPreferences sharedPref = getActivity().getSharedPreferences(getString(R.string.preference_file_token), getActivity().MODE_PRIVATE);
-                String key = sharedPref.getString(getString(R.string.preference_file_key), null);
+                SharedPreferences sharedPref = getActivity().getSharedPreferences(getString(R.string.preference_file_name), getActivity().MODE_PRIVATE);
+                String key = sharedPref.getString("token", null);
                 if (key == null){
                     //No key = no login
                     //Dialog Box
@@ -65,13 +65,15 @@ public class TestFragment extends Fragment {
         Button btnRegister = view.findViewById(R.id.btnRegister);
         btnRegister.setOnClickListener(new Button.OnClickListener(){
             public void onClick(View v){
-                ws.sendText("{\"context\":\"server\",\"message_type\":\"request\",\"message_code\":\"register\",\"data\":{\"device_type\":\"peripheral\"}}");
+                ws.sendText("{\"context\":\"server\",\"message_type\":\"request\",\"message_code\":\"register\",\"data\":{\"token\":\"123465786438486489\"}}");
+                //ws.sendText("{\"context\":\"server\",\"message_type\":\"request\",\"message_code\":\"register\",\"data\":{\"device_type\":\"peripheral\"}}");
             }
         });
         Button btnCode = view.findViewById(R.id.btnRequestCode);
         btnCode.setOnClickListener(new Button.OnClickListener(){
             public void onClick(View v){
-                ws.sendText("{\"context\":\"server\",\"message_type\":\"request\",\"message_code\":\"get_pairing_code\",\"data\":null}");
+                ws.sendText("{\"context\":\"server\",\"message_type\":\"request\",\"message_code\":\"get_pairing_code\",\"data\":{\"code\":\"987654321\"}}");
+                //ws.sendText("{\"context\":\"server\",\"message_type\":\"request\",\"message_code\":\"get_pairing_code\",\"data\":null}");
             }
         });
         return view;
