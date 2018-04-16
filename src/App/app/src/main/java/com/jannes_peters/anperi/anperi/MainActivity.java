@@ -1,13 +1,10 @@
 package com.jannes_peters.anperi.anperi;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
-import android.util.Log;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.widget.TextView;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.neovisionaries.ws.client.WebSocket;
@@ -26,7 +23,8 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "jja.anperi";
-    private String key = "";
+    private final boolean debug = true;
+
     private KeyFragment keyFragment;
     private LoadingFragment loadingFragment;
     private TestFragment testFragment;
@@ -51,14 +49,30 @@ public class MainActivity extends AppCompatActivity {
         keyFragment = new KeyFragment();
         loadingFragment = new LoadingFragment();
         testFragment = new TestFragment();
-        showTest();
+        //Show testPage
+        if (debug){
+            showTest();
+        } else {
+            showLoad();
+            //Show an dialog box if the user hasn't used the app before or show the key on screen
+            SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.preference_file_name), MODE_PRIVATE);
+            String key = sharedPref.getString("token", null);
+            if (key == null) {
+                //TODO:Request a key
+                //Send register request (its going to be set automatically)
+                ws.sendText("{\"context\":\"server\",\"message_type\":\"request\",\"message_code\":\"register\",\"data\":{\"token\":\"123465786438486489\"}}");
+                //ws.sendText("{\"context\":\"server\",\"message_type\":\"request\",\"message_code\":\"register\",\"data\":{\"device_type\":\"peripheral\"}}");
+                while (sharedPref.getString("token", null) == null) {
+                    //wait
+                }
+                ws.sendText("{\"context\":\"server\",\"message_type\":\"request\",\"message_code\":\"get_pairing_code\",\"data\":{\"code\":\"987654321\"}}");
+                //ws.sendText("{\"context\":\"server\",\"message_type\":\"request\",\"message_code\":\"get_pairing_code\",\"data\":null}");
+                while (sharedPref.getString("pairingcode", null) == null) {
+                    //wait
+                }
 
-        //Show an dialog box if the user hasn't used the app before or show the key on screen
-        SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.preference_file_name), MODE_PRIVATE);
-        String key = sharedPref.getString(getString(R.string.preference_file_name), null);
-        if (key == null) {
-            //TODO:Request a key
-
+                showKey();
+            /*
             //Dialog Box
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setMessage(R.string.new_user_message)
@@ -70,8 +84,13 @@ public class MainActivity extends AppCompatActivity {
                     });
             AlertDialog toShow = builder.create();
             toShow.show();
-        } else {
-            showKey();
+            */
+            } else {
+                //Login and show the key
+                ws.sendText("{\"context\":\"server\",\"message_type\":\"request\",\"message_code\":\"login\",\"data\":{\"success\":\"true\"}}");
+                //ws.sendText("{\"context\":\"server\",\"message_type\":\"request\",\"message_code\":\"login\",\"data\":{\"token\":\"123465786438486489\",\"device_type\":\"peripheral\"}}");
+                showKey();
+            }
         }
     }
 
@@ -93,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
         });
         webSocketListenerList.add(new WebSocketAdapter() {
             @Override
-            public void onTextMessage(WebSocket websocket, final String  message) {
+            public void onTextMessage(WebSocket websocket, final String message) {
                 Log.v(TAG, "Message received: " + message);
                 JsonApiObject apiobj = new JsonApiObject(context);
                 try {
@@ -147,10 +166,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void showKey() {
         //Remove loading text and show pairing key
-        TextView keyText = findViewById(R.id.keyText);
-        keyText.setText(key);
         getFragmentManager().beginTransaction()
-                .replace(R.id.loadingFragment, keyFragment)
+                .replace(R.id.fragment_container, keyFragment)
                 .commit();
     }
 
