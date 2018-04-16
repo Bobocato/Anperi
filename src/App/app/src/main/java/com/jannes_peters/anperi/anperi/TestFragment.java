@@ -62,9 +62,19 @@ public class TestFragment extends Fragment {
                     AlertDialog toShow = builder.create();
                     toShow.show();
                 } else {
-                    ws.sendText("{\"context\":\"server\",\"message_type\":\"request\",\"message_code\":\"login\",\"data\":{\"token\":\" " + key + "\",\"device_type\":\"peripheral\"}}");
+                    try {
+                        String jsonString = new JSONObject()
+                                .put("context", "server")
+                                .put("message_type", "request")
+                                .put("message_code", "login")
+                                .put("data", new JSONObject()
+                                        .put("device_type", "peripheral")
+                                        .put("token", key)).toString();
+                        ws.sendText(jsonString);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
-
             }
         });
         Button btnRegister = view.findViewById(R.id.btnRegister);

@@ -59,12 +59,11 @@ public class MainActivity extends AppCompatActivity {
             showTest();
         } else {
             showLoad();
+            //Delete shared preferences
             //this.getSharedPreferences(getString(R.string.preference_file_name), 0).edit().clear().apply();
-            //Show an dialog box if the user hasn't used the app before or show the key on screen
             SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.preference_file_name), MODE_PRIVATE);
             String key = sharedPref.getString("token", null);
             if (key == null) {
-                //TODO:Request a key
                 //Device name should be device model
                 String name = Build.MANUFACTURER + " " + Build.VERSION.RELEASE;
                 //Build JSON and send it
@@ -126,8 +125,8 @@ public class MainActivity extends AppCompatActivity {
                     Log.v(TAG, "Exeption in JsonApiObjekt " + e.toString());
                     e.printStackTrace();
                 }
+                //For testing purposes
                 if (debug) {
-                    //For testing purposes
                     try {
                         runOnUiThread(new Runnable() {
                             @Override
