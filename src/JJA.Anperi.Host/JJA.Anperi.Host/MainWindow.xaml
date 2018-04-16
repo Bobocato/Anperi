@@ -15,8 +15,7 @@
 		<Button x:Name="ButConnect" Content="Connect" Margin="0,123,10,0" Click="ButConnect_Click" HorizontalAlignment="Right" Width="75" Height="25" VerticalAlignment="Top"/>
 		<TextBox x:Name="MessageBox" HorizontalAlignment="Left" Height="23" Margin="10,178,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
 		<Button x:Name="ButSendMessage" Content="Send Message" HorizontalAlignment="Left" Margin="142,178,0,0" VerticalAlignment="Top" Width="83" Height="25" Click="ButSendMessage_Click"/>
-		<TextBlock HorizontalAlignment="Left" Margin="223,127,0,0" TextWrapping="Wrap" Text="Connected to:" VerticalAlignment="Top" Height="16" Width="178"/>
-		<TextBlock x:Name="DeviceBlock"  HorizontalAlignment="Left" Margin="10,272,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" Width="497" TextAlignment="Center"/>
+		<TextBlock x:Name="BlockConnected" HorizontalAlignment="Left" Margin="223,127,0,0" TextWrapping="Wrap" Text="Connected to:" VerticalAlignment="Top" Height="16" Width="178"/>
 		<Button x:Name="ButDisconnect" Content="Disconnect" HorizontalAlignment="Left" Margin="432,153,0,0" VerticalAlignment="Top" Width="75" Height="25" Click="ButDisconnect_Click"/>
 		<Button x:Name="ButUnpair" Content="Unpair" HorizontalAlignment="Left" Margin="432,183,0,0" VerticalAlignment="Top" Width="75" Height="25" Click="ButUnpair_Click"/>
 
