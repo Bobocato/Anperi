@@ -44,8 +44,11 @@ namespace JJA.Anperi.Server.Model
     {
         public int Id { get; set; }
         [Required]
-        [StringLength(100)]
+        [StringLength(255)]
         public string Token { get; set; }
+        [Required]
+        [StringLength(100)]
+        public string Name { get; set; }
     }
 
     public class Host : RegisteredDevice

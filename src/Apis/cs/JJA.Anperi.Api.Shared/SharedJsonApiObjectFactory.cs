@@ -66,11 +66,12 @@ namespace JJA.Anperi.Api.Shared
             return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.response, SharedJsonRequestCode.login.ToString(), data);
         }
 
-        public static JsonApiObject CreateRegisterRequest(SharedJsonDeviceType type)
+        public static JsonApiObject CreateRegisterRequest(SharedJsonDeviceType type, string name)
         {
             Dictionary<string, dynamic> data = new Dictionary<string, dynamic>
             {
-                {"device_type", type.ToString()}
+                {"device_type", type.ToString()},
+                {"name", name}
             };
             return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.request, SharedJsonRequestCode.register.ToString(), data);
         }

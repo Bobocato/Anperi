@@ -23,16 +23,80 @@ namespace JJA.Anperi.Server
         private readonly byte[] _buffer;
         private readonly RegisteredDevice _device;
         private readonly ILogger<AnperiWebSocketMiddleware> _logger;
+        private readonly AnperiWebSocketMiddleware _anperiManager;
         private readonly AnperiDbContext _db;
+        private AuthenticatedWebSocketConnection _partner;
+        private readonly object _syncRootPartner = new object();
 
-        public AuthenticatedWebSocketConnection(HttpContext context, WebSocket socket, byte[] buffer, RegisteredDevice device, AnperiDbContext dbContext, ILogger<AnperiWebSocketMiddleware> logger)
+        public AuthenticatedWebSocketConnection(HttpContext context, WebSocket socket, byte[] buffer, RegisteredDevice device, AnperiDbContext dbContext, ILogger<AnperiWebSocketMiddleware> logger, AnperiWebSocketMiddleware anperiManager)
         {
             _context = context;
             _socket = socket;
             _buffer = buffer;
             _device = device;
             _logger = logger;
+            _anperiManager = anperiManager;
             _db = dbContext;
+            _anperiManager.PeripheralLoggedIn += _anperiManager_PeripheralLoggedIn;
+            _anperiManager.PeripheralLoggedOut += _anperiManager_PeripheralLoggedOut;
+        }
+
+        private async void _anperiManager_PeripheralLoggedOut(object sender, AuthenticatedWebSocketEventArgs e)
+        {
+            if (e.Connection.Device.Id != _partner.Device.Id)
+            {
+                await _socket.SendJson(
+                    HostJsonApiObjectFactory.CreatePairedPeripheralLoggedOffMessage(e.Connection.Device.Id));
+            }
+            else
+            {
+                lock (_syncRootPartner)
+                {
+                    _partner = null;
+                }
+                await _socket.SendJson(SharedJsonApiObjectFactory.CreatePartnerDisconnected());
+            }
+            
+        }
+
+        private async void _anperiManager_PeripheralLoggedIn(object sender, AuthenticatedWebSocketEventArgs e)
+        {
+            await _socket.SendJson(
+                HostJsonApiObjectFactory.CreatePairedPeripheralLoggedOnMessage(e.Connection.Device.Id));
+        }
+
+        public bool IsPeripheral => Device is Peripheral;
+
+        public RegisteredDevice Device => _device;
+
+        private async void PartnerCloseConnection()
+        {
+            lock (_syncRootPartner)
+            {
+                _partner = null;
+            }
+            await _socket.SendJson(SharedJsonApiObjectFactory.CreatePartnerDisconnected());
+        }
+
+        private bool PartnerConnect(AuthenticatedWebSocketConnection connection)
+        {
+            lock (_syncRootPartner)
+            {
+                if (_partner == null)
+                {
+                    _partner = connection;
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
+        private async void PartnerSendMessage(JsonApiObject msg)
+        {
+            await _socket.SendJson(msg);
         }
 
         public async Task<WebSocketCloseStatus> Run(CancellationToken token)
@@ -48,13 +112,34 @@ namespace JJA.Anperi.Server
                 }
                 else
                 {
-                    if (_device is Host)
+                    switch (apiObjectResult.Obj.context)
                     {
-                        await HandleHostMessage(apiObjectResult.Obj, token);
-                    }
-                    else if (_device is Peripheral)
-                    {
-                        await HandlePeripheralMessage(apiObjectResult.Obj, token);
+                        case JsonApiContextTypes.server:
+                            if (!(await HandleSharedMessage(apiObjectResult.Obj, token)))
+                            {
+                                switch (Device)
+                                {
+                                    case Host _:
+                                        await HandleHostMessage(apiObjectResult.Obj, token);
+                                        break;
+                                    case Peripheral _:
+                                        await HandlePeripheralMessage(apiObjectResult.Obj, token);
+                                        break;
+                                }
+                            }
+                            break;
+                        case JsonApiContextTypes.device:
+                            if (_partner != null)
+                            {
+                                _partner?.PartnerSendMessage(apiObjectResult.Obj);
+                            }
+                            else
+                            {
+                                await _socket.SendJson(
+                                    SharedJsonApiObjectFactory.CreateError(
+                                        "You don't have a partner, annoy somebody else >.>"));
+                            }
+                            break;
                     }
                 }
 
@@ -78,13 +163,10 @@ namespace JJA.Anperi.Server
             {
                 case SharedJsonRequestCode.login:
                 case SharedJsonRequestCode.register:
-                default:
-                    await _socket.SendJson(SharedJsonApiObjectFactory.CreateError("Function not implemented yet."),
-                        token);
-                    _logger.LogWarning($"SharedJsonRequestCode.{msgCode.ToString()} not implemented.");
+                    await _socket.SendJson(
+                        SharedJsonApiObjectFactory.CreateError("You can't login while you're logged in ..."), token);
                     break;
             }
-
             return true;
         }
 
@@ -106,7 +188,7 @@ namespace JJA.Anperi.Server
                 case PeripheralRequestCode.get_pairing_code:
                     string pairingCode;
                     ActivePairingCode dbCode =
-                        _db.ActivePairingCodes.SingleOrDefault(c => c.PeripheralId == _device.Id);
+                        _db.ActivePairingCodes.SingleOrDefault(c => c.PeripheralId == Device.Id);
                     if (dbCode != null)
                     {
                         pairingCode = dbCode.Code;
@@ -117,7 +199,7 @@ namespace JJA.Anperi.Server
                         var codeEntry = new ActivePairingCode
                         {
                             Code = pairingCode,
-                            PeripheralId = _device.Id
+                            PeripheralId = Device.Id
                         };
                         _db.ActivePairingCodes.Add(codeEntry);
                         _db.SaveChanges();
@@ -165,11 +247,23 @@ namespace JJA.Anperi.Server
                                 SharedJsonApiObjectFactory.CreateError("Pairing code was not valid."), token);
                             return;
                         }
+                        Peripheral deviceToPair = _db.Peripherals.Find(pairingCode.PeripheralId);
+                        if (deviceToPair != null)
+                            deviceToPair.PairedHosts.Add(new HostPeripheral
+                            {
+                                HostId = Device.Id,
+                                PeripheralId = deviceToPair.Id
+                            });
                         else
                         {
-                            await _socket.SendJson(SharedJsonApiObjectFactory.CreateError($"Pairing request was correct but pairing is not implemented yet :( You would've gotten paired to device {pairingCode.PeripheralId}"),
-                                token);
+                            _db.Remove(pairingCode);
+                            await _socket.SendJson(
+                                SharedJsonApiObjectFactory.CreateError(
+                                    "The device you want to pair isn't known to me :("));
                         }
+                        _db.SaveChanges();
+                        await _socket.SendJson(SharedJsonApiObjectFactory.CreateError($"Pairing request was correct but pairing is not implemented yet :( You would've gotten paired to device {pairingCode.PeripheralId}"),
+                            token);
                     }
                     catch (Exception e)
                     {
@@ -178,9 +272,64 @@ namespace JJA.Anperi.Server
                     }
                     break;
                 case HostRequestCode.unpair:
+                    message.data.TryGetValue("id", out dynamic peripheralDyn);
+                    int peripheralId = peripheralDyn;
+                    HostPeripheral connection = _db.Peripherals.Find(peripheralId)?.PairedHosts
+                        .SingleOrDefault(p => p.HostId == Device.Id);
+                    if (connection != null)
+                    {
+                        try
+                        {
+                            _db.Remove(connection);
+                            _db.SaveChanges();
+                            await _socket.SendJson(HostJsonApiObjectFactory.CreateUnpairFromPeripheralResponse(true));
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error unpairing devices.");
+                            await _socket.SendJson(HostJsonApiObjectFactory.CreateUnpairFromPeripheralResponse(false));
+                        }
+                    }
+                    
+                    break;
                 case HostRequestCode.get_available_peripherals:
+                    IEnumerable<Peripheral> peripherals =
+                        (Device as Host)?.PairedPeripherals.Select(p => p.Peripheral);
+                    if (peripherals == null)
+                    {
+                        _logger.LogError("Failed to retrieve PairedPeripherals from Host _device.");
+                        await _socket.SendJson(
+                            SharedJsonApiObjectFactory.CreateError("Internal error retrieving paired devices."));
+                    }
+                    else
+                    {
+                        HostJsonApiObjectFactory.CreateAvailablePeripheralResponse(peripherals.Select(p =>
+                            new HostJsonApiObjectFactory.ApiPeripheral
+                            {
+                                Id = p.Id,
+                                Name = $"Placeholder: {p.Token.Substring(0, 4)}"
+                            })
+                        );
+                    }
+                    break;
                 case HostRequestCode.connect_to_peripheral:
+                    message.data.TryGetValue("id", out dynamic id);
+                    AuthenticatedWebSocketConnection conn = _anperiManager.GetConnectionForId(id);
+                    if (conn != null)
+                    {
+                        _partner = conn;
+                        conn.PartnerConnect(this);
+                    }
+                    else
+                    {
+                        await _socket.SendJson(HostJsonApiObjectFactory.CreateConnectToPeripheralResponse(false));
+                    }
+                    break;
                 case HostRequestCode.disconnect_from_peripheral:
+                    _partner?.PartnerCloseConnection();
+                    _partner = null;
+                    await _socket.SendJson(HostJsonApiObjectFactory.CreateDisconnectFromPeripheralResponse(true), token);
+                    break;
                 default:
                     await _socket.SendJson(SharedJsonApiObjectFactory.CreateError($"Function {msgCode.ToString()} not implemented yet."),
                         token);

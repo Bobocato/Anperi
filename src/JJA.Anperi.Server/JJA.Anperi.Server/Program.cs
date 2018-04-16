@@ -27,20 +27,11 @@ namespace JJA.Anperi.Server
                 {
                     var context = services.GetRequiredService<AnperiDbContext>();
                     context.Database.EnsureCreated();
-                    context.Hosts.Add(new Host { Token = Guid.NewGuid().ToString() });
-                    context.Peripherals.Add(new Peripheral { Token = Guid.NewGuid().ToString() });
-                    context.Hosts.Add(new Host { Token = Guid.NewGuid().ToString() });
-                    context.Peripherals.Add(new Peripheral { Token = Guid.NewGuid().ToString() });
-                    context.SaveChanges();
-                    
-                    context.Hosts.Find(1).PairedPeripherals.Add(new HostPeripheral{HostId = 1, PeripheralId = 4});
-                    context.Hosts.Find(3).PairedPeripherals.Add(new HostPeripheral { HostId = 3, PeripheralId = 4 });
-                    context.SaveChanges();
                 }
                 catch (Exception ex)
                 {
                     var logger = services.GetRequiredService<ILogger<Program>>();
-                    logger.LogError(ex, "An error occurred while creating the database.");
+                    logger.LogWarning(ex, "Initial dataset already exists, skipping HostPeripheral dummys");
                 }
             }
 

@@ -6,11 +6,16 @@ using Newtonsoft.Json;
 
 namespace JJA.Anperi.HostApi
 {
+    // ReSharper disable InconsistentNaming
     public enum HostRequestCode
     {
-        // ReSharper disable InconsistentNaming
         pair, unpair, get_available_peripherals,
         connect_to_peripheral, disconnect_from_peripheral
+    }
+
+    public enum HostMessage
+    {
+        paired_peripheral_logged_on, paired_peripheral_logged_off
     }
 
     public static class HostJsonApiObjectFactory
@@ -85,6 +90,40 @@ namespace JJA.Anperi.HostApi
                 {"success", success}
             };
             return CreateContextServer(JsonApiMessageTypes.response, HostRequestCode.disconnect_from_peripheral, data);
+        }
+
+        public static JsonApiObject CreateUnpairFromPeripheralRequest(int id)
+        {
+            Dictionary<string, dynamic> data = new Dictionary<string, dynamic>
+            {
+                {"id", id}
+            };
+            return CreateContextServer(JsonApiMessageTypes.request, HostRequestCode.unpair, data);
+        }
+        public static JsonApiObject CreateUnpairFromPeripheralResponse(bool success)
+        {
+            Dictionary<string, dynamic> data = new Dictionary<string, dynamic>
+            {
+                {"success", success}
+            };
+            return CreateContextServer(JsonApiMessageTypes.response, HostRequestCode.unpair, data);
+        }
+
+        public static JsonApiObject CreatePairedPeripheralLoggedOnMessage(int id)
+        {
+            Dictionary<string, dynamic> data = new Dictionary<string, dynamic>
+            {
+                {"id", id}
+            };
+            return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.message, HostMessage.paired_peripheral_logged_on.ToString(), data);
+        }
+        public static JsonApiObject CreatePairedPeripheralLoggedOffMessage(int id)
+        {
+            Dictionary<string, dynamic> data = new Dictionary<string, dynamic>
+            {
+                {"id", id}
+            };
+            return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.message, HostMessage.paired_peripheral_logged_off.ToString(), data);
         }
     }
 }

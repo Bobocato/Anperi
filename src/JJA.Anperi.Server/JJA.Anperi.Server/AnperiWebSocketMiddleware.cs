@@ -23,12 +23,15 @@ namespace JJA.Anperi.Server
         private readonly ILogger<AnperiWebSocketMiddleware> _logger;
         private readonly RequestDelegate _next;
         private readonly IOptions<Options> _options;
+        private readonly object _syncRootActiveConnections = new object();
+        private readonly List<AuthenticatedWebSocketConnection> _activeConnections;
 
         public AnperiWebSocketMiddleware(RequestDelegate next, ILogger<AnperiWebSocketMiddleware> logger, IOptions<Options> options)
         {
             _next = next;
             _logger = logger;
             _options = options;
+            _activeConnections = new List<AuthenticatedWebSocketConnection>();
         }
 
         public class Options
@@ -98,15 +101,7 @@ namespace JJA.Anperi.Server
                         }
                         if (!string.IsNullOrEmpty(token))
                         {
-                            RegisteredDevice device = null;
-                            try
-                            {
-                                device = dbContext.RegisteredDevices.SingleOrDefault(d => d.Token.Equals(token, StringComparison.InvariantCulture));
-                            }
-                            catch (BcryptAuthenticationException ex)
-                            {
-                                _logger.LogError("Error verifying hash.", ex);
-                            }
+                            RegisteredDevice device = dbContext.RegisteredDevices.SingleOrDefault(d => d.Token == token);
                             if (device != null)
                             {
                                 closeStatus = await LoginDevice(ctx, socket, buffer, device, dbContext);
@@ -129,6 +124,15 @@ namespace JJA.Anperi.Server
                                 throw new NotImplementedException();
                         }
                         device.Token = Cryptography.CreateAuthToken();
+                        if (apiObjectResult.Obj.data.TryGetValue("name", out dynamic name))
+                        {
+                            device.Name = name;
+                        }
+                        else
+                        {
+                            device.Name = "GIVE ME A NAME PLEASE";
+                            await socket.SendJson(SharedJsonApiObjectFactory.CreateError("A device registration requires a name!"));
+                        }
                         dbContext.RegisteredDevices.Add(device);
                         await dbContext.SaveChangesAsync();
                         await socket.SendJson(SharedJsonApiObjectFactory.CreateRegisterResponse(device.Token));
@@ -164,8 +168,75 @@ namespace JJA.Anperi.Server
         private async Task<WebSocketCloseStatus> LoginDevice(HttpContext context, WebSocket socket, byte[] buffer, RegisteredDevice device, AnperiDbContext dbContext)
         {
             await socket.SendJson(SharedJsonApiObjectFactory.CreateLoginResponse(true));
-            var connection = new AuthenticatedWebSocketConnection(context, socket, buffer, device, dbContext, _logger);
-            return await connection.Run(_options.Value.RequestCancelToken);
+            var connection = new AuthenticatedWebSocketConnection(context, socket, buffer, device, dbContext, _logger, this);
+            lock (_syncRootActiveConnections)
+            {
+                _activeConnections.Add(connection);
+            }
+            if (connection.IsPeripheral) OnPeripheralLoggedIn(connection, device as Peripheral);
+            WebSocketCloseStatus closeStatus = await connection.Run(_options.Value.RequestCancelToken);
+            if (connection.IsPeripheral) OnPeripheralLoggedOut(connection, device as Peripheral);
+            lock (_syncRootActiveConnections)
+            {
+                _activeConnections.Remove(connection);
+            }
+            return closeStatus;
         }
+
+        internal AuthenticatedWebSocketConnection GetConnectionForId(int id)
+        {
+            lock (_activeConnections)
+            {
+                return _activeConnections.SingleOrDefault(c => c.Device.Id == id);
+            }
+        }
+
+        private void OnPeripheralLoggedIn(AuthenticatedWebSocketConnection c, Peripheral peripheral)
+        {
+            lock (_activeConnections)
+            {
+                peripheral.PairedHosts.ForEach(hp =>
+                {
+                    _activeConnections.ForEach(ac =>
+                    {
+                        if (hp.HostId == ac.Device.Id)
+                            Task.Run(() =>
+                            {
+                                PeripheralLoggedIn?.Invoke(this, new AuthenticatedWebSocketEventArgs(c));
+                            });
+                    });
+                });
+            }
+        }
+        public event EventHandler<AuthenticatedWebSocketEventArgs> PeripheralLoggedIn;
+
+        private void OnPeripheralLoggedOut(AuthenticatedWebSocketConnection c, Peripheral peripheral)
+        {
+            lock (_activeConnections)
+            {
+                peripheral.PairedHosts.ForEach(hp =>
+                {
+                    _activeConnections.ForEach(ac =>
+                    {
+                        if (hp.HostId == ac.Device.Id)
+                            Task.Run(() =>
+                            {
+                                PeripheralLoggedOut?.Invoke(this, new AuthenticatedWebSocketEventArgs(c));
+                            });
+                    });
+                });
+            }
+        }
+        public event EventHandler<AuthenticatedWebSocketEventArgs> PeripheralLoggedOut;
+    }
+
+    public class AuthenticatedWebSocketEventArgs
+    {
+        public AuthenticatedWebSocketEventArgs(AuthenticatedWebSocketConnection connection)
+        {
+            Connection = connection;
+        }
+
+        public AuthenticatedWebSocketConnection Connection { get; set; }
     }
 }
