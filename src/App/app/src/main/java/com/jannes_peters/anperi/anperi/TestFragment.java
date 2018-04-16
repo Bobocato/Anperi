@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,12 +16,16 @@ import android.widget.TextView;
 import com.neovisionaries.ws.client.WebSocket;
 import com.neovisionaries.ws.client.WebSocketException;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 
 public class TestFragment extends Fragment {
     private static final String TAG = "jja.anperi";
     private WebSocket ws;
     public TextView messageText;
+
     public TestFragment() {
     }
 
@@ -38,12 +43,12 @@ public class TestFragment extends Fragment {
         messageText = view.findViewById(R.id.messageView);
         //Buttons and Listener
         Button btnLogin = view.findViewById(R.id.btnLogin);
-        btnLogin.setOnClickListener(new Button.OnClickListener(){
-            public void onClick(View v){
+        btnLogin.setOnClickListener(new Button.OnClickListener() {
+            public void onClick(View v) {
                 //Get the token if there is one
                 SharedPreferences sharedPref = getActivity().getSharedPreferences(getString(R.string.preference_file_name), getActivity().MODE_PRIVATE);
                 String key = sharedPref.getString("token", null);
-                if (key == null){
+                if (key == null) {
                     //No key = no login
                     //Dialog Box
                     AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -57,23 +62,43 @@ public class TestFragment extends Fragment {
                     AlertDialog toShow = builder.create();
                     toShow.show();
                 } else {
-                    ws.sendText("{\"context\":\"server\",\"message_type\":\"request\",\"message_code\":\"login\",\"data\":{\"token\":\" "+ key +"\",\"device_type\":\"peripheral\"}}");
+                    ws.sendText("{\"context\":\"server\",\"message_type\":\"request\",\"message_code\":\"login\",\"data\":{\"token\":\" " + key + "\",\"device_type\":\"peripheral\"}}");
                 }
 
             }
         });
         Button btnRegister = view.findViewById(R.id.btnRegister);
-        btnRegister.setOnClickListener(new Button.OnClickListener(){
-            public void onClick(View v){
-                ws.sendText("{\"context\":\"server\",\"message_type\":\"request\",\"message_code\":\"register\",\"data\":{\"token\":\"123465786438486489\"}}");
-                //ws.sendText("{\"context\":\"server\",\"message_type\":\"request\",\"message_code\":\"register\",\"data\":{\"device_type\":\"peripheral\"}}");
+        btnRegister.setOnClickListener(new Button.OnClickListener() {
+            public void onClick(View v) {
+                String name = Build.MANUFACTURER + " " + Build.VERSION.RELEASE;
+                try {
+                    String jsonString = new JSONObject()
+                            .put("context", "server")
+                            .put("message_type", "request")
+                            .put("message_code", "register")
+                            .put("data", new JSONObject()
+                                    .put("device_type", "peripheral")
+                                    .put("name", name)).toString();
+                    ws.sendText(jsonString);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         });
         Button btnCode = view.findViewById(R.id.btnRequestCode);
-        btnCode.setOnClickListener(new Button.OnClickListener(){
-            public void onClick(View v){
-                ws.sendText("{\"context\":\"server\",\"message_type\":\"request\",\"message_code\":\"get_pairing_code\",\"data\":{\"code\":\"987654321\"}}");
-                //ws.sendText("{\"context\":\"server\",\"message_type\":\"request\",\"message_code\":\"get_pairing_code\",\"data\":null}");
+        btnCode.setOnClickListener(new Button.OnClickListener() {
+            public void onClick(View v) {
+                try {
+                    String jsonString = new JSONObject()
+                            .put("context", "server")
+                            .put("message_type", "request")
+                            .put("message_code", "get_pairing_code")
+                            .put("data", new JSONObject()
+                                    .put("device_type", "peripheral")).toString();
+                    ws.sendText(jsonString);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         });
         return view;
