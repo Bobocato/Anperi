@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -14,6 +15,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using Newtonsoft.Json;
 using WebSocketSharp;
 using JJA.Anperi.Api;
@@ -26,30 +28,49 @@ namespace JJA.Anperi.Host
     public partial class MainWindow : Window
     {
         //TODO: write address in config
-        private string _wsAddress = "ws://localhost:5000/api/ws";
+        //private string _wsAddress = "ws://localhost:5000/api/ws";
+        private string _wsAddress = "wss://anperi.jannes-peters.com/api/ws";
         private WebSocket _ws;
         private string _token = "";
+        private string _name = "";
 
         public MainWindow()
         {
             InitializeComponent();
+            //TODO: read token from file
             InitializeWebSocket();
         }
 
         private void InitializeWebSocket()
         {
-            InfoBlock.Text = "Trying to connect to: " + _wsAddress;
+            //InfoBlock.Text = "Trying to connect to: " + _wsAddress;
             Task.Run(() =>
             {
                 using (_ws = new WebSocket(_wsAddress))
                 {
                     _ws.OnOpen += (sender, e) =>
                     {
-                        InfoBlock.Text = "Current WebSocket-Address is: " + _wsAddress;
+                        this.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(() =>
+                        {
+                            if (_ws.IsAlive)
+                            {
+                                InfoBlock.Text = "Current WebSocket-Address is: " + _wsAddress;
+                            }                            
+                        }));                      
                         if (_token.Equals(""))
                         {
-                            NameBox.Visibility = Visibility.Visible;
-                            ButRegister.Visibility = Visibility.Visible;
+                            var name = System.Environment.MachineName;
+                            var json =
+                                SharedJsonApiObjectFactory
+                                    .CreateRegisterRequest(
+                                        SharedJsonDeviceType.host, name);
+                            _ws.Send(json.Serialize());
+                        }else
+                        {
+                            var json =
+                                SharedJsonApiObjectFactory.CreateLoginRequest(
+                                    _token, SharedJsonDeviceType.host);
+                            _ws.Send(json.Serialize());
                         }
                     };
                     
@@ -57,9 +78,9 @@ namespace JJA.Anperi.Host
                     {    
                         Console.Write(e.Data);
                         var json = JsonApiObject.Deserialize(e.Data);
-                        var context = json.context.ToString();
+                        var context = json.context;
 
-                        if (context.Equals("server"))
+                        if (context.Equals(JsonApiContextTypes.server))
                         {
                             switch (json.message_code)
                             {
@@ -68,20 +89,6 @@ namespace JJA.Anperi.Host
                                     if (json.data["success"])
                                     {
                                         SendPeripheralRequest();
-                                        if (json.message_code.Equals("pair"))
-                                        {
-                                            ButPair.Visibility =
-                                                Visibility.Hidden;
-                                            ButUnpair.Visibility =
-                                                Visibility.Visible;
-                                        }
-                                        else
-                                        {
-                                            ButPair.Visibility =
-                                                Visibility.Visible;
-                                            ButUnpair.Visibility =
-                                                Visibility.Hidden;
-                                        }
                                     }
                                     else
                                     {
@@ -94,18 +101,24 @@ namespace JJA.Anperi.Host
                                     {
                                         if (json.message_code.Equals("connect_to_peripheral"))
                                         {
-                                            BlockConnected.Text = "Connected to: " + json.data["id"];
-                                            ButConnect.Visibility =
-                                                Visibility.Hidden;
-                                            ButDisconnect.Visibility =
-                                                Visibility.Visible;
+                                            this.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(() =>
+                                            {
+                                                BlockConnected.Text = "Connected to: " + json.data["id"];
+                                                ButConnect.Visibility =
+                                                    Visibility.Hidden;
+                                                ButDisconnect.Visibility =
+                                                    Visibility.Visible;
+                                            }));
                                         }else
                                         {
-                                            BlockConnected.Text = "Connected to:";
-                                            ButConnect.Visibility =
-                                                Visibility.Visible;
-                                            ButDisconnect.Visibility =
-                                                Visibility.Hidden;
+                                            this.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(() =>
+                                            {
+                                                BlockConnected.Text = "Connected to:";
+                                                ButConnect.Visibility =
+                                                    Visibility.Visible;
+                                                ButDisconnect.Visibility =
+                                                    Visibility.Hidden;
+                                            }));
                                         }
                                     }else
                                     {
@@ -113,11 +126,14 @@ namespace JJA.Anperi.Host
                                     }
                                     break;
                                 case "partner_disconnected":
-                                    BlockConnected.Text = "Connected to:";
-                                    ShowMessage("Device disconnected!");
-                                    ButConnect.Visibility = Visibility.Visible;
-                                    ButDisconnect.Visibility =
-                                        Visibility.Hidden;
+                                    this.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(() =>
+                                    {                                     
+                                        BlockConnected.Text = "Connected to:";
+                                        ShowMessage("Device disconnected!");
+                                        ButConnect.Visibility = Visibility.Visible;
+                                        ButDisconnect.Visibility =
+                                            Visibility.Hidden;
+                                    }));
                                     break;
                                 case "error":
                                     var msg = json.data["msg"];
@@ -125,10 +141,13 @@ namespace JJA.Anperi.Host
                                     break;
                                 case "register":
                                     _token = json.data["token"];
-                                    InfoBlock2.Text = "Your name is: " + _token;
+                                    //TODO: write token to file
+                                    _name = json.data["name"];
+                                    this.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(() =>
+                                    {
+                                        InfoBlock2.Text = "Your name is: " + _name;
+                                    }));
                                     SendPeripheralRequest();
-                                    NameBox.Visibility = Visibility.Hidden;
-                                    ButRegister.Visibility = Visibility.Hidden;
                                     break;
                                 case "login":
                                     if (json.data["success"])
@@ -140,16 +159,16 @@ namespace JJA.Anperi.Host
                                     }
                                     break;
                                 case "get_available_peripherals":
-                                    //TODO: fix this
+                                    //TODO: finish this
                                     var dictionary = json.data["devices"];
                                     foreach (var x in dictionary)
                                     {
                                         ListBoxItem item = new ListBoxItem();
-                                        //add items like "id:1234567,name:Test"
+                                        //add items like "1234567,Test"
                                     }
                                     break;
                             }
-                        }else if (context.Equals("device"))
+                        }else if (context.Equals(JsonApiContextTypes.device))
                         {
                             //TODO: write cases for device
                         }else
@@ -160,7 +179,11 @@ namespace JJA.Anperi.Host
 
                     _ws.OnClose += (sender, e) =>
                     {
-                        InfoBlock.Text = "No current WebSocket connection";
+                        this.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(() =>
+                        {
+                            InfoBlock.Text = "No current WebSocket connection";
+                        }));
+
                         if (!e.WasClean)
                         {
                             if (!_ws.IsAlive)
@@ -181,21 +204,30 @@ namespace JJA.Anperi.Host
             Task.Run(() =>
             {
                 var tmp = InfoBlock.Text;
-                InfoBlock.Text = message;
-                Thread.Sleep(3000);
-                InfoBlock.Text = tmp;
+                this.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(() =>
+                    {
+                        InfoBlock.Text = message;
+                    }));
+                Thread.Sleep(1500);
+                this.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(() =>
+                {
+                    InfoBlock.Text = tmp;
+                }));
             });            
         }
 
         private void SendToWebsocket(string message)
         {
-            if (_ws.IsAlive)
+            Task.Run(() =>
             {
-                _ws.Send(message);
-            }else
-            {
-                ShowMessage("Websocket is not alive!");
-            }
+                if (_ws.IsAlive)
+                {
+                    _ws.Send(message);
+                }else
+                {
+                    ShowMessage("Websocket is not alive!");
+                }
+            });
         }
 
         private void SendPeripheralRequest()
@@ -215,12 +247,22 @@ namespace JJA.Anperi.Host
 
         private void ButConnect_Click(object sender, RoutedEventArgs e)
         {
-            var curItem = PeriBox.SelectedItem.ToString();
-            var substrings = curItem.Split(',');
-            var id = Int32.Parse(substrings[0].Substring(3));
-            var json =
-                HostJsonApiObjectFactory.CreateConnectToPeripheralRequest(id);
-            SendToWebsocket(json.Serialize());
+            if (PeriBox.Items.Count == 0)
+            {
+                ShowMessage("Can't connect, because the list is empty!");
+            }
+
+            if (PeriBox.SelectedIndex == -1)
+            {
+                ShowMessage("Can't connect, because no peripheral was selected!");
+            }else
+            {
+                var curItem = PeriBox.SelectedItem.ToString();
+                var substrings = curItem.Split(',');
+                var id = Int32.Parse(substrings[0]);
+                var json = HostJsonApiObjectFactory.CreateConnectToPeripheralRequest(id);
+                SendToWebsocket(json.Serialize());
+            }
         }
 
         private void ButSendMessage_Click(object sender, RoutedEventArgs e)
@@ -239,21 +281,30 @@ namespace JJA.Anperi.Host
 
         private void ButUnpair_Click(object sender, RoutedEventArgs e)
         {
-            var curItem = PeriBox.SelectedItem.ToString();
-            var substrings = curItem.Split(',');
-            var id = Int32.Parse(substrings[0].Substring(3));
-            var json = HostJsonApiObjectFactory.CreateUnpairFromPeripheralRequest(id);
-            SendToWebsocket(json.Serialize());
+            if (PeriBox.Items.Count == 0)
+            {
+                ShowMessage("Can't unpair, because the list is empty!");
+            }
+
+            if (PeriBox.SelectedIndex == -1)
+            {
+                ShowMessage("Can't unpair, because no peripheral was selected!");
+            }else
+            {
+                var curItem = PeriBox.SelectedItem.ToString();
+                var substrings = curItem.Split(',');
+                var id = Int32.Parse(substrings[0]);
+                var json = HostJsonApiObjectFactory.CreateUnpairFromPeripheralRequest(id);
+                SendToWebsocket(json.Serialize());
+            }
         }
 
-        private void ButRegister_Click(object sender, RoutedEventArgs e)
+        private void MainWindow_OnClosing(object sender, CancelEventArgs e)
         {
-            var name = NameBox.Text;
-            var jsonReg =
-                SharedJsonApiObjectFactory
-                    .CreateRegisterRequest(SharedJsonDeviceType
-                        .host, name);
-            SendToWebsocket(jsonReg.Serialize());
+            if (_ws.IsAlive)
+            {
+                _ws.CloseAsync();
+            }
         }
     }
 }

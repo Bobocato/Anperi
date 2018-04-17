@@ -6,7 +6,8 @@
         xmlns:local="clr-namespace:JJA.Anperi.Host"
         mc:Ignorable="d"
         Title="Anperi" Height="350" Width="525"
-        MinHeight="275" MinWidth="400">
+        MinHeight="275" MinWidth="400"
+        Closing="MainWindow_OnClosing">
 	<Grid>
 		<TextBlock x:Name="InfoBlock" Margin="10,0,10,10" TextWrapping="Wrap" Text="No current WebSocket connection!" TextAlignment="Center" Grid.ColumnSpan="2" Height="16" VerticalAlignment="Bottom"/>
 		<ListBox x:Name="PeriBox" Height="100" Margin="10,10,10,0" VerticalAlignment="Top"/>
@@ -18,9 +19,7 @@
 		<TextBlock x:Name="BlockConnected" HorizontalAlignment="Left" Margin="223,127,0,0" TextWrapping="Wrap" Text="Connected to:" VerticalAlignment="Top" Height="16" Width="178"/>
 		<Button Visibility="Hidden" x:Name="ButDisconnect" Content="Disconnect" HorizontalAlignment="Left" Margin="432,123,0,0" VerticalAlignment="Top" Width="75" Height="25" Click="ButDisconnect_Click"/>
 		<Button Visibility="Hidden" x:Name="ButUnpair" Content="Unpair" HorizontalAlignment="Left" Margin="106,123,0,0" VerticalAlignment="Top" Width="75" Height="25" Click="ButUnpair_Click"/>
-		<TextBox x:Name="NameBox" HorizontalAlignment="Left" Height="23" Margin="10,243,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
-		<Button x:Name="ButRegister" Content="Register" HorizontalAlignment="Left" Margin="142,243,0,0" VerticalAlignment="Top" Width="83" Height="23" Click="ButRegister_Click"/>
-		<TextBlock x:Name="InfoBlock2" TextAlignment="Center" HorizontalAlignment="Left" Margin="10,277,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" Width="497"/>
+		<TextBlock x:Name="InfoBlock2" TextAlignment="Center" HorizontalAlignment="Left" Margin="10,277,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="497"/>
 
 	</Grid>
 </Window>
