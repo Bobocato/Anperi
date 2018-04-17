@@ -52,7 +52,7 @@ namespace JJA.Anperi.Api.Shared
             if (token == null) throw new ArgumentNullException(nameof(token));
             Dictionary<string, dynamic> data = new Dictionary<string, dynamic>
             {
-                { "device_type", type },
+                { "device_type", type.ToString() },
                 { "token", token }
             };
             return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.request, SharedJsonRequestCode.login.ToString(), data);
