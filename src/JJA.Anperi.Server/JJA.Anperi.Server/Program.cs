@@ -23,15 +23,40 @@ namespace JJA.Anperi.Server
             using (var scope = webHost.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
+                var context = services.GetRequiredService<AnperiDbContext>();
+                var logger = services.GetRequiredService<ILogger<Program>>();
                 try
                 {
-                    var context = services.GetRequiredService<AnperiDbContext>();
                     context.Database.EnsureCreated();
                 }
                 catch (Exception ex)
                 {
-                    var logger = services.GetRequiredService<ILogger<Program>>();
-                    logger.LogWarning(ex, "Initial dataset already exists, skipping HostPeripheral dummys");
+                    logger.LogCritical(ex, "Error reading or creating database! Shutting down ...\nYou might want to enable InMemoryDatabase in appsettings.json.");
+                    return;
+                }
+                try
+                {
+                    logger.LogInformation("Testing database structure ...");
+                    Host h = new Host {Name = "SomeHost", Token = "DEBUGTOKENHOST"};
+                    Peripheral p = new Peripheral {Name = "SomePeripheral", Token = "SOMEPERIPHERALDEBUGTOKEN"};
+                    context.Hosts.Add(h);
+                    context.Peripherals.Add(p);
+                    context.SaveChanges();
+                    HostPeripheral hp = new HostPeripheral {Host = h, Peripheral = p};
+                    h.PairedPeripherals.Add(hp);
+                    context.SaveChanges();
+                    var code = new ActivePairingCode {Code = "123456", PeripheralId = p.Id};
+                    context.ActivePairingCodes.Add(code);
+                    context.SaveChanges();
+                    context.RemoveRange(code, hp, p, h);
+                    context.SaveChanges();
+                    logger.LogInformation("Testing database structure: SUCCESS");
+                }
+                catch (Exception ex)
+                {
+                    logger.LogCritical("Testing database structure: ERROR");
+                    logger.LogCritical(ex, "Error testing DB structure! Shutting down ...\nYou might need to wipe the database.");
+                    return;
                 }
             }
 
