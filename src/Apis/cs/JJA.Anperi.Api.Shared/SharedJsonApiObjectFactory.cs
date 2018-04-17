@@ -57,11 +57,12 @@ namespace JJA.Anperi.Api.Shared
             };
             return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.request, SharedJsonRequestCode.login.ToString(), data);
         }
-        public static JsonApiObject CreateLoginResponse(bool success)
+        public static JsonApiObject CreateLoginResponse(bool success, string name)
         {
             Dictionary<string, dynamic> data = new Dictionary<string, dynamic>
             {
-                {"success", success}
+                {"success", success},
+                {"name", name}
             };
             return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.response, SharedJsonRequestCode.login.ToString(), data);
         }
@@ -75,12 +76,13 @@ namespace JJA.Anperi.Api.Shared
             };
             return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.request, SharedJsonRequestCode.register.ToString(), data);
         }
-        public static JsonApiObject CreateRegisterResponse(string token)
+        public static JsonApiObject CreateRegisterResponse(string token, string name)
         {
             if (token == null) throw new ArgumentNullException(nameof(token));
             Dictionary<string, dynamic> data = new Dictionary<string, dynamic>
             {
-                {"token", token}
+                {"token", token},
+                {"name", name}
             };
             return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.response, SharedJsonRequestCode.register.ToString(), data);
         }

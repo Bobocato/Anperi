@@ -135,7 +135,7 @@ namespace JJA.Anperi.Server
                         }
                         dbContext.RegisteredDevices.Add(device);
                         await dbContext.SaveChangesAsync();
-                        await socket.SendJson(SharedJsonApiObjectFactory.CreateRegisterResponse(device.Token));
+                        await socket.SendJson(SharedJsonApiObjectFactory.CreateRegisterResponse(device.Token, device.Name));
                         closeStatus = await LoginDevice(ctx, socket, buffer, device, dbContext);
                         authFailed = false;
                     }
@@ -150,7 +150,7 @@ namespace JJA.Anperi.Server
 
             if (authFailed)
             {
-                await socket.SendJson(SharedJsonApiObjectFactory.CreateLoginResponse(false));
+                await socket.SendJson(SharedJsonApiObjectFactory.CreateLoginResponse(false, null));
                 CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(1000));
                 await socket.CloseAsync(WebSocketCloseStatus.PolicyViolation, "Authentication failed.", cts.Token);
             }
@@ -167,7 +167,7 @@ namespace JJA.Anperi.Server
 
         private async Task<WebSocketCloseStatus> LoginDevice(HttpContext context, WebSocket socket, byte[] buffer, RegisteredDevice device, AnperiDbContext dbContext)
         {
-            await socket.SendJson(SharedJsonApiObjectFactory.CreateLoginResponse(true));
+            await socket.SendJson(SharedJsonApiObjectFactory.CreateLoginResponse(true, device.Name));
             var connection = new AuthenticatedWebSocketConnection(context, socket, buffer, device, dbContext, _logger, this);
             lock (_syncRootActiveConnections)
             {
