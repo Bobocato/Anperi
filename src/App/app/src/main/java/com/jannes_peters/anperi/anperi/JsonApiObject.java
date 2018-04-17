@@ -10,9 +10,9 @@ import org.json.JSONObject;
 public class JsonApiObject {
     private static final String TAG = "jja.anperi";
     private final Context context;
-    private String messageContext;
-    private String messageType;
-    private String messageCode;
+    protected String messageContext;
+    protected String messageType;
+    protected String messageCode;
     protected JSONObject messageData;
 
     //Enum with possible actions to be performed by the "MainActivity" Will be extended as need rises
@@ -39,7 +39,7 @@ public class JsonApiObject {
                                 return Action.error;
                         }
                         break;
-                    case "request":
+                    case "response":
                         switch (messageCode) {
                             case "register":
                                 //TODO: Save Token
@@ -50,7 +50,13 @@ public class JsonApiObject {
                                 return Action.success;
                             case "login":
                                 //TODO: Maybe send info to host
-                                break;
+                                Boolean success = messageData.getBoolean("success");
+                                if (success){
+                                    return Action.success;
+                                } else {
+                                    return Action.error;
+                                }
+
                             case "get_pairing_code":
                                 //TODO: save pairing messageCode
                                 SharedPreferences sharedprefs = context.getSharedPreferences(context.getString(R.string.preference_file_name), Context.MODE_PRIVATE);
@@ -59,9 +65,6 @@ public class JsonApiObject {
                                 sharedprefs.edit().putString("pairingcode", pairingcode).apply();
                                 return Action.success;
                         }
-                        break;
-                    case "response":
-                        //Nothing atm
                         break;
                     default:
                         Log.v(TAG, "Wrong messageType");

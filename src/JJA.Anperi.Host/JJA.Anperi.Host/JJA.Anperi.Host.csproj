@@ -37,6 +37,12 @@
     <Reference Include="JJA.Anperi.Api">
       <HintPath>..\..\Apis\cs\JJA.Anperi.HostApi\bin\Debug\netstandard2.0\JJA.Anperi.Api.dll</HintPath>
     </Reference>
+    <Reference Include="JJA.Anperi.Api.Shared">
+      <HintPath>..\..\Apis\cs\JJA.Anperi.Api.Shared\bin\Debug\netstandard2.0\JJA.Anperi.Api.Shared.dll</HintPath>
+    </Reference>
+    <Reference Include="JJA.Anperi.DeviceApi">
+      <HintPath>..\..\Apis\cs\JJA.Anperi.DeviceApi\bin\Debug\netstandard2.0\JJA.Anperi.DeviceApi.dll</HintPath>
+    </Reference>
     <Reference Include="JJA.Anperi.HostApi">
       <HintPath>..\..\Apis\cs\JJA.Anperi.HostApi\bin\Debug\netstandard2.0\JJA.Anperi.HostApi.dll</HintPath>
     </Reference>

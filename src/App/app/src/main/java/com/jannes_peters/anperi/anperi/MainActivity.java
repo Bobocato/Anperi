@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
+import android.os.Build;
 
 import com.neovisionaries.ws.client.WebSocket;
 import com.neovisionaries.ws.client.WebSocketAdapter;
@@ -23,7 +24,7 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "jja.anperi";
-    private final boolean debug = true;
+    private final boolean debug = false;
 
     private KeyFragment keyFragment;
     private LoadingFragment loadingFragment;
@@ -36,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         //Set server and start websocket
-        MyWebSocket.setServer("ws://echo.websocket.org");
+        MyWebSocket.setServer("wss://anperi.jannes-peters.com/api/ws");
         try {
             ws = MyWebSocket.getInstance();
         } catch (IOException e) {
@@ -49,47 +50,49 @@ public class MainActivity extends AppCompatActivity {
         keyFragment = new KeyFragment();
         loadingFragment = new LoadingFragment();
         testFragment = new TestFragment();
-        //Show testPage
+        //Wait for connection...
+    }
+
+    private void connected(){
         if (debug){
+            //Show testPage
             showTest();
         } else {
             showLoad();
-            //Show an dialog box if the user hasn't used the app before or show the key on screen
+            //Delete shared preferences
+            //this.getSharedPreferences(getString(R.string.preference_file_name), 0).edit().clear().apply();
             SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.preference_file_name), MODE_PRIVATE);
             String key = sharedPref.getString("token", null);
             if (key == null) {
-                //TODO:Request a key
-                //Send register request (its going to be set automatically)
-                ws.sendText("{\"context\":\"server\",\"message_type\":\"request\",\"message_code\":\"register\",\"data\":{\"token\":\"123465786438486489\"}}");
-                //ws.sendText("{\"context\":\"server\",\"message_type\":\"request\",\"message_code\":\"register\",\"data\":{\"device_type\":\"peripheral\"}}");
-                while (sharedPref.getString("token", null) == null) {
-                    //wait
+                //Device name should be device model
+                String name = Build.MANUFACTURER + " " + Build.VERSION.RELEASE;
+                //Build JSON and send it
+                try {
+                    String jsonString = new JSONObject()
+                            .put("context", "server")
+                            .put("message_type", "request")
+                            .put("message_code", "register")
+                            .put("data", new JSONObject()
+                                    .put("device_type", "peripheral")
+                                    .put("name", name)).toString();
+                    ws.sendText(jsonString);
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-                ws.sendText("{\"context\":\"server\",\"message_type\":\"request\",\"message_code\":\"get_pairing_code\",\"data\":{\"code\":\"987654321\"}}");
-                //ws.sendText("{\"context\":\"server\",\"message_type\":\"request\",\"message_code\":\"get_pairing_code\",\"data\":null}");
-                while (sharedPref.getString("pairingcode", null) == null) {
-                    //wait
-                }
-
-                showKey();
-            /*
-            //Dialog Box
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage(R.string.new_user_message)
-                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            Log.v(TAG, "Ok Button");
-                        }
-                    });
-            AlertDialog toShow = builder.create();
-            toShow.show();
-            */
             } else {
                 //Login and show the key
-                ws.sendText("{\"context\":\"server\",\"message_type\":\"request\",\"message_code\":\"login\",\"data\":{\"success\":\"true\"}}");
-                //ws.sendText("{\"context\":\"server\",\"message_type\":\"request\",\"message_code\":\"login\",\"data\":{\"token\":\"123465786438486489\",\"device_type\":\"peripheral\"}}");
-                showKey();
+                try {
+                    String jsonString = new JSONObject()
+                            .put("context", "server")
+                            .put("message_type", "request")
+                            .put("message_code", "login")
+                            .put("data", new JSONObject()
+                                    .put("token", key)
+                                    .put("device_type", "peripheral")).toString();
+                    ws.sendText(jsonString);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -123,24 +126,25 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
                 //For testing purposes
-                try {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            testFragment.messageText.setText(testFragment.messageText.getText() + "\n" + message);
-                        }
-                    });
-                } catch (Exception e) {
-                    Log.v(TAG, e.toString());
+                if (debug) {
+                    try {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                testFragment.messageText.setText(testFragment.messageText.getText() + "\n" + message);
+                            }
+                        });
+                    } catch (Exception e) {
+                        Log.v(TAG, e.toString());
+                    }
                 }
-
             }
         });
         webSocketListenerList.add(new WebSocketAdapter() {
             @Override
             public void onConnected(WebSocket websocket, Map<String, List<String>> headers) {
                 Log.v(TAG, "Connection established " + headers.toString());
-                //ws.sendText("{\"context\":\"server\",\"message_type\":\"request\",\"message_code\":\"login\",\"data\":{\"device_type\":\"peripheral\"}}");
+                connected();
             }
         });
         ws.addListeners(webSocketListenerList);
@@ -154,6 +158,25 @@ public class MainActivity extends AppCompatActivity {
                 public void run() {
                     if (action == JsonApiObject.Action.success) {
                         Toast.makeText(getApplicationContext(), action.toString() + ": " + apiObject.messageData.toString(), Toast.LENGTH_SHORT).show();
+                        if (apiObject.messageContext.equals("server") && apiObject.messageCode.equals("register")){
+                            //User was registerd ask for code...
+                            try {
+                                String jsonString = new JSONObject()
+                                        .put("context", "server")
+                                        .put("message_type", "request")
+                                        .put("message_code", "get_pairing_code")
+                                        .put("data", null).toString();
+                                ws.sendText(jsonString);
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        } else if(apiObject.messageContext.equals("server") && apiObject.messageCode.equals("get_pairing_code")){
+                            //User has pairing code show it
+                            showKey();
+                        } else if (apiObject.messageContext.equals("server") && apiObject.messageCode.equals("login")){
+                            //User was logged in show pairing code
+                            showKey();
+                        }
                     } else if (action == JsonApiObject.Action.debug) {
                         Toast.makeText(getApplicationContext(), action.toString() + ": " + apiObject.messageData.toString(), Toast.LENGTH_LONG).show();
                     }

@@ -25,9 +25,10 @@ namespace JJA.Anperi.Host
 {
     public partial class MainWindow : Window
     {
+        //TODO: write address in config
         private string _wsAddress = "ws://localhost:5000/api/ws";
         private WebSocket _ws;
-        private string token = "";
+        private string _token = "";
 
         public MainWindow()
         {
@@ -45,14 +46,10 @@ namespace JJA.Anperi.Host
                     _ws.OnOpen += (sender, e) =>
                     {
                         InfoBlock.Text = "Current WebSocket-Address is: " + _wsAddress;
-
-                        if (token.Equals(""))
+                        if (_token.Equals(""))
                         {
-                            var jsonReg =
-                                SharedJsonApiObjectFactory
-                                    .CreateRegisterRequest(SharedJsonDeviceType
-                                        .host);
-                            SendToWebsocket(jsonReg.Serialize());
+                            NameBox.Visibility = Visibility.Visible;
+                            ButRegister.Visibility = Visibility.Visible;
                         }
                     };
                     
@@ -71,7 +68,22 @@ namespace JJA.Anperi.Host
                                     if (json.data["success"])
                                     {
                                         SendPeripheralRequest();
-                                    }else
+                                        if (json.message_code.Equals("pair"))
+                                        {
+                                            ButPair.Visibility =
+                                                Visibility.Hidden;
+                                            ButUnpair.Visibility =
+                                                Visibility.Visible;
+                                        }
+                                        else
+                                        {
+                                            ButPair.Visibility =
+                                                Visibility.Visible;
+                                            ButUnpair.Visibility =
+                                                Visibility.Hidden;
+                                        }
+                                    }
+                                    else
                                     {
                                         ShowMessage("Something went wrong in operation " + json.message_code + " !");
                                     }
@@ -83,9 +95,17 @@ namespace JJA.Anperi.Host
                                         if (json.message_code.Equals("connect_to_peripheral"))
                                         {
                                             BlockConnected.Text = "Connected to: " + json.data["id"];
+                                            ButConnect.Visibility =
+                                                Visibility.Hidden;
+                                            ButDisconnect.Visibility =
+                                                Visibility.Visible;
                                         }else
                                         {
                                             BlockConnected.Text = "Connected to:";
+                                            ButConnect.Visibility =
+                                                Visibility.Visible;
+                                            ButDisconnect.Visibility =
+                                                Visibility.Hidden;
                                         }
                                     }else
                                     {
@@ -95,14 +115,20 @@ namespace JJA.Anperi.Host
                                 case "partner_disconnected":
                                     BlockConnected.Text = "Connected to:";
                                     ShowMessage("Device disconnected!");
+                                    ButConnect.Visibility = Visibility.Visible;
+                                    ButDisconnect.Visibility =
+                                        Visibility.Hidden;
                                     break;
                                 case "error":
                                     var msg = json.data["msg"];
                                     ShowMessage("WebSocket send error: " + msg);
                                     break;
                                 case "register":
-                                    token = json.data["token"];
+                                    _token = json.data["token"];
+                                    InfoBlock2.Text = "Your name is: " + _token;
                                     SendPeripheralRequest();
+                                    NameBox.Visibility = Visibility.Hidden;
+                                    ButRegister.Visibility = Visibility.Hidden;
                                     break;
                                 case "login":
                                     if (json.data["success"])
@@ -139,7 +165,7 @@ namespace JJA.Anperi.Host
                         {
                             if (!_ws.IsAlive)
                             {
-                                token = "";
+                                _token = "";
                                 Thread.Sleep(5000);
                                 _ws.Connect();
                             }
@@ -216,7 +242,18 @@ namespace JJA.Anperi.Host
             var curItem = PeriBox.SelectedItem.ToString();
             var substrings = curItem.Split(',');
             var id = Int32.Parse(substrings[0].Substring(3));
-            //TODO: send a JSON object for unpairing with choosen device, when implemented
+            var json = HostJsonApiObjectFactory.CreateUnpairFromPeripheralRequest(id);
+            SendToWebsocket(json.Serialize());
+        }
+
+        private void ButRegister_Click(object sender, RoutedEventArgs e)
+        {
+            var name = NameBox.Text;
+            var jsonReg =
+                SharedJsonApiObjectFactory
+                    .CreateRegisterRequest(SharedJsonDeviceType
+                        .host, name);
+            SendToWebsocket(jsonReg.Serialize());
         }
     }
 }
