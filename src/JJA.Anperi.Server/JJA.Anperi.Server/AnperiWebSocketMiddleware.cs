@@ -12,6 +12,7 @@ using JJA.Anperi.Api.Shared;
 using JJA.Anperi.Server.Model;
 using JJA.Anperi.Server.Utility;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -53,7 +54,15 @@ namespace JJA.Anperi.Server
                 ctx.Response.StatusCode = StatusCodes.Status400BadRequest;
                 return;
             }
-            await HandleWebSocket(ctx, dbContext);
+            try
+            {
+                await HandleWebSocket(ctx, dbContext);
+            }
+            catch (WebSocketException se)
+            {
+                if (!(se.InnerException is BadHttpRequestException)) throw;
+                _logger.LogWarning($"BadHttpRequestException occured while handling a websocket: {se.Message} -> {se.InnerException.Message}");
+            }
         }
 
         private async Task HandleWebSocket(HttpContext ctx, AnperiDbContext dbContext)
