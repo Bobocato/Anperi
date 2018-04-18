@@ -11,4 +11,5 @@
     <string name="btnRegister">Register</string>
     <string name="testMessageBox">The messages will be shown here</string>
     <string name="no_key">Please register first</string>
+    <string name="enter_server">Enter Server URL</string>
 </resources>

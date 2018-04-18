@@ -1,10 +1,14 @@
 package com.jannes_peters.anperi.anperi;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.text.InputType;
 import android.util.Log;
+import android.widget.EditText;
 import android.widget.Toast;
 import android.os.Build;
 
@@ -25,6 +29,7 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "jja.anperi";
     private final boolean debug = false;
+    private String serverUrl = "";
 
     private KeyFragment keyFragment;
     private LoadingFragment loadingFragment;
@@ -35,22 +40,40 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        //Set server and start websocket
-        MyWebSocket.setServer("wss://anperi.jannes-peters.com/api/ws");
-        try {
-            ws = MyWebSocket.getInstance();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (WebSocketException e) {
-            e.printStackTrace();
-        }
-        addWsListeners();
         //Create Fragments and show loading fragment
         keyFragment = new KeyFragment();
         loadingFragment = new LoadingFragment();
         testFragment = new TestFragment();
-        //Wait for connection...
+        showLoad();
+        //Ask for server url
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.enter_server);
+        final EditText input = new EditText(this);
+        input.setHint("wss://anperi.jannes-peters.com/api/ws");
+        input.setInputType(InputType.TYPE_TEXT_VARIATION_URI | InputType.TYPE_CLASS_TEXT);
+        builder.setView(input);
+        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                if(!input.getText().toString().equals("")) {
+                    serverUrl = input.getText().toString();
+                } else {
+                    serverUrl = input.getHint().toString();
+                }
+                //Set server and start websocket
+                MyWebSocket.setServer(serverUrl);
+                try {
+                    ws = MyWebSocket.getInstance();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (WebSocketException e) {
+                    e.printStackTrace();
+                }
+                addWsListeners();
+                //Wait for connection...
+            }
+        });
+        builder.show();
     }
 
     private void connected(){
@@ -58,7 +81,6 @@ public class MainActivity extends AppCompatActivity {
             //Show testPage
             showTest();
         } else {
-            showLoad();
             //Delete shared preferences
             //this.getSharedPreferences(getString(R.string.preference_file_name), 0).edit().clear().apply();
             SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.preference_file_name), MODE_PRIVATE);
