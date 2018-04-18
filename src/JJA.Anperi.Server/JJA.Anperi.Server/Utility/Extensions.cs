@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using JJA.Anperi.Api;
 using JJA.Anperi.Server.Model;
+using Microsoft.CSharp.RuntimeBinder;
 using Newtonsoft.Json;
 
 namespace JJA.Anperi.Server.Utility
@@ -74,6 +75,25 @@ namespace JJA.Anperi.Server.Utility
                 {
                     result.JsonException = ex;
                 }
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// TryGetValue with typecheck for dynamic dictionary.
+        /// </summary>
+        /// <returns>if the key existed and the dynamic was of the given type</returns>
+        internal static bool TryGetValue<TK, T>(this Dictionary<TK, dynamic> dict, TK key, out T val)
+        {
+            bool result = false;
+            if (dict.TryGetValue(key, out dynamic dyn) && dyn is T)
+            {
+                val = dyn;
+                result = true;
+            }
+            else
+            {
+                val = default(T);
             }
             return result;
         }

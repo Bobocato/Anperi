@@ -69,6 +69,11 @@ namespace JJA.Anperi.Server
 
         public RegisteredDevice Device => _device;
 
+        public HttpContext Context
+        {
+            get { return _context; }
+        }
+
         private async void PartnerCloseConnection()
         {
             lock (_syncRootPartner)
@@ -166,6 +171,20 @@ namespace JJA.Anperi.Server
                     await _socket.SendJson(
                         SharedJsonApiObjectFactory.CreateError("You can't login while you're logged in ..."), token);
                     break;
+                case SharedJsonRequestCode.set_own_name:
+                    if (message.data.TryGetValue("name", out string newName))
+                    {
+                        _db.Hosts.Find(_device.Id).Name = newName;
+                        _db.SaveChanges();
+                        await _socket.SendJson(SharedJsonApiObjectFactory.CreateChangeOwnNameResponse(true, newName));
+                    }
+                    else
+                    {
+                        await _socket.SendJson(SharedJsonApiObjectFactory.CreateError("name not defined"));
+                    }
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
             return true;
         }
@@ -231,7 +250,7 @@ namespace JJA.Anperi.Server
             switch (msgCode)
             {
                 case HostRequestCode.pair:
-                    if (!message.data.TryGetValue("code", out dynamic codeDyn))
+                    if (!message.data.TryGetValue("code", out string code))
                     {
                         await _socket.SendJson(
                             SharedJsonApiObjectFactory.CreateError("Parameter code not set or null."), token);
@@ -239,7 +258,6 @@ namespace JJA.Anperi.Server
                     }
                     try
                     {
-                        string code = codeDyn;
                         ActivePairingCode pairingCode = _db.ActivePairingCodes.SingleOrDefault(p => p.Code.Equals(code));
                         if (pairingCode == null)
                         {
@@ -272,25 +290,31 @@ namespace JJA.Anperi.Server
                     }
                     break;
                 case HostRequestCode.unpair:
-                    message.data.TryGetValue("id", out dynamic peripheralDyn);
-                    int peripheralId = peripheralDyn;
-                    HostPeripheral connection = _db.Peripherals.Find(peripheralId)?.PairedHosts
-                        .SingleOrDefault(p => p.HostId == Device.Id);
-                    if (connection != null)
+                    if (message.data.TryGetValue("id", out int peripheralId))
                     {
-                        try
+                        HostPeripheral connection = _db.Peripherals.Find(peripheralId)?.PairedHosts
+                            .SingleOrDefault(p => p.HostId == Device.Id);
+                        if (connection != null)
                         {
-                            _db.Remove(connection);
-                            _db.SaveChanges();
-                            await _socket.SendJson(HostJsonApiObjectFactory.CreateUnpairFromPeripheralResponse(true));
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Error unpairing devices.");
-                            await _socket.SendJson(HostJsonApiObjectFactory.CreateUnpairFromPeripheralResponse(false));
+                            try
+                            {
+                                _db.Remove(connection);
+                                _db.SaveChanges();
+                                await _socket.SendJson(
+                                    HostJsonApiObjectFactory.CreateUnpairFromPeripheralResponse(true));
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "Error unpairing devices.");
+                                await _socket.SendJson(
+                                    HostJsonApiObjectFactory.CreateUnpairFromPeripheralResponse(false));
+                            }
                         }
                     }
-                    
+                    else
+                    {
+                        await _socket.SendJson(SharedJsonApiObjectFactory.CreateError("id not defined"));
+                    }
                     break;
                 case HostRequestCode.get_available_peripherals:
                     IEnumerable<Peripheral> peripherals =
@@ -313,12 +337,19 @@ namespace JJA.Anperi.Server
                     }
                     break;
                 case HostRequestCode.connect_to_peripheral:
-                    message.data.TryGetValue("id", out dynamic id);
-                    AuthenticatedWebSocketConnection conn = _anperiManager.GetConnectionForId(id);
-                    if (conn != null)
+                    if (message.data.TryGetValue("id", out int id))
                     {
-                        _partner = conn;
-                        conn.PartnerConnect(this);
+                        AuthenticatedWebSocketConnection conn = _anperiManager.GetConnectionForId(id);
+                        if (conn != null)
+                        {
+                            _partner = conn;
+                            conn.PartnerConnect(this);
+                            await _socket.SendJson(HostJsonApiObjectFactory.CreateConnectToPeripheralResponse(true));
+                        }
+                        else
+                        {
+                            await _socket.SendJson(HostJsonApiObjectFactory.CreateConnectToPeripheralResponse(false));
+                        }
                     }
                     else
                     {
@@ -329,6 +360,26 @@ namespace JJA.Anperi.Server
                     _partner?.PartnerCloseConnection();
                     _partner = null;
                     await _socket.SendJson(HostJsonApiObjectFactory.CreateDisconnectFromPeripheralResponse(true), token);
+                    break;
+                case HostRequestCode.change_peripheral_name:
+                    if (message.data.TryGetValue("name", out string newName) && message.data.TryGetValue("id", out int periId))
+                    {
+                        Peripheral p = _db.Peripherals.Find(periId);
+                        if (p != null)
+                        {
+                            p.Name = newName;
+                            _db.SaveChanges();
+                            await _socket.SendJson(
+                                SharedJsonApiObjectFactory.CreateChangeOwnNameResponse(true, newName));
+                        }
+                        else await _socket.SendJson(
+                            SharedJsonApiObjectFactory.CreateChangeOwnNameResponse(false, null));
+
+                    }
+                    else
+                    {
+                        await _socket.SendJson(SharedJsonApiObjectFactory.CreateError("name or id not defined"));
+                    }
                     break;
                 default:
                     await _socket.SendJson(SharedJsonApiObjectFactory.CreateError($"Function {msgCode.ToString()} not implemented yet."),

@@ -10,7 +10,8 @@ namespace JJA.Anperi.HostApi
     public enum HostRequestCode
     {
         pair, unpair, get_available_peripherals,
-        connect_to_peripheral, disconnect_from_peripheral
+        connect_to_peripheral, disconnect_from_peripheral,
+        change_peripheral_name
     }
 
     public enum HostMessage
@@ -124,6 +125,27 @@ namespace JJA.Anperi.HostApi
                 {"id", id}
             };
             return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.message, HostMessage.paired_peripheral_logged_off.ToString(), data);
+        }
+
+        public static JsonApiObject CreateChangeNameRequest(int id, string name)
+        {
+            Dictionary<string, dynamic> data = new Dictionary<string, dynamic>
+            {
+                { "id", id },
+                {"name", name}
+            };
+            return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.request, HostRequestCode.change_peripheral_name.ToString(), data);
+        }
+        public static JsonApiObject CreateChangeNameResponse(bool success, string name, int id)
+        {
+            if (name == null) throw new ArgumentNullException(nameof(name));
+            Dictionary<string, dynamic> data = new Dictionary<string, dynamic>
+            {
+                {"success", success},
+                {"name", name},
+                { "id", id }
+            };
+            return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.response, HostRequestCode.change_peripheral_name.ToString(), data);
         }
     }
 }

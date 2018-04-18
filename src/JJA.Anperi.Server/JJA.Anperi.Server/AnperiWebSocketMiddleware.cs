@@ -6,7 +6,6 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using BCrypt.Net;
 using JJA.Anperi.Api;
 using JJA.Anperi.Api.Shared;
 using JJA.Anperi.Server.Model;
@@ -15,7 +14,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 
 namespace JJA.Anperi.Server
 {
@@ -61,7 +59,25 @@ namespace JJA.Anperi.Server
             catch (WebSocketException se)
             {
                 if (!(se.InnerException is BadHttpRequestException)) throw;
-                _logger.LogWarning($"BadHttpRequestException occured while handling a websocket: {se.Message} -> {se.InnerException.Message}");
+                _logger.LogWarning(
+                    $"BadHttpRequestException occured while handling a websocket: {se.Message} -> {se.InnerException.Message}");
+            }
+            finally
+            {
+                lock (_syncRootActiveConnections)
+                {
+                    var connection =
+                        _activeConnections.SingleOrDefault(c => c.Context.Connection.Id == ctx.Connection.Id);
+                    if (connection != null)
+                    {
+                        if (connection.IsPeripheral)
+                        {
+                            OnPeripheralLoggedOut(connection, (Peripheral) connection.Device);
+                        }
+                        _activeConnections.Remove(connection);
+
+                    }
+                }
             }
         }
 
@@ -85,74 +101,81 @@ namespace JJA.Anperi.Server
                 if (apiObjectResult.Obj.context == JsonApiContextTypes.server &&
                     apiObjectResult.Obj.message_type == JsonApiMessageTypes.request)
                 {
-                    SharedJsonDeviceType type;
-                    try
-                    {
-                        type = Enum.Parse<SharedJsonDeviceType>(apiObjectResult.Obj.data[nameof(JsonLoginData.device_type)]);
-                    }
-                    catch (Exception)
-                    {
-                        await socket.SendJson(SharedJsonApiObjectFactory.CreateError("device_type not valid"), _options.Value.RequestCancelToken);
-                        return;
-                    }
-                    if (apiObjectResult.Obj.message_code == SharedJsonRequestCode.login.ToString())
-                    {
-                        string token = null;
-                        try
-                        {
-                            token = apiObjectResult.Obj.data[nameof(JsonLoginData.token)];
-                        }
-                        catch (Exception ex)
-                        {
-                            await socket.SendJson(
-                                SharedJsonApiObjectFactory.CreateError($"Error retrieving token from request."));
-                            _logger.LogError(ex, "Error retrieving token from request");
-                        }
-                        if (!string.IsNullOrEmpty(token))
-                        {
-                            RegisteredDevice device = dbContext.RegisteredDevices.SingleOrDefault(d => d.Token == token);
-                            if (device != null)
-                            {
-                                closeStatus = await LoginDevice(ctx, socket, buffer, device, dbContext);
-                                authFailed = false;
-                            }
-                        }
-                    }
-                    else if (apiObjectResult.Obj.message_code == SharedJsonRequestCode.register.ToString())
+                    apiObjectResult.Obj.data.TryGetValue(nameof(JsonLoginData.device_type), out string typeString);
+                    if (Enum.TryParse(typeString, out SharedJsonDeviceType type) &&
+                        Enum.TryParse(apiObjectResult.Obj.message_code, out SharedJsonRequestCode code))
                     {
                         RegisteredDevice device;
-                        switch (type)
+                        switch (code)
                         {
-                            case SharedJsonDeviceType.host:
-                                device = new Host();
+                            case SharedJsonRequestCode.login:
+                                if (!apiObjectResult.Obj.data.TryGetValue("token", out string token))
+                                {
+                                    await socket.SendJson(
+                                        SharedJsonApiObjectFactory.CreateError("Error retrieving token from request."));
+                                }
+                                else
+                                {
+                                    switch (type)
+                                    {
+                                        case SharedJsonDeviceType.host:
+                                            device = dbContext.Hosts.SingleOrDefault(d => d.Token == token);
+                                            break;
+                                        case SharedJsonDeviceType.peripheral:
+                                            device = dbContext.Peripherals.SingleOrDefault(d => d.Token == token);
+                                            break;
+                                        default:
+                                            throw new NotImplementedException();
+                                    }
+                                    if (device != null)
+                                    {
+                                        closeStatus = await LoginDevice(ctx, socket, buffer, device, dbContext);
+                                        authFailed = false;
+                                    }
+                                }
                                 break;
-                            case SharedJsonDeviceType.peripheral:
-                                device = new Peripheral();
+                            case SharedJsonRequestCode.register:
+                                switch (type)
+                                {
+                                    case SharedJsonDeviceType.host:
+                                        device = new Host();
+                                        break;
+                                    case SharedJsonDeviceType.peripheral:
+                                        device = new Peripheral();
+                                        break;
+                                    default:
+                                        throw new NotImplementedException();
+                                }
+                                device.Token = Cryptography.CreateAuthToken();
+                                if (apiObjectResult.Obj.data.TryGetValue("name", out string name))
+                                {
+                                    device.Name = name;
+                                }
+                                else
+                                {
+                                    device.Name = "GIVE ME A NAME PLEASE";
+                                    await socket.SendJson(
+                                        SharedJsonApiObjectFactory.CreateError(
+                                            "A device registration requires a name!"));
+                                }
+                                dbContext.RegisteredDevices.Add(device);
+                                await dbContext.SaveChangesAsync();
+                                await socket.SendJson(
+                                    SharedJsonApiObjectFactory.CreateRegisterResponse(device.Token, device.Name));
+                                closeStatus = await LoginDevice(ctx, socket, buffer, device, dbContext);
+                                authFailed = false;
                                 break;
                             default:
-                                throw new NotImplementedException();
+                                await socket.SendJson(
+                                    SharedJsonApiObjectFactory.CreateError("Only login and register are valid here."));
+                                break;
                         }
-                        device.Token = Cryptography.CreateAuthToken();
-                        if (apiObjectResult.Obj.data.TryGetValue("name", out dynamic name))
-                        {
-                            device.Name = name;
-                        }
-                        else
-                        {
-                            device.Name = "GIVE ME A NAME PLEASE";
-                            await socket.SendJson(SharedJsonApiObjectFactory.CreateError("A device registration requires a name!"));
-                        }
-                        dbContext.RegisteredDevices.Add(device);
-                        await dbContext.SaveChangesAsync();
-                        await socket.SendJson(SharedJsonApiObjectFactory.CreateRegisterResponse(device.Token, device.Name));
-                        closeStatus = await LoginDevice(ctx, socket, buffer, device, dbContext);
-                        authFailed = false;
                     }
                     else
                     {
                         await socket.SendJson(
                             SharedJsonApiObjectFactory.CreateError(
-                                "The first message is required to be a login or register request!"));
+                                "Error parsing correct login or register parameters."));
                     }
                 }
             }

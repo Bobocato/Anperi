@@ -14,7 +14,7 @@ namespace JJA.Anperi.Api.Shared
 
     public enum SharedJsonRequestCode
     {
-        login, register
+        login, register, set_own_name
     }
 
     public enum SharedJsonDeviceType
@@ -82,6 +82,25 @@ namespace JJA.Anperi.Api.Shared
             Dictionary<string, dynamic> data = new Dictionary<string, dynamic>
             {
                 {"token", token},
+                {"name", name}
+            };
+            return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.response, SharedJsonRequestCode.register.ToString(), data);
+        }
+
+        public static JsonApiObject CreateChangeOwnNameRequest(string name)
+        {
+            Dictionary<string, dynamic> data = new Dictionary<string, dynamic>
+            {
+                {"name", name}
+            };
+            return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.request, SharedJsonRequestCode.register.ToString(), data);
+        }
+        public static JsonApiObject CreateChangeOwnNameResponse(bool success, string name)
+        {
+            if (name == null) throw new ArgumentNullException(nameof(name));
+            Dictionary<string, dynamic> data = new Dictionary<string, dynamic>
+            {
+                {"success", success},
                 {"name", name}
             };
             return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.response, SharedJsonRequestCode.register.ToString(), data);
