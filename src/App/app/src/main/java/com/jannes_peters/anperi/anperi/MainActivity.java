@@ -82,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
             showTest();
         } else {
             //Delete shared preferences
-            //this.getSharedPreferences(getString(R.string.preference_file_name), 0).edit().clear().apply();
+            this.getSharedPreferences(getString(R.string.preference_file_name), 0).edit().clear().apply();
             SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.preference_file_name), MODE_PRIVATE);
             String key = sharedPref.getString("token", null);
             if (key == null) {
@@ -211,9 +211,13 @@ public class MainActivity extends AppCompatActivity {
 
     private void showKey() {
         //Remove loading text and show pairing key
-        getFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, keyFragment)
-                .commit();
+        SharedPreferences sharedPrefs = this.getSharedPreferences(this.getString(R.string.preference_file_name), Context.MODE_PRIVATE);
+        String key = sharedPrefs.getString("pairingcode", null);
+        if(key != null) {
+            getFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, keyFragment)
+                    .commit();
+        }
     }
 
     private void showLoad() {

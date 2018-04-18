@@ -56,7 +56,6 @@ public class JsonApiObject {
                                 } else {
                                     return Action.error;
                                 }
-
                             case "get_pairing_code":
                                 //TODO: save pairing messageCode
                                 SharedPreferences sharedprefs = context.getSharedPreferences(context.getString(R.string.preference_file_name), Context.MODE_PRIVATE);
