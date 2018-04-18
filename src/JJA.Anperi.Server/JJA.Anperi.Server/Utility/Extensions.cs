@@ -86,10 +86,17 @@ namespace JJA.Anperi.Server.Utility
         internal static bool TryGetValue<TK, T>(this Dictionary<TK, dynamic> dict, TK key, out T val)
         {
             bool result = false;
-            if (dict.TryGetValue(key, out dynamic dyn) && dyn is T)
+            if (dict.TryGetValue(key, out dynamic dyn))
             {
-                val = dyn;
-                result = true;
+                try
+                {
+                    val = (T) dyn;
+                    result = true;
+                }
+                catch (RuntimeBinderException)
+                {
+                    val = default(T);
+                }
             }
             else
             {
