@@ -80,7 +80,9 @@ public class TestFragment extends Fragment {
         Button btnRegister = view.findViewById(R.id.btnRegister);
         btnRegister.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
-                String name = Build.MANUFACTURER + " " + Build.VERSION.RELEASE;
+                //Device name
+                String name = Build.DEVICE + " " + Build.VERSION.RELEASE;
+                //Build JSON and send it
                 try {
                     String jsonString = new JSONObject()
                             .put("context", "server")

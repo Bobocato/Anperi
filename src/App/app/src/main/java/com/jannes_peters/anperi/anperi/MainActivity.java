@@ -30,12 +30,13 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "jja.anperi";
-    private final boolean debug = true;
+    private final boolean debug = false;
     private String serverUrl = "";
 
     private KeyFragment keyFragment;
     private LoadingFragment loadingFragment;
     private TestFragment testFragment;
+    private CreateFragment createFragment;
     public WebSocket ws;
 
     @Override
@@ -46,12 +47,14 @@ public class MainActivity extends AppCompatActivity {
         keyFragment = new KeyFragment();
         loadingFragment = new LoadingFragment();
         testFragment = new TestFragment();
+        createFragment = new CreateFragment();
         showLoad();
         //Ask for server url
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.enter_server);
         final EditText input = new EditText(this);
-        input.setHint("ws://10.0.2.2:5000/api/ws");
+        //input.setHint("ws://10.0.2.2:5000/api/ws");
+        input.setHint("wss://anperi.jannes-peters.com/api/ws");
         input.setInputType(InputType.TYPE_TEXT_VARIATION_URI | InputType.TYPE_CLASS_TEXT);
         builder.setView(input);
         builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
@@ -89,7 +92,8 @@ public class MainActivity extends AppCompatActivity {
             String key = sharedPref.getString("token", null);
             if (key == null) {
                 //Device name should be device model
-                String name = Build.MANUFACTURER + " " + Build.VERSION.RELEASE;
+                String name = Build.DEVICE + " " + Build.VERSION.RELEASE;
+
                 //Build JSON and send it
                 try {
                     String jsonString = new JSONObject()
@@ -183,7 +187,12 @@ public class MainActivity extends AppCompatActivity {
                     if (action == JsonApiObject.Action.success) {
                         Toast.makeText(getApplicationContext(), action.toString() + ": " + apiObject.messageData.toString(), Toast.LENGTH_SHORT).show();
                         if (apiObject.messageContext.equals("server") && apiObject.messageCode.equals("register")){
-                            //User was registerd ask for code...
+                            //User was registered...
+                        } else if(apiObject.messageContext.equals("server") && apiObject.messageCode.equals("get_pairing_code")){
+                            //User has pairing code show it
+                            if(!debug) showKey();
+                        } else if (apiObject.messageContext.equals("server") && apiObject.messageCode.equals("login")){
+                            //User was logged in
                             try {
                                 String jsonString = new JSONObject()
                                         .put("context", "server")
@@ -194,12 +203,6 @@ public class MainActivity extends AppCompatActivity {
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
-                        } else if(apiObject.messageContext.equals("server") && apiObject.messageCode.equals("get_pairing_code")){
-                            //User has pairing code show it
-                            showKey();
-                        } else if (apiObject.messageContext.equals("server") && apiObject.messageCode.equals("login")){
-                            //User was logged in show pairing code
-                            showKey();
                         }
                     } else if (action == JsonApiObject.Action.debug) {
                         Toast.makeText(getApplicationContext(), action.toString() + ": " + apiObject.messageData.toString(), Toast.LENGTH_LONG).show();
@@ -231,6 +234,12 @@ public class MainActivity extends AppCompatActivity {
     private void showTest() {
         getFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, testFragment)
+                .commit();
+    }
+
+    private void showCreate() {
+        getFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, createFragment)
                 .commit();
     }
 }
