@@ -278,10 +278,10 @@ namespace JJA.Anperi.Server
                             await _socket.SendJson(
                                 SharedJsonApiObjectFactory.CreateError(
                                     "The device you want to pair isn't known to me :("));
+                            return;
                         }
                         _db.SaveChanges();
-                        await _socket.SendJson(SharedJsonApiObjectFactory.CreateError($"Pairing request was correct but pairing is not implemented yet :( You would've gotten paired to device {pairingCode.PeripheralId}"),
-                            token);
+                        await _socket.SendJson(HostJsonApiObjectFactory.CreatePairingResponse(true));
                     }
                     catch (Exception e)
                     {
