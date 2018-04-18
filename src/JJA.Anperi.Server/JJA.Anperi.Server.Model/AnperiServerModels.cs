@@ -19,6 +19,7 @@ namespace JJA.Anperi.Server.Model
             modelBuilder.Entity<Host>().ToTable("Host");
             modelBuilder.Entity<RegisteredDevice>().ToTable("RegisteredDevice");
             modelBuilder.Entity<ActivePairingCode>().ToTable("ActivePairingCode");
+            modelBuilder.Entity<HostPeripheral>().ToTable("HostPeripheral");
 
             modelBuilder.Entity<HostPeripheral>().HasKey(h => new { h.HostId, h.PeripheralId });
             modelBuilder.Entity<HostPeripheral>().HasOne(hp => hp.Host).WithMany(h => h.PairedPeripherals)
@@ -38,6 +39,7 @@ namespace JJA.Anperi.Server.Model
         public DbSet<Peripheral> Peripherals { get; set; }
         public DbSet<RegisteredDevice> RegisteredDevices { get; set; }
         public DbSet<ActivePairingCode> ActivePairingCodes { get; set; }
+        public DbSet<HostPeripheral> HostPeripherals { get; set; }
     }
 
     public class RegisteredDevice

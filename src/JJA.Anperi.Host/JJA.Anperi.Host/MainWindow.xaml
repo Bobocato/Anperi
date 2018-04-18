@@ -20,7 +20,8 @@
 		<Button Visibility="Hidden" x:Name="ButDisconnect" Content="Disconnect" HorizontalAlignment="Left" Margin="432,123,0,0" VerticalAlignment="Top" Width="75" Height="25" Click="ButDisconnect_Click"/>
 		<Button x:Name="ButUnpair" Content="Unpair" Margin="0,161,10,0" VerticalAlignment="Top" Height="25" Click="ButUnpair_Click" HorizontalAlignment="Right" Width="75"/>
 		<TextBlock x:Name="InfoBlock2" TextAlignment="Center" HorizontalAlignment="Left" Margin="10,250,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="497" Height="17"/>
-		<TextBlock x:Name="InfoBlock3" TextAlignment="Center" HorizontalAlignment="Left" Margin="10,267,0,0" TextWrapping="Wrap" VerticalAlignment="Top" RenderTransformOrigin="2.301,0.272" Width="502"/>
+        <TextBlock x:Name="InfoBlock3" TextAlignment="Center" HorizontalAlignment="Left" Margin="10,267,0,0" TextWrapping="Wrap" VerticalAlignment="Top" RenderTransformOrigin="2.301,0.272" Width="502"/>
 
-	</Grid>
+
+    </Grid>
 </Window>

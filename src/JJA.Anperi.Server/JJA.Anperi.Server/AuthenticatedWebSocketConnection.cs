@@ -317,24 +317,15 @@ namespace JJA.Anperi.Server
                     }
                     break;
                 case HostRequestCode.get_available_peripherals:
-                    IEnumerable<Peripheral> peripherals =
-                        (Device as Host)?.PairedPeripherals.Select(p => p.Peripheral);
-                    if (peripherals == null)
-                    {
-                        _logger.LogError("Failed to retrieve PairedPeripherals from Host _device.");
-                        await _socket.SendJson(
-                            SharedJsonApiObjectFactory.CreateError("Internal error retrieving paired devices."));
-                    }
-                    else
-                    {
+                    IEnumerable<Peripheral> peripherals = _db.HostPeripherals.Where(hp => hp.HostId == _device.Id).Select(p => p.Peripheral);
+                    await _socket.SendJson(
                         HostJsonApiObjectFactory.CreateAvailablePeripheralResponse(peripherals.Select(p =>
                             new HostJsonApiObjectFactory.ApiPeripheral
                             {
                                 Id = p.Id,
                                 Name = $"Placeholder: {p.Token.Substring(0, 4)}"
                             })
-                        );
-                    }
+                        ), token);
                     break;
                 case HostRequestCode.connect_to_peripheral:
                     if (message.data.TryGetValue("id", out int id))

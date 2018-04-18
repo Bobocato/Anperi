@@ -111,6 +111,23 @@ public class TestFragment extends Fragment {
                 }
             }
         });
+        Button btnDebug = view.findViewById(R.id.btnSendDebug);
+        btnDebug.setOnClickListener(new Button.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                try {
+                    String jsonString = new JSONObject()
+                            .put("context", "device")
+                            .put("message_type", "message")
+                            .put("message_code", "debug")
+                            .put("data", new JSONObject()
+                                    .put("msg", "Wher den list isst doff")).toString();
+                    ws.sendText(jsonString);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
         return view;
     }
 }

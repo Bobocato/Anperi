@@ -52,6 +52,17 @@
                 android:text="@string/btnRequestCode" />
         </TableRow>
 
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <Button
+                android:id="@+id/btnSendDebug"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/btnDebug" />
+        </TableRow>
+
     </TableLayout>
     <ScrollView
         android:layout_width="wrap_content"

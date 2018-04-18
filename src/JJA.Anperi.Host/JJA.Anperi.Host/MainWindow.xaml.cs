@@ -389,5 +389,10 @@ namespace JJA.Anperi.Host
                 _ws.CloseAsync();
             }
         }
-}
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            SendPeripheralRequest();
+        }
+    }
 }
