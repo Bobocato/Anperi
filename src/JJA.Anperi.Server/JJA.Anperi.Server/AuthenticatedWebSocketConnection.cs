@@ -258,7 +258,8 @@ namespace JJA.Anperi.Server
                     }
                     try
                     {
-                        ActivePairingCode pairingCode = _db.ActivePairingCodes.SingleOrDefault(p => p.Code.Equals(code));
+                        ActivePairingCode pairingCode =
+                            _db.ActivePairingCodes.SingleOrDefault(p => p.Code.Equals(code));
                         if (pairingCode == null)
                         {
                             await _socket.SendJson(
@@ -267,19 +268,22 @@ namespace JJA.Anperi.Server
                         }
                         Peripheral deviceToPair = _db.Peripherals.Find(pairingCode.PeripheralId);
                         if (deviceToPair != null)
+                        {
                             deviceToPair.PairedHosts.Add(new HostPeripheral
                             {
                                 HostId = Device.Id,
                                 PeripheralId = deviceToPair.Id
                             });
+                            _db.ActivePairingCodes.Remove(pairingCode);
+                        }
                         else
                         {
-                            _db.Remove(pairingCode);
                             await _socket.SendJson(
                                 SharedJsonApiObjectFactory.CreateError(
                                     "The device you want to pair isn't known to me :("));
                             return;
                         }
+                        _db.Remove(pairingCode);
                         _db.SaveChanges();
                         await _socket.SendJson(HostJsonApiObjectFactory.CreatePairingResponse(true));
                     }

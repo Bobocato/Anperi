@@ -26,7 +26,7 @@
 		<Button x:Name="ButConnect" Visibility="{Binding ButConnect, Converter={StaticResource BoolToVis}, FallbackValue=Visible}" Content="Connect" Margin="0,123,10,0" Click="ButConnect_Click" HorizontalAlignment="Right" Width="75" Height="25" VerticalAlignment="Top"/>
 		<TextBox x:Name="MessageBox" HorizontalAlignment="Left" Height="23" Margin="10,178,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
 		<Button x:Name="ButSendMessage" Content="Send Message" HorizontalAlignment="Left" Margin="142,178,0,0" VerticalAlignment="Top" Width="83" Height="25" Click="ButSendMessage_Click"/>
-		<TextBlock x:Name="BlockConnected" HorizontalAlignment="Left" Margin="223,127,0,0" TextWrapping="Wrap" Text="{Binding ConnectedTo, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Height="16" Width="178"/>
+		<TextBlock x:Name="BlockConnected" HorizontalAlignment="Left" Margin="223,127,0,0" TextWrapping="Wrap" Text="{Binding ConnectedTo, StringFormat='Connected to: {0}', UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Height="16" Width="178"/>
 		<Button x:Name="ButDisconnect" Visibility="{Binding ButDisconnect, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}" Content="Disconnect" Margin="0,123,10,0" VerticalAlignment="Top" Height="25" Click="ButDisconnect_Click" HorizontalAlignment="Right" Width="75"/>
 		<Button x:Name="ButUnpair" Content="Unpair" Margin="0,161,10,0" VerticalAlignment="Top" Height="25" Click="ButUnpair_Click" HorizontalAlignment="Right" Width="75"/>
 		<TextBlock x:Name="InfoBlock2" Text="{Binding Info2, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" HorizontalAlignment="Left" Margin="10,250,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="497" Height="17"/>

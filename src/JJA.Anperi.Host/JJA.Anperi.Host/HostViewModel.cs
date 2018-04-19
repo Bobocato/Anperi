@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using WebSocketSharp;
@@ -28,10 +29,11 @@ namespace JJA.Anperi.Host
       most basic logic needed to map the window controls to the actual model. aka a button press will likely end up in a function call in the model (routed through the viewmodel) */
     //TODO: seperate DLL for the model
     //TODO: probably split model into multiple classes because this will get REALLY messy the moment IPC comes into play
+    //TODO: remember currently connected device
+    //TODO: ShowMessage removes previously set message
     class HostViewModel : INotifyPropertyChanged
     {
         private readonly Dispatcher _dispatcher;
-        public event NotifyCollectionChangedEventHandler CollectionChanged;
         public event PropertyChangedEventHandler PropertyChanged;
         private WebSocket _ws;
         private string _name = "";
@@ -88,38 +90,36 @@ namespace JJA.Anperi.Host
                         var json = JsonApiObject.Deserialize(e.Data);
                         var context = json.context;
 
-                        if (context.Equals(JsonApiContextTypes.server))
+                        switch (context)
                         {
-                            if (Enum.IsDefined(typeof(SharedJsonRequestCode),
-                                json.message_code))
-                            {
-                                Enum.TryParse<SharedJsonRequestCode>(
-                                    json.message_code,
-                                    out SharedJsonRequestCode type);
-                                HandleSharedRequestCode(type, json);
-
-                            }
-                            else if (Enum.IsDefined(typeof(HostRequestCode),
-                                json.message_code))
-                            {
-                                Enum.TryParse<HostRequestCode>(
-                                    json.message_code,
-                                    out HostRequestCode hostRequest);
-                                HandleHostRequestCode(hostRequest, json);
-                            }
-                            else if (Enum.IsDefined(
-                                typeof(SharedJsonMessageCode),
-                                json.message_code))
-                            {
-                                Enum.TryParse<SharedJsonMessageCode>(
-                                    json.message_code,
-                                    out SharedJsonMessageCode sharedMessage);
-                                HandleSharedMessageCode(sharedMessage, json);
-                            }
-                            else
-                            {
-                                ShowMessage("Unknown context!");
-                            }
+                            case JsonApiContextTypes.server:
+                                if (Enum.TryParse(json.message_code, out SharedJsonRequestCode type))
+                                {
+                                    HandleSharedRequestCode(type, json);
+                                }
+                                else if (Enum.TryParse(json.message_code, out HostRequestCode hostRequest))
+                                {
+                                    HandleHostRequestCode(hostRequest, json);
+                                }
+                                else if (Enum.TryParse(json.message_code, out SharedJsonMessageCode sharedMessage))
+                                {
+                                    HandleSharedMessageCode(sharedMessage, json);
+                                }
+                                else
+                                {
+                                    ShowMessage("Unknown server code!");
+                                }
+                                break;
+                            case JsonApiContextTypes.device:
+                                if (Enum.TryParse(json.message_code, out DeviceRequestCode deviceCode))
+                                {
+                                    HandleDeviceRequestCode(deviceCode, json);
+                                }
+                                else
+                                {
+                                    ShowMessage("Unknown device code!");
+                                }
+                                break;
                         }
                     };
 
@@ -143,6 +143,21 @@ namespace JJA.Anperi.Host
             });
         }
 
+        private void HandleDeviceRequestCode(DeviceRequestCode deviceCode, JsonApiObject json)
+        {
+            switch (deviceCode)
+            {
+                case DeviceRequestCode.debug:
+                    if (json.data.TryGetValue("msg", out string msg))
+                    {
+                        ShowMessage(msg);
+                    }
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(deviceCode), deviceCode, null);
+            }
+        }
+
         private void HandleSharedMessageCode(SharedJsonMessageCode code, JsonApiObject json)
         {
             switch (code)
@@ -154,7 +169,8 @@ namespace JJA.Anperi.Host
                     }
                     break;
                 case SharedJsonMessageCode.partner_disconnected:
-                    throw new NotImplementedException();
+                    ConnectedTo = "";
+                    break;
             }
         }
 
@@ -276,9 +292,7 @@ namespace JJA.Anperi.Host
                             if (json.message_code.Equals(
                                 "connect_to_peripheral"))
                             {
-                                ConnectedTo =
-                                    "Connected to: " +
-                                    json.data["id"];
+                                ConnectedTo = "Peripheral";
                                 //TODO: idea for connect/disconnect button
                                 ButConnect = false;
                                 ButDisconnect = true;
@@ -310,19 +324,16 @@ namespace JJA.Anperi.Host
 
         private void SendPeripheralRequest()
         {
-            var jsonPeri = HostJsonApiObjectFactory
-                .CreateAvailablePeripheralRequest();
+            var jsonPeri = HostJsonApiObjectFactory.CreateAvailablePeripheralRequest();
             SendToWebsocket(jsonPeri.Serialize());
         }
 
-        public void Unpair(string name)
+        public void Unpair(object item)
         {
-            ShowMessage("Can't unpair, because no peripheral was selected!");
-            //int id = GetPeripherals[name];
-
-            /*var json = HostJsonApiObjectFactory
-                .CreateUnpairFromPeripheralRequest(id);
-            SendToWebsocket(json.Serialize());*/
+            if (!(item is HostJsonApiObjectFactory.ApiPeripheral)) return;
+            var id = ((HostJsonApiObjectFactory.ApiPeripheral)item).id;
+            var json = HostJsonApiObjectFactory.CreateUnpairFromPeripheralRequest(id);
+            SendToWebsocket(json.Serialize());
         }
 
         public void SendMessage(string message)
@@ -433,7 +444,7 @@ namespace JJA.Anperi.Host
             get { return _model.ConnectedTo; }
             set
             {
-                ConnectedTo = value;
+                _model.ConnectedTo = value;
                 OnPropertyChanged("ConnectedTo");
             }
         }

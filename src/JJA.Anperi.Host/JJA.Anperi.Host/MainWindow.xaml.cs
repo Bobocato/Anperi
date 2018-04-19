@@ -32,7 +32,7 @@ namespace JJA.Anperi.Host
 
         private void ButUnpair_Click(object sender, RoutedEventArgs e)
         {
-            _viewModel.Unpair(PeriBox.SelectedItem.ToString());
+            _viewModel.Unpair(PeriBox.SelectedItem);
         }
 
         private void ButConnect_Click(object sender, RoutedEventArgs e)
