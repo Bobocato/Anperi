@@ -18,7 +18,14 @@ using JJA.Anperi.HostApi;
 
 namespace JJA.Anperi.Host
 {
-    class HostViewModel: INotifyPropertyChanged, INotifyCollectionChanged
+    //TODO: rename GetPeripherals to Peripherals
+    //TODO: change all OnPropertyChanged calls to OnPropertyChanged(nameof(Property)) eg: OnPropertyChanged(nameof(ButConnect)) makes it easier if you want to refactor stuff
+    /*TODO: move all actions into actual actions (like we did in the bookmanager) and move all logic containing websocket calls to the model
+      explanation: this is not a ViewModel ... this is effectively model and viewmodel in one class. the viewmodel should JUST CONVERT the model into displayable stuff and only contain
+      most basic logic needed to map the window controls to the actual model. aka a button press will likely end up in a function call in the model (routed through the viewmodel) */
+    //TODO: seperate DLL for the model
+    //TODO: probably split model into multiple classes because this will get REALLY messy the moment IPC comes into play
+    class HostViewModel : INotifyPropertyChanged, INotifyCollectionChanged
     {
         public event NotifyCollectionChangedEventHandler CollectionChanged;
         public event PropertyChangedEventHandler PropertyChanged;
@@ -357,7 +364,7 @@ namespace JJA.Anperi.Host
                 Info3 = "";
             });
         }
-
+        
         public bool ButConnect
         {
             get { return _model.ButConnectVisible; }
@@ -417,7 +424,7 @@ namespace JJA.Anperi.Host
                 OnPropertyChanged("ConnectedTo");
             }
         }
-
+        
         public Dictionary<string, int> GetPeripherals
         {
             get { return _model.Peripherals; }
@@ -439,17 +446,12 @@ namespace JJA.Anperi.Host
 
         private void OnPropertyChanged(string property)
         {
-
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(property));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
         }
 
         protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
         {
-            if (CollectionChanged != null)
-            {
-                CollectionChanged(this, e);
-            }
+            CollectionChanged?.Invoke(this, e);
         }
 
 
