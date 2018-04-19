@@ -22,16 +22,15 @@ using Newtonsoft.Json.Linq;
 
 namespace JJA.Anperi.Host
 {
-    //TODO: rename GetPeripherals to Peripherals
     //TODO: change all OnPropertyChanged calls to OnPropertyChanged(nameof(Property)) eg: OnPropertyChanged(nameof(ButConnect)) makes it easier if you want to refactor stuff
     /*TODO: move all actions into actual actions (like we did in the bookmanager) and move all logic containing websocket calls to the model
       explanation: this is not a ViewModel ... this is effectively model and viewmodel in one class. the viewmodel should JUST CONVERT the model into displayable stuff and only contain
       most basic logic needed to map the window controls to the actual model. aka a button press will likely end up in a function call in the model (routed through the viewmodel) */
     //TODO: seperate DLL for the model
     //TODO: probably split model into multiple classes because this will get REALLY messy the moment IPC comes into play
-    //TODO: speak to me about collections and bindings, this isn't gonna work like this (the GetPeripherals)
-    class HostViewModel : INotifyPropertyChanged, INotifyCollectionChanged
+    class HostViewModel : INotifyPropertyChanged
     {
+        private readonly Dispatcher _dispatcher;
         public event NotifyCollectionChangedEventHandler CollectionChanged;
         public event PropertyChangedEventHandler PropertyChanged;
         private WebSocket _ws;
@@ -39,9 +38,11 @@ namespace JJA.Anperi.Host
         private string _filePath = "token.txt";
         private HostModel _model;
 
-        public HostViewModel()
+        public HostViewModel(Dispatcher dispatcher)
         {
+            _dispatcher = dispatcher;
             _model = new HostModel();
+            Peripherals = new ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral>();
             if (File.Exists(_filePath))
             {
                 _model.Token = File.ReadLines(_filePath).First();
@@ -154,7 +155,6 @@ namespace JJA.Anperi.Host
                     break;
                 case SharedJsonMessageCode.partner_disconnected:
                     throw new NotImplementedException();
-                    break;
             }
         }
 
@@ -240,29 +240,29 @@ namespace JJA.Anperi.Host
 
                     break;
                 case HostRequestCode.get_available_peripherals:
-                    json.data.TryGetValue("devices",
-                        out dynamic list);
+                    json.data.TryGetValue("devices", out dynamic list);
                     if (list != null)
                     {
-                        GetPeripherals.Clear();
-                        foreach (var x in list)
+                        _dispatcher.Invoke(() =>
                         {
-                            JObject jo = x;
-                            if (jo.TryGetCastValue("name", out string name) && jo.TryGetCastValue("id", out int id))
+                            Peripherals.Clear();
+                            foreach (var x in list)
                             {
-                                Peripherals.Add(new HostJsonApiObjectFactory.ApiPeripheral {id = id, name = name});
-                                //GetPeripherals.Add(name, id);
+                                JObject jo = x;
+                                if (jo.TryGetCastValue("name", out string name) && jo.TryGetCastValue("id", out int id))
+                                {
+                                    Peripherals.Add(new HostJsonApiObjectFactory.ApiPeripheral { id = id, name = name });
+                                }
+                                else
+                                {
+                                    Trace.TraceError($"couldn't parse get_available_peripherals answer: {list.ToString()}");
+                                }
                             }
-                            else
-                            {
-                                Trace.TraceError($"couldn't parse get_available_peripherals answer: {list.ToString()}");
-                            } 
-                        }
+                        });
                     }
                     else
                     {
-                        Console.Write(
-                            "Something is wrong with the send peripherals!");
+                        Trace.TraceWarning("Something is wrong with the send peripherals!");
                     }
 
                     break;
@@ -318,11 +318,11 @@ namespace JJA.Anperi.Host
         public void Unpair(string name)
         {
             ShowMessage("Can't unpair, because no peripheral was selected!");
-            var id = GetPeripherals[name];
+            //int id = GetPeripherals[name];
 
-            var json = HostJsonApiObjectFactory
+            /*var json = HostJsonApiObjectFactory
                 .CreateUnpairFromPeripheralRequest(id);
-            SendToWebsocket(json.Serialize());
+            SendToWebsocket(json.Serialize());*/
         }
 
         public void SendMessage(string message)
@@ -332,18 +332,17 @@ namespace JJA.Anperi.Host
             SendToWebsocket(json.Serialize());
         }
 
-        public void Connect(string name)
+        public void Connect(object item)
         {
-            var id = GetPeripherals[name];
-            var json = HostJsonApiObjectFactory
-                .CreateConnectToPeripheralRequest(id);
+            if (!(item is HostJsonApiObjectFactory.ApiPeripheral)) return;
+            var id = ((HostJsonApiObjectFactory.ApiPeripheral)item).id;
+            var json = HostJsonApiObjectFactory.CreateConnectToPeripheralRequest(id);
             SendToWebsocket(json.Serialize());
         }
 
         public void Disconnect()
         {
-            var json = HostJsonApiObjectFactory
-                .CreateDisconnectFromPeripheralRequest();
+            var json = HostJsonApiObjectFactory.CreateDisconnectFromPeripheralRequest();
             SendToWebsocket(json.Serialize());
         }
 
@@ -439,18 +438,7 @@ namespace JJA.Anperi.Host
             }
         }
         
-        public ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral> Peripherals => new ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral>(new List<HostJsonApiObjectFactory.ApiPeripheral>());
-
-        public Dictionary<string, int> GetPeripherals
-        {
-            get { return _model.Peripherals; }
-            set
-            {
-                _model.Peripherals = value;
-                //OnPropertyChanged("Peripherals");
-                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
-            }
-        }
+        public ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral> Peripherals { get; }
 
         public void Close()
         {
@@ -464,12 +452,6 @@ namespace JJA.Anperi.Host
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
         }
-
-        protected virtual void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
-        {
-            CollectionChanged?.Invoke(this, e);
-        }
-
 
     }
 }

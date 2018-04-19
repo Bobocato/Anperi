@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using JJA.Anperi.HostApi;
 
 namespace JJA.Anperi.Host
 {
@@ -14,10 +15,9 @@ namespace JJA.Anperi.Host
 
         public MainWindow()
         {
-            _viewModel = new HostViewModel();
+            _viewModel = new HostViewModel(Dispatcher);
             this.DataContext = _viewModel;
             InitializeComponent();
-            PeriBox.ItemsSource = _viewModel.GetPeripherals;
         }
 
         private void ButPair_Click(object sender, RoutedEventArgs e)
@@ -37,7 +37,7 @@ namespace JJA.Anperi.Host
 
         private void ButConnect_Click(object sender, RoutedEventArgs e)
         {
-            _viewModel.Connect(PeriBox.SelectedItem.ToString());
+            _viewModel.Connect(PeriBox.SelectedItem);
         }
 
         private void ButDisconnect_Click(object sender, RoutedEventArgs e)
