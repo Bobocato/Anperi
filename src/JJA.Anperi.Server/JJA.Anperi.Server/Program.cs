@@ -43,7 +43,7 @@ namespace JJA.Anperi.Server
                     context.Peripherals.Add(p);
                     context.SaveChanges();
                     HostPeripheral hp = new HostPeripheral {Host = h, Peripheral = p};
-                    h.PairedPeripherals.Add(hp);
+                    h.PairedDevices.Add(hp);
                     context.SaveChanges();
                     var code = new ActivePairingCode {Code = "123456", PeripheralId = p.Id};
                     context.ActivePairingCodes.Add(code);

@@ -70,12 +70,8 @@ namespace JJA.Anperi.Server
                         _activeConnections.SingleOrDefault(c => c.Context.Connection.Id == ctx.Connection.Id);
                     if (connection != null)
                     {
-                        if (connection.IsPeripheral)
-                        {
-                            OnPeripheralLoggedOut(connection, (Peripheral) connection.Device);
-                        }
-                        _activeConnections.Remove(connection);
-
+                        if (_activeConnections.Remove(connection))
+                            OnDeviceLoggedOut(connection, connection.Device);
                     }
                 }
             }
@@ -205,14 +201,30 @@ namespace JJA.Anperi.Server
             {
                 _activeConnections.Add(connection);
             }
-            if (connection.IsPeripheral) OnPeripheralLoggedIn(connection, device as Peripheral);
+            OnDeviceLoggedIn(connection, device);
             WebSocketCloseStatus closeStatus = await connection.Run(_options.Value.RequestCancelToken);
-            if (connection.IsPeripheral) OnPeripheralLoggedOut(connection, device as Peripheral);
+            OnDeviceLoggedOut(connection, device);
             lock (_syncRootActiveConnections)
             {
                 _activeConnections.Remove(connection);
             }
             return closeStatus;
+        }
+
+        private void OnDeviceLoggedOut(AuthenticatedWebSocketConnection connection, RegisteredDevice device)
+        {
+            lock (_activeConnections)
+            {
+                //TODO: implement
+            }
+        }
+
+        private void OnDeviceLoggedIn(AuthenticatedWebSocketConnection connection, RegisteredDevice device)
+        {
+            lock (_activeConnections)
+            {
+                //TODO: implement
+            }
         }
 
         internal AuthenticatedWebSocketConnection GetConnectionForId(int id)
@@ -222,44 +234,6 @@ namespace JJA.Anperi.Server
                 return _activeConnections.SingleOrDefault(c => c.Device.Id == id);
             }
         }
-
-        private void OnPeripheralLoggedIn(AuthenticatedWebSocketConnection c, Peripheral peripheral)
-        {
-            lock (_activeConnections)
-            {
-                peripheral.PairedHosts.ForEach(hp =>
-                {
-                    _activeConnections.ForEach(ac =>
-                    {
-                        if (hp.HostId == ac.Device.Id)
-                            Task.Run(() =>
-                            {
-                                PeripheralLoggedIn?.Invoke(this, new AuthenticatedWebSocketEventArgs(c));
-                            });
-                    });
-                });
-            }
-        }
-        public event EventHandler<AuthenticatedWebSocketEventArgs> PeripheralLoggedIn;
-
-        private void OnPeripheralLoggedOut(AuthenticatedWebSocketConnection c, Peripheral peripheral)
-        {
-            lock (_activeConnections)
-            {
-                peripheral.PairedHosts.ForEach(hp =>
-                {
-                    _activeConnections.ForEach(ac =>
-                    {
-                        if (hp.HostId == ac.Device.Id)
-                            Task.Run(() =>
-                            {
-                                PeripheralLoggedOut?.Invoke(this, new AuthenticatedWebSocketEventArgs(c));
-                            });
-                    });
-                });
-            }
-        }
-        public event EventHandler<AuthenticatedWebSocketEventArgs> PeripheralLoggedOut;
     }
 
     public class AuthenticatedWebSocketEventArgs

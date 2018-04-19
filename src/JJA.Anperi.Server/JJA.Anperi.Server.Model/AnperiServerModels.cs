@@ -21,14 +21,14 @@ namespace JJA.Anperi.Server.Model
             modelBuilder.Entity<ActivePairingCode>().ToTable("ActivePairingCode");
             modelBuilder.Entity<HostPeripheral>().ToTable("HostPeripheral");
 
-            modelBuilder.Entity<Host>().HasMany(h => h.PairedPeripherals).WithOne(hp => hp.Host)
+            modelBuilder.Entity<Host>().HasMany(h => h.PairedDevices).WithOne(hp => hp.Host)
                 .HasForeignKey(hp => hp.HostId);
-            modelBuilder.Entity<Peripheral>().HasMany(h => h.PairedHosts).WithOne(hp => hp.Peripheral)
+            modelBuilder.Entity<Peripheral>().HasMany(h => h.PairedDevices).WithOne(hp => hp.Peripheral)
                 .HasForeignKey(hp => hp.PeripheralId);
             modelBuilder.Entity<HostPeripheral>().HasKey(h => new { h.HostId, h.PeripheralId });
-            modelBuilder.Entity<HostPeripheral>().HasOne(hp => hp.Host).WithMany(h => h.PairedPeripherals)
+            modelBuilder.Entity<HostPeripheral>().HasOne(hp => hp.Host).WithMany(h => h.PairedDevices)
                 .HasForeignKey(hp => hp.HostId);
-            modelBuilder.Entity<HostPeripheral>().HasOne(hp => hp.Peripheral).WithMany(h => h.PairedHosts)
+            modelBuilder.Entity<HostPeripheral>().HasOne(hp => hp.Peripheral).WithMany(h => h.PairedDevices)
                 .HasForeignKey(hp => hp.PeripheralId);
             modelBuilder.Entity<HostPeripheral>().HasIndex(hp => hp.HostId);
 
@@ -48,6 +48,11 @@ namespace JJA.Anperi.Server.Model
 
     public class RegisteredDevice
     {
+        public RegisteredDevice()
+        {
+            PairedDevices = new List<HostPeripheral>();
+        }
+
         public int Id { get; set; }
         [Required]
         [StringLength(255)]
@@ -55,27 +60,14 @@ namespace JJA.Anperi.Server.Model
         [Required]
         [StringLength(100)]
         public string Name { get; set; }
+        public List<HostPeripheral> PairedDevices { get; set; }
     }
 
     public class Host : RegisteredDevice
-    {
-        public Host()
-        {
-            PairedPeripherals = new List<HostPeripheral>();
-        }
-
-        public List<HostPeripheral> PairedPeripherals { get; set; }
-    }
+    { }
 
     public class Peripheral : RegisteredDevice
-    {
-        public Peripheral()
-        {
-            PairedHosts = new List<HostPeripheral>();
-        }
-
-        public List<HostPeripheral> PairedHosts { get; set; }
-    }
+    { }
 
     public class HostPeripheral
     {

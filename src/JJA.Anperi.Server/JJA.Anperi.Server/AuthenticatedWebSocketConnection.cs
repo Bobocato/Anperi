@@ -37,11 +37,9 @@ namespace JJA.Anperi.Server
             _logger = logger;
             _anperiManager = anperiManager;
             _db = dbContext;
-            _anperiManager.PeripheralLoggedIn += _anperiManager_PeripheralLoggedIn;
-            _anperiManager.PeripheralLoggedOut += _anperiManager_PeripheralLoggedOut;
         }
 
-        private async void _anperiManager_PeripheralLoggedOut(object sender, AuthenticatedWebSocketEventArgs e)
+        public async void OnPairedDeviceLogoff(object sender, AuthenticatedWebSocketEventArgs e)
         {
             if (e.Connection.Device.Id != _partner.Device.Id)
             {
@@ -56,10 +54,9 @@ namespace JJA.Anperi.Server
                 }
                 await _socket.SendJson(SharedJsonApiObjectFactory.CreatePartnerDisconnected());
             }
-            
         }
 
-        private async void _anperiManager_PeripheralLoggedIn(object sender, AuthenticatedWebSocketEventArgs e)
+        public async void OnPairedDeviceLogin(object sender, AuthenticatedWebSocketEventArgs e)
         {
             await _socket.SendJson(
                 HostJsonApiObjectFactory.CreatePairedPeripheralLoggedOnMessage(e.Connection.Device.Id));
@@ -269,7 +266,7 @@ namespace JJA.Anperi.Server
                         Peripheral deviceToPair = _db.Peripherals.Find(pairingCode.PeripheralId);
                         if (deviceToPair != null)
                         {
-                            deviceToPair.PairedHosts.Add(new HostPeripheral
+                            deviceToPair.PairedDevices.Add(new HostPeripheral
                             {
                                 HostId = Device.Id,
                                 PeripheralId = deviceToPair.Id
@@ -296,13 +293,13 @@ namespace JJA.Anperi.Server
                 case HostRequestCode.unpair:
                     if (message.data.TryGetValue("id", out int peripheralId))
                     {
-                        HostPeripheral connection = _db.Peripherals.Find(peripheralId)?.PairedHosts
-                            .SingleOrDefault(p => p.HostId == Device.Id);
+                        HostPeripheral connection = _db.HostPeripherals.SingleOrDefault(hp => hp.HostId == _device.Id && hp.PeripheralId == peripheralId);
                         if (connection != null)
                         {
                             try
                             {
                                 _db.Remove(connection);
+                                (_device as Host)?.PairedDevices.Remove(connection);
                                 _db.SaveChanges();
                                 await _socket.SendJson(
                                     HostJsonApiObjectFactory.CreateUnpairFromPeripheralResponse(true));
