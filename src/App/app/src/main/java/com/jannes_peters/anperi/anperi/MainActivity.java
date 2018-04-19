@@ -133,12 +133,14 @@ public class MainActivity extends AppCompatActivity {
             public void onConnectError(WebSocket websocket, WebSocketException cause) {
                 Log.v(TAG, "ERROR with the connection: " + websocket.toString());
                 Log.v(TAG, cause.toString());
+                MyWebSocket.reconnect();
             }
         });
         webSocketListenerList.add(new WebSocketAdapter() {
             @Override
             public void onDisconnected(WebSocket websocket, WebSocketFrame serverCloseFrame, WebSocketFrame clientCloseFrame, boolean closedByServer) {
                 Log.v(TAG, "Connection closed " + websocket.toString());
+                MyWebSocket.reconnect();
             }
         });
         webSocketListenerList.add(new WebSocketAdapter() {
