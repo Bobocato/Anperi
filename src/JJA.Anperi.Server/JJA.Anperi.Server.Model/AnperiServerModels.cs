@@ -21,6 +21,10 @@ namespace JJA.Anperi.Server.Model
             modelBuilder.Entity<ActivePairingCode>().ToTable("ActivePairingCode");
             modelBuilder.Entity<HostPeripheral>().ToTable("HostPeripheral");
 
+            modelBuilder.Entity<Host>().HasMany(h => h.PairedPeripherals).WithOne(hp => hp.Host)
+                .HasForeignKey(hp => hp.HostId);
+            modelBuilder.Entity<Peripheral>().HasMany(h => h.PairedHosts).WithOne(hp => hp.Peripheral)
+                .HasForeignKey(hp => hp.PeripheralId);
             modelBuilder.Entity<HostPeripheral>().HasKey(h => new { h.HostId, h.PeripheralId });
             modelBuilder.Entity<HostPeripheral>().HasOne(hp => hp.Host).WithMany(h => h.PairedPeripherals)
                 .HasForeignKey(hp => hp.HostId);
