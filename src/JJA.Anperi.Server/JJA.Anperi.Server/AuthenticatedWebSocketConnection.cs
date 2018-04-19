@@ -322,8 +322,8 @@ namespace JJA.Anperi.Server
                         HostJsonApiObjectFactory.CreateAvailablePeripheralResponse(peripherals.Select(p =>
                             new HostJsonApiObjectFactory.ApiPeripheral
                             {
-                                Id = p.Id,
-                                Name = $"Placeholder: {p.Token.Substring(0, 4)}"
+                                id = p.Id,
+                                name = p.Name
                             })
                         ), token);
                     break;

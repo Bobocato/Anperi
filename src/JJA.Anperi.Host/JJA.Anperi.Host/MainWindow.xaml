@@ -7,16 +7,17 @@
         mc:Ignorable="d"
         Title="Anperi" Height="350" Width="525"
         MinHeight="275" MinWidth="400"
-        Closing="MainWindow_OnClosing">
+        Closing="MainWindow_OnClosing"
+        d:DataContext="{d:DesignInstance local:HostViewModel}">
 	<Window.Resources>
 		<BooleanToVisibilityConverter x:Key="BoolToVis" />
 	</Window.Resources>
 	<Grid>
 		<TextBlock x:Name="InfoBlock" Margin="10,0,10,10" TextWrapping="Wrap" Text="{Binding Path = Info1, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Grid.ColumnSpan="2" Height="16" VerticalAlignment="Bottom"/>
-		<ListBox x:Name="PeriBox" Height="100" Margin="10,10,10,0" VerticalAlignment="Top">
+		<ListBox x:Name="PeriBox" Height="100" Margin="10,10,10,0" VerticalAlignment="Top" ItemsSource="{Binding Path=Peripherals}">
 			<ListBox.ItemTemplate>
 				<DataTemplate>
-					<Label Content="{Binding Key}"/>
+					<Label Content="{Binding Path=name}"/>
 				</DataTemplate>
 			</ListBox.ItemTemplate>
 		</ListBox>

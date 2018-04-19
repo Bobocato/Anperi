@@ -21,8 +21,8 @@ namespace JJA.Anperi.Host
         public bool ButConnectVisible { get; set; } = true;
         public bool ButDisconnectVisible { get; set; } = false;
 
-        public string WebSocketAddress { get; set; } =
-            "ws://localhost:5000/api/ws";
+        public string WebSocketAddress { get; set; } = "wss://anperi.jannes-peters.com/api/ws";
+        //public string WebSocketAddress { get; set; } = "ws://localhost:5000/api/ws";
 
         public string Token { get; set; } = "";
     }

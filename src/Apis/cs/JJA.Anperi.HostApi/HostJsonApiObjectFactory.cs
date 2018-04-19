@@ -47,8 +47,8 @@ namespace JJA.Anperi.HostApi
 
         public class ApiPeripheral
         {
-            public int Id { get; set; }
-            public string Name { get; set; }
+            public int id { get; set; }
+            public string name { get; set; }
         }
         public static JsonApiObject CreateAvailablePeripheralRequest()
         {

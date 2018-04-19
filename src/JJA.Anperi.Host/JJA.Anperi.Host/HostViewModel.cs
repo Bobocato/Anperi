@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -14,7 +15,10 @@ using WebSocketSharp;
 using JJA.Anperi.Api;
 using JJA.Anperi.Api.Shared;
 using JJA.Anperi.DeviceApi;
+using JJA.Anperi.Host.Utility;
 using JJA.Anperi.HostApi;
+using Microsoft.CSharp.RuntimeBinder;
+using Newtonsoft.Json.Linq;
 
 namespace JJA.Anperi.Host
 {
@@ -25,6 +29,7 @@ namespace JJA.Anperi.Host
       most basic logic needed to map the window controls to the actual model. aka a button press will likely end up in a function call in the model (routed through the viewmodel) */
     //TODO: seperate DLL for the model
     //TODO: probably split model into multiple classes because this will get REALLY messy the moment IPC comes into play
+    //TODO: speak to me about collections and bindings, this isn't gonna work like this (the GetPeripherals)
     class HostViewModel : INotifyPropertyChanged, INotifyCollectionChanged
     {
         public event NotifyCollectionChangedEventHandler CollectionChanged;
@@ -78,7 +83,7 @@ namespace JJA.Anperi.Host
 
                     _ws.OnMessage += (sender, e) =>
                     {
-                        Console.Write(e.Data);
+                        Console.WriteLine(e.Data);
                         var json = JsonApiObject.Deserialize(e.Data);
                         var context = json.context;
 
@@ -236,13 +241,22 @@ namespace JJA.Anperi.Host
                     break;
                 case HostRequestCode.get_available_peripherals:
                     json.data.TryGetValue("devices",
-                        out dynamic dictionary);
-                    if (dictionary != null)
+                        out dynamic list);
+                    if (list != null)
                     {
                         GetPeripherals.Clear();
-                        foreach (var x in dictionary)
+                        foreach (var x in list)
                         {
-                            GetPeripherals.Add(x.name, x.id);
+                            JObject jo = x;
+                            if (jo.TryGetCastValue("name", out string name) && jo.TryGetCastValue("id", out int id))
+                            {
+                                Peripherals.Add(new HostJsonApiObjectFactory.ApiPeripheral {id = id, name = name});
+                                //GetPeripherals.Add(name, id);
+                            }
+                            else
+                            {
+                                Trace.TraceError($"couldn't parse get_available_peripherals answer: {list.ToString()}");
+                            } 
                         }
                     }
                     else
@@ -425,6 +439,8 @@ namespace JJA.Anperi.Host
             }
         }
         
+        public ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral> Peripherals => new ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral>(new List<HostJsonApiObjectFactory.ApiPeripheral>());
+
         public Dictionary<string, int> GetPeripherals
         {
             get { return _model.Peripherals; }
