@@ -30,7 +30,7 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "jja.anperi";
-    private final boolean debug = false;
+    private final boolean debug = true;
     private String serverUrl = "";
 
     private KeyFragment keyFragment;
@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
             showTest();
         } else {
             //Delete shared preferences
-            this.getSharedPreferences(getString(R.string.preference_file_name), 0).edit().clear().apply();
+            //this.getSharedPreferences(getString(R.string.preference_file_name), 0).edit().clear().apply();
             SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.preference_file_name), MODE_PRIVATE);
             String key = sharedPref.getString("token", null);
             if (key == null) {
@@ -237,7 +237,8 @@ public class MainActivity extends AppCompatActivity {
                 .commit();
     }
 
-    private void showCreate() {
+    private void showCreate(int rows, int columns) {
+        createFragment.createLayout(rows, columns);
         getFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, createFragment)
                 .commit();

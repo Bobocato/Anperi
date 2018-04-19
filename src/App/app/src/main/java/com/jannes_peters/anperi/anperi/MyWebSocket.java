@@ -12,7 +12,6 @@ public class MyWebSocket {
     private static final String TAG = "jja.anperi";
     private static com.neovisionaries.ws.client.WebSocket instance;
     //WS variables
-    //private static final String server = "ws://10.0.2.2:62411/api/ws";
     private static String server;
     private static final int timeout = 500;
 
@@ -27,6 +26,7 @@ public class MyWebSocket {
     }
 
     public static void setServer(String server){
+        Log.v(TAG, "Der server des WebSockets wurde auf " + server + " gesetzt." );
         MyWebSocket.server = server;
     }
 

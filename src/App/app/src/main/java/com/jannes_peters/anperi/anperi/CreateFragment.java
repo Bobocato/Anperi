@@ -8,6 +8,9 @@ import android.view.ViewGroup;
 
 
 public class CreateFragment extends Fragment {
+    private int rows = 2;
+    private int columns = 2;
+
     public CreateFragment() {
     }
 
@@ -15,12 +18,15 @@ public class CreateFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         final View view = inflater.inflate(R.layout.key_fragment, container, false);
+        android.widget.GridLayout gridLayout = view.findViewById(R.id.createContainer);
+        for(int i = 0; i < rows; i++){
 
+        }
         return view;
     }
 
-    public void createLayout(int row, int columns ){
-
+    public void createLayout(int row, int column ){
+        rows = row;
+        columns = column;
     }
 }
-

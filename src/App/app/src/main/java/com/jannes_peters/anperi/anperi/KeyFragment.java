@@ -21,6 +21,7 @@ public class KeyFragment extends Fragment {
         String key = sharedPref.getString("pairingcode", null);
         TextView keyText = view.findViewById(R.id.keyText);
         keyText.setText(key);
+        sharedPref.edit().putString("pairingcode", null).apply();
         return view;
     }
 }
