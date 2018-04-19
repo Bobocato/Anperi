@@ -298,7 +298,7 @@ namespace JJA.Anperi.Server
                         {
                             try
                             {
-                                _db.Remove(connection);
+                                _db.HostPeripherals.Remove(connection);
                                 (_device as Host)?.PairedDevices.Remove(connection);
                                 _db.SaveChanges();
                                 await _socket.SendJson(
