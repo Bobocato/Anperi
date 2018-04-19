@@ -125,8 +125,16 @@ namespace JJA.Anperi.Server
                                     }
                                     if (device != null)
                                     {
-                                        closeStatus = await LoginDevice(ctx, socket, buffer, device, dbContext);
-                                        authFailed = false;
+                                        AuthenticatedWebSocketConnection activeConn;
+                                        lock (_activeConnections)
+                                        {
+                                            activeConn = _activeConnections.SingleOrDefault(c => c.Device.Id == device.Id);
+                                        }
+                                        if (activeConn != null)
+                                        {
+                                            closeStatus = await LoginDevice(ctx, socket, buffer, device, dbContext);
+                                            authFailed = false;
+                                        }
                                     }
                                 }
                                 break;

@@ -55,7 +55,7 @@ namespace JJA.Anperi.Server
 
             app.UseWebSockets(new WebSocketOptions
             {
-                KeepAliveInterval = TimeSpan.FromSeconds(20),
+                KeepAliveInterval = TimeSpan.FromSeconds(5),
                 ReceiveBufferSize = webSocketReceiveBufferSize
             });
             string anperiWebSocketApiPath = Configuration["ServerStartupSettings:AnperiWebSocketApiPath"];

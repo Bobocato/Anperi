@@ -27,7 +27,17 @@ public class MyWebSocket {
 
     public static void setServer(String server){
         Log.v(TAG, "Der server des WebSockets wurde auf " + server + " gesetzt." );
-        MyWebSocket.server = server;
+    }
+
+    public static void reconnect(){
+        try {
+            instance = instance.recreate().connect();
+        } catch (WebSocketException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     private static com.neovisionaries.ws.client.WebSocket create() throws IOException {
