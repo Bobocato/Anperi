@@ -27,13 +27,15 @@ public class MyWebSocket {
 
     public static void setServer(String server){
         Log.v(TAG, "Der server des WebSockets wurde auf " + server + " gesetzt." );
+        MyWebSocket.server = server;
     }
 
     public static void reconnect(){
+        Log.v(TAG, "Trying to reconnect");
         try {
             instance = instance.recreate().connect();
         } catch (WebSocketException e) {
-            e.printStackTrace();
+            reconnect();
         } catch (IOException e) {
             e.printStackTrace();
         }
