@@ -395,7 +395,7 @@ namespace JJA.Anperi.Host
             set
             {
                 _model.ButConnectVisible = value;
-                OnPropertyChanged("ButConnect");
+                OnPropertyChanged(nameof(ButConnect));
             }
         }
 
@@ -405,7 +405,7 @@ namespace JJA.Anperi.Host
             set
             {
                 _model.ButDisconnectVisible = value;
-                OnPropertyChanged("ButDisconnect");
+                OnPropertyChanged(nameof(ButDisconnect));
             }
         }
 
@@ -415,7 +415,7 @@ namespace JJA.Anperi.Host
             set
             {
                 _model.Info1 = value;
-                OnPropertyChanged("Info1");
+                OnPropertyChanged(nameof(Info1));
             }
         }
 
@@ -425,7 +425,7 @@ namespace JJA.Anperi.Host
             set
             {
                 _model.Info2 = value;
-                OnPropertyChanged("Info2");
+                OnPropertyChanged(nameof(Info2));
             }
         }
 
@@ -435,7 +435,7 @@ namespace JJA.Anperi.Host
             set
             {
                 _model.Info3 = value;
-                OnPropertyChanged("Info3");
+                OnPropertyChanged(nameof(Info3));
             }
         }
 
@@ -445,7 +445,7 @@ namespace JJA.Anperi.Host
             set
             {
                 _model.ConnectedTo = value;
-                OnPropertyChanged("ConnectedTo");
+                OnPropertyChanged(nameof(ConnectedTo));
             }
         }
         
