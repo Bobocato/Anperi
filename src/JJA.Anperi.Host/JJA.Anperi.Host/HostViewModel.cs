@@ -12,21 +12,12 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
-using WebSocketSharp;
-using JJA.Anperi.Api;
-using JJA.Anperi.Api.Shared;
-using JJA.Anperi.DeviceApi;
-using JJA.Anperi.Host.Utility;
 using JJA.Anperi.HostApi;
-using Microsoft.CSharp.RuntimeBinder;
-using Newtonsoft.Json.Linq;
 
 namespace JJA.Anperi.Host
 {
     //TODO: seperate DLL for the model
     //TODO: probably split model into multiple classes because this will get REALLY messy the moment IPC comes into play
-    //TODO: remember currently connected device
-    //TODO: ShowMessage removes previously set message
     class HostViewModel : INotifyPropertyChanged
     {
         private readonly Dispatcher _dispatcher;

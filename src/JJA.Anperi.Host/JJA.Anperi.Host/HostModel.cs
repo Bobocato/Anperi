@@ -37,11 +37,14 @@ namespace JJA.Anperi.Host
         private string _token = "";
         private WebSocket _ws;
         private readonly Dispatcher _dispatcher;
+        private Queue<string> _messages;
+        private int _connectedPeripheral;
 
         public HostModel(Dispatcher dispatcher)
         {
             _dispatcher = dispatcher;
             Peripherals = new List<HostJsonApiObjectFactory.ApiPeripheral>();
+            _messages = new Queue<string>();
             if (File.Exists(_filePath))
             {
                 _token = File.ReadLines(_filePath).First();
@@ -155,7 +158,7 @@ namespace JJA.Anperi.Host
                                 }
                                 else
                                 {
-                                    ShowMessage("Unknown server code!");
+                                    QueueMessage("Unknown server code!");
                                 }
                                 break;
                             case JsonApiContextTypes.device:
@@ -165,7 +168,7 @@ namespace JJA.Anperi.Host
                                 }
                                 else
                                 {
-                                    ShowMessage("Unknown device code!");
+                                    QueueMessage("Unknown device code!");
                                 }
                                 break;
                         }
@@ -207,7 +210,7 @@ namespace JJA.Anperi.Host
                         }
                         else
                         {
-                            ShowMessage(
+                            QueueMessage(
                                 "Something went wrong in operation " +
                                 json.message_code + " !");
                         }
@@ -257,7 +260,10 @@ namespace JJA.Anperi.Host
                                 "connect_to_peripheral"))
                             {
                                 ConnectedTo = "Peripheral";
-                                //TODO: idea for connect/disconnect button
+                                if (json.data.TryGetValue("id", out int id))
+                                {
+                                    _connectedPeripheral = id;
+                                }
                                 ButConnect = false;
                                 ButDisconnect = true;
                             }
@@ -265,13 +271,14 @@ namespace JJA.Anperi.Host
                             {
                                 ConnectedTo =
                                     "Connected to:";
+                                _connectedPeripheral = -1;
                                 ButConnect = true;
                                 ButDisconnect = false;
                             }
                         }
                         else
                         {
-                            ShowMessage(
+                            QueueMessage(
                                 "Something went wrong in operation " +
                                 json.message_code + " !");
                         }
@@ -305,7 +312,7 @@ namespace JJA.Anperi.Host
                         else
                         {
                             _token = "";
-                            ShowMessage("Login failed!");
+                            QueueMessage("Login failed!");
                             var writer = new StreamWriter(_filePath, false);
                             writer.WriteLine("");
                             writer.Close();
@@ -343,9 +350,10 @@ namespace JJA.Anperi.Host
             switch (code)
             {
                 case SharedJsonMessageCode.error:
-                    if (json.data.TryGetValue("msg", out dynamic error))
+                    if (json.data.TryGetValue("message", out dynamic error))
                     {
                         Console.WriteLine(error);
+                        QueueMessage(error);
                     }
                     break;
                 case SharedJsonMessageCode.partner_disconnected:
@@ -361,7 +369,7 @@ namespace JJA.Anperi.Host
                 case DeviceRequestCode.debug:
                     if (json.data.TryGetValue("msg", out string msg))
                     {
-                        ShowMessage(msg);
+                        QueueMessage(msg);
                     }
                     break;
                 default:
@@ -421,18 +429,37 @@ namespace JJA.Anperi.Host
                 }
                 else
                 {
-                    ShowMessage("Websocket is not alive!");
+                    QueueMessage("Websocket is not alive!");
                 }
             });
         }
 
-        private void ShowMessage(string message)
+        private void QueueMessage(string message)
+        {
+            _messages.Enqueue(message);
+            if (Info3.Equals(""))
+            {
+                DequeueMessages();
+            }
+        }
+
+        private void DequeueMessages()
         {
             Task.Run(() =>
             {
-                Info3 = message;
-                Thread.Sleep(3000);
-                Info3 = "";
+                if (_messages.Count != 0)
+                {
+                    Info3 = _messages.Dequeue();
+                    Thread.Sleep(3000);
+                    if (_messages.Count != 0)
+                    {
+                        DequeueMessages();
+                    }
+                    else
+                    {
+                        Info3 = "";
+                    }
+                }
             });
         }
 
