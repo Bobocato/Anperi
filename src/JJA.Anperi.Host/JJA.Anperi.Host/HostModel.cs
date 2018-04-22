@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -43,7 +44,7 @@ namespace JJA.Anperi.Host
         public HostModel(Dispatcher dispatcher)
         {
             _dispatcher = dispatcher;
-            Peripherals = new List<HostJsonApiObjectFactory.ApiPeripheral>();
+            Peripherals = new ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral>();
             _messages = new Queue<string>();
             if (File.Exists(_filePath))
             {
@@ -84,7 +85,7 @@ namespace JJA.Anperi.Host
                 _connectedTo = value;
                 OnPropertyChanged(nameof(ConnectedTo));
             } }
-        public List<HostJsonApiObjectFactory.ApiPeripheral> Peripherals { get; set; }
+        public ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral> Peripherals { get; set; }
         public bool ButConnect
         {
             get { return _butConnectVisible;}
@@ -259,10 +260,17 @@ namespace JJA.Anperi.Host
                             if (json.message_code.Equals(
                                 "connect_to_peripheral"))
                             {
-                                ConnectedTo = "Peripheral";
                                 if (json.data.TryGetValue("id", out int id))
                                 {
                                     _connectedPeripheral = id;
+                                }
+                                var peripheral = Peripherals.SingleOrDefault(x => x.id == id);
+                                if (peripheral != null)
+                                {
+                                    ConnectedTo = peripheral.name;
+                                }else
+                                {
+                                    QueueMessage("Couldn't find the connected device in peripheral list!");
                                 }
                                 ButConnect = false;
                                 ButDisconnect = true;

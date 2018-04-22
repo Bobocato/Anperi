@@ -28,7 +28,6 @@ namespace JJA.Anperi.Host
         {
             _dispatcher = dispatcher;
             _model = new HostModel(_dispatcher);
-            Peripherals = new ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral>();
             _model.PropertyChanged += OnModelPropertyChanged;
         }
         
@@ -92,7 +91,10 @@ namespace JJA.Anperi.Host
             }
         }
         
-        public ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral> Peripherals { get; }
+        public ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral> Peripherals
+        {
+            get { return _model.Peripherals; }
+        }
 
         public void Close()
         {
