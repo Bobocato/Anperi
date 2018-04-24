@@ -51,7 +51,7 @@ public class JsonApiObject {
                             case "login":
                                 //TODO: Maybe send info to host
                                 Boolean success = messageData.getBoolean("success");
-                                if (success){
+                                if (success) {
                                     return Action.success;
                                 } else {
                                     return Action.error;
@@ -77,6 +77,17 @@ public class JsonApiObject {
                         }
                         break;
                     case "request":
+                        switch (messageCode) {
+                            case "get_info":
+                                Log.v(TAG, "get_info was called");
+                                return Action.success;
+                            case "set_layout":
+                                Log.v(TAG, "set_layout was called");
+                                return Action.success;
+                            case "set_element_param":
+                                Log.v(TAG, "set_element_param was called");
+                                return Action.success;
+                        }
                         break;
                     case "response":
                         break;

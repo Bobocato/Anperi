@@ -1,5 +1,7 @@
 package com.jannes_peters.anperi.anperi;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import com.neovisionaries.ws.client.WebSocketException;
@@ -11,6 +13,7 @@ import java.io.IOException;
 public class MyWebSocket {
     private static final String TAG = "jja.anperi";
     private static com.neovisionaries.ws.client.WebSocket instance;
+    private static final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
     //WS variables
     private static String server;
     private static final int timeout = 500;
@@ -31,14 +34,20 @@ public class MyWebSocket {
     }
 
     public static void reconnect(){
-        Log.v(TAG, "Trying to reconnect");
-        try {
-            instance = instance.recreate().connect();
-        } catch (WebSocketException e) {
-            reconnect();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        //Runnable delayedTask = new Runnable() {
+          //public void run() {
+                Log.v(TAG, "Trying to reconnect");
+                try {
+                    instance = instance.recreate().connect();
+                } catch (WebSocketException e) {
+                    reconnect();
+                } catch (IOException e) {
+                    e.printStackTrace();
+              }
+           // }
+        //};
+        //mainThreadHandler.postDelayed(delayedTask, 2000);
+
 
     }
 

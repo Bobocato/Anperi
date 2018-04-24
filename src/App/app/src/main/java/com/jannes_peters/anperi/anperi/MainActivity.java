@@ -3,10 +3,13 @@ package com.jannes_peters.anperi.anperi;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -33,6 +36,9 @@ public class MainActivity extends AppCompatActivity {
     private final boolean debug = true;
     private String serverUrl = "";
 
+    private int version;
+    private DisplayMetrics metrics;
+
     private KeyFragment keyFragment;
     private LoadingFragment loadingFragment;
     private TestFragment testFragment;
@@ -43,6 +49,16 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        //Get Version
+        try {
+            PackageInfo pInfo = this.getPackageManager().getPackageInfo(getPackageName(), 0);
+            version = pInfo.versionCode;
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        //Get Screenmetrics
+         metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
         //Create Fragments and show loading fragment
         keyFragment = new KeyFragment();
         loadingFragment = new LoadingFragment();
@@ -53,14 +69,14 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.enter_server);
         final EditText input = new EditText(this);
-        input.setHint("ws://10.0.2.2:5000/api/ws");
-        //input.setHint("wss://anperi.jannes-peters.com/api/ws");
+        //input.setHint("ws://10.0.2.2:5000/api/ws");
+        input.setHint("wss://anperi.jannes-peters.com/api/ws");
         input.setInputType(InputType.TYPE_TEXT_VARIATION_URI | InputType.TYPE_CLASS_TEXT);
         builder.setView(input);
         builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                if(!input.getText().toString().equals("")) {
+                if (!input.getText().toString().equals("")) {
                     serverUrl = input.getText().toString();
                 } else {
                     serverUrl = input.getHint().toString();
@@ -81,8 +97,8 @@ public class MainActivity extends AppCompatActivity {
         builder.show();
     }
 
-    private void connected(){
-        if (debug){
+    private void connected() {
+        if (debug) {
             //Show testPage
             showTest();
         } else {
@@ -155,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.v(TAG, "Exeption in JsonApiObjekt " + e.toString());
                     e.printStackTrace();
                 }
-                //For testing purposes
+                //For the testingfragment
                 if (debug) {
                     try {
                         runOnUiThread(new Runnable() {
@@ -186,28 +202,75 @@ public class MainActivity extends AppCompatActivity {
             this.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    if (action == JsonApiObject.Action.success) {
-                        Toast.makeText(getApplicationContext(), action.toString() + ": " + apiObject.messageData.toString(), Toast.LENGTH_SHORT).show();
-                        if (apiObject.messageContext.equals("server") && apiObject.messageCode.equals("register")){
-                            //User was registered...
-                        } else if(apiObject.messageContext.equals("server") && apiObject.messageCode.equals("get_pairing_code")){
-                            //User has pairing code show it
-                            if(!debug) showKey();
-                        } else if (apiObject.messageContext.equals("server") && apiObject.messageCode.equals("login")){
-                            //User was logged in
-                            try {
-                                String jsonString = new JSONObject()
-                                        .put("context", "server")
-                                        .put("message_type", "request")
-                                        .put("message_code", "get_pairing_code")
-                                        .put("data", null).toString();
-                                ws.sendText(jsonString);
-                            } catch (JSONException e) {
-                                e.printStackTrace();
+                    switch (action) {
+                        case success:
+                            if(apiObject.messageData != null){
+                                Toast.makeText(getApplicationContext(), action.toString() + ": " + apiObject.messageData.toString(), Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(getApplicationContext(), action.toString() + ": " + apiObject.messageCode, Toast.LENGTH_SHORT).show();
                             }
-                        }
-                    } else if (action == JsonApiObject.Action.debug) {
-                        Toast.makeText(getApplicationContext(), action.toString() + ": " + apiObject.messageData.toString(), Toast.LENGTH_LONG).show();
+                            switch (apiObject.messageContext) {
+                                case "server":
+                                    switch (apiObject.messageCode) {
+                                        case "register":
+                                            //User was registered...
+                                            break;
+                                        case "get_pairing_code":
+                                            //User has pairing code show it
+                                            if (!debug) showKey();
+                                            break;
+                                        case "login":
+                                            //User was logged in get a pairing code
+                                            try {
+                                                String jsonString = new JSONObject()
+                                                        .put("context", "server")
+                                                        .put("message_type", "request")
+                                                        .put("message_code", "get_pairing_code")
+                                                        .put("data", null).toString();
+                                                ws.sendText(jsonString);
+                                            } catch (JSONException e) {
+                                                e.printStackTrace();
+                                            }
+                                            break;
+                                    }
+                                    break;
+                                case "device":
+                                    switch (apiObject.messageCode) {
+                                        case "get_info":
+                                            //Host wants to know about the device
+                                            try {
+                                                String jsonString = new JSONObject()
+                                                        .put("context", "device")
+                                                        .put("message_type", "response")
+                                                        .put("message_code", "get_info")
+                                                        .put("data", new JSONObject()
+                                                                .put("version", version)
+                                                                .put("screen_type", getString(R.string.screen_type))
+                                                                .put("screen_width", metrics.widthPixels)
+                                                                .put("screen_height", metrics.heightPixels)).toString();
+                                                ws.sendText(jsonString);
+                                            } catch (JSONException e) {
+                                                e.printStackTrace();
+                                            }
+                                            break;
+                                        case "set_layout":
+                                            showLoad();
+                                            createFragment = new CreateFragment();
+                                            createFragment.createLayout(apiObject);
+                                            showCreate();
+                                            break;
+                                        case "set_element_param":
+                                            showLoad();
+                                            createFragment.changeElement(apiObject);
+                                            showCreate();
+                                            break;
+                                    }
+                                    break;
+                            }
+                            break;
+                        case debug:
+                            Toast.makeText(getApplicationContext(), action.toString() + ": " + apiObject.messageData.toString(), Toast.LENGTH_LONG).show();
+                            break;
                     }
                 }
             });
@@ -220,7 +283,7 @@ public class MainActivity extends AppCompatActivity {
         //Remove loading text and show pairing key
         SharedPreferences sharedPrefs = this.getSharedPreferences(this.getString(R.string.preference_file_name), Context.MODE_PRIVATE);
         String key = sharedPrefs.getString("pairingcode", null);
-        if(key != null) {
+        if (key != null) {
             getFragmentManager().beginTransaction()
                     .replace(R.id.fragment_container, keyFragment)
                     .commit();
@@ -239,8 +302,7 @@ public class MainActivity extends AppCompatActivity {
                 .commit();
     }
 
-    private void showCreate(int rows, int columns) {
-        createFragment.createLayout(rows, columns);
+    private void showCreate() {
         getFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, createFragment)
                 .commit();
