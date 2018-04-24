@@ -52,10 +52,12 @@ namespace JJA.Anperi.Server
 
             bool webSocketReceiveBufferSizeValid = int.TryParse(Configuration["ServerStartupSettings:WebSocketReceiveBufferSize"], out int webSocketReceiveBufferSize);
             if (!webSocketReceiveBufferSizeValid) webSocketReceiveBufferSize = (16 * 1024);
+            bool webSocketKeepAliveIntervalValid = int.TryParse(Configuration["ServerStartupSettings:WebSocketReceiveBufferSize"], out int webSocketKeepAliveInterval);
+            if (!webSocketKeepAliveIntervalValid) webSocketKeepAliveInterval = 5000;
 
             app.UseWebSockets(new WebSocketOptions
             {
-                KeepAliveInterval = TimeSpan.FromSeconds(5),
+                KeepAliveInterval = TimeSpan.FromMilliseconds(webSocketKeepAliveInterval),
                 ReceiveBufferSize = webSocketReceiveBufferSize
             });
             string anperiWebSocketApiPath = Configuration["ServerStartupSettings:AnperiWebSocketApiPath"];
