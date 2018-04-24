@@ -25,10 +25,12 @@ namespace JJA.Anperi.Server
         private readonly ILogger<AnperiWebSocketMiddleware> _logger;
         private readonly AnperiWebSocketMiddleware _anperiManager;
         private readonly AnperiDbContext _db;
+        private readonly List<AuthenticatedWebSocketConnection> _loggedInPairedDevices;
         private AuthenticatedWebSocketConnection _partner;
         private readonly object _syncRootPartner = new object();
+        private readonly object _syncRootLoggedInPairedDevices = new object();
 
-        public AuthenticatedWebSocketConnection(HttpContext context, WebSocket socket, byte[] buffer, RegisteredDevice device, AnperiDbContext dbContext, ILogger<AnperiWebSocketMiddleware> logger, AnperiWebSocketMiddleware anperiManager)
+        public AuthenticatedWebSocketConnection(HttpContext context, WebSocket socket, byte[] buffer, RegisteredDevice device, AnperiDbContext dbContext, ILogger<AnperiWebSocketMiddleware> logger, AnperiWebSocketMiddleware anperiManager, List<AuthenticatedWebSocketConnection> onlinePairedDevices)
         {
             _context = context;
             _socket = socket;
@@ -37,16 +39,12 @@ namespace JJA.Anperi.Server
             _logger = logger;
             _anperiManager = anperiManager;
             _db = dbContext;
+            _loggedInPairedDevices = onlinePairedDevices ?? new List<AuthenticatedWebSocketConnection>();
         }
 
         public async void OnPairedDeviceLogoff(object sender, AuthenticatedWebSocketEventArgs e)
         {
-            if (e.Connection.Device.Id != _partner.Device.Id)
-            {
-                await _socket.SendJson(
-                    HostJsonApiObjectFactory.CreatePairedPeripheralLoggedOffMessage(e.Connection.Device.Id));
-            }
-            else
+            if (e.Connection.Device.Id == _partner?.Device.Id)
             {
                 lock (_syncRootPartner)
                 {
@@ -54,10 +52,20 @@ namespace JJA.Anperi.Server
                 }
                 await _socket.SendJson(SharedJsonApiObjectFactory.CreatePartnerDisconnected());
             }
+            lock (_syncRootLoggedInPairedDevices)
+            {
+                _loggedInPairedDevices.Remove(e.Connection);
+            }
+            await _socket.SendJson(
+                HostJsonApiObjectFactory.CreatePairedPeripheralLoggedOffMessage(e.Connection.Device.Id));
         }
 
         public async void OnPairedDeviceLogin(object sender, AuthenticatedWebSocketEventArgs e)
         {
+            lock (_syncRootLoggedInPairedDevices)
+            {
+                _loggedInPairedDevices.Add(e.Connection);
+            }
             await _socket.SendJson(
                 HostJsonApiObjectFactory.CreatePairedPeripheralLoggedOnMessage(e.Connection.Device.Id));
         }
@@ -283,6 +291,11 @@ namespace JJA.Anperi.Server
                         _db.Remove(pairingCode);
                         _db.SaveChanges();
                         await _socket.SendJson(HostJsonApiObjectFactory.CreatePairingResponse(true));
+                        AuthenticatedWebSocketConnection conn = _anperiManager.GetConnectionForId(deviceToPair.Id);
+                        if (conn != null)
+                        {
+                            OnPairedDeviceLogin(null, new AuthenticatedWebSocketEventArgs(conn));
+                        }
                     }
                     catch (Exception e)
                     {
@@ -301,6 +314,12 @@ namespace JJA.Anperi.Server
                                 _db.HostPeripherals.Remove(connection);
                                 (_device as Host)?.PairedDevices.Remove(connection);
                                 _db.SaveChanges();
+                                AuthenticatedWebSocketConnection loggedInPeripheral;
+                                lock (_syncRootLoggedInPairedDevices)
+                                {
+                                    loggedInPeripheral = _loggedInPairedDevices.SingleOrDefault(c => c.Device.Id == peripheralId);
+                                }
+                                if (loggedInPeripheral != null) OnPairedDeviceLogoff(null, new AuthenticatedWebSocketEventArgs(loggedInPeripheral));
                                 await _socket.SendJson(
                                     HostJsonApiObjectFactory.CreateUnpairFromPeripheralResponse(true));
                             }
@@ -319,14 +338,21 @@ namespace JJA.Anperi.Server
                     break;
                 case HostRequestCode.get_available_peripherals:
                     IEnumerable<Peripheral> peripherals = _db.HostPeripherals.Where(hp => hp.HostId == _device.Id).Select(p => p.Peripheral);
+                    IEnumerable<HostJsonApiObjectFactory.ApiPeripheral> apiPeris = peripherals.Select(
+                        p => new HostJsonApiObjectFactory.ApiPeripheral
+                        {
+                            id = p.Id,
+                            name = p.Name
+                        }).ToList();
+                    lock (_syncRootLoggedInPairedDevices)
+                    {
+                        _loggedInPairedDevices.ForEach(d =>
+                        {
+                            apiPeris.Single(p => p.id == d.Device.Id).online = true;
+                        });
+                    }
                     await _socket.SendJson(
-                        HostJsonApiObjectFactory.CreateAvailablePeripheralResponse(peripherals.Select(p =>
-                            new HostJsonApiObjectFactory.ApiPeripheral
-                            {
-                                id = p.Id,
-                                name = p.Name
-                            })
-                        ), token);
+                        HostJsonApiObjectFactory.CreateAvailablePeripheralResponse(apiPeris), token);
                     break;
                 case HostRequestCode.connect_to_peripheral:
                     if (message.data.TryGetValue("id", out int id))

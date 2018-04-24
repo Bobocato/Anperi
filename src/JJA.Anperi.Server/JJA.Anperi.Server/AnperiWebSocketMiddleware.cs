@@ -23,14 +23,14 @@ namespace JJA.Anperi.Server
         private readonly RequestDelegate _next;
         private readonly IOptions<Options> _options;
         private readonly object _syncRootActiveConnections = new object();
-        private readonly List<AuthenticatedWebSocketConnection> _activeConnections;
+        private readonly Dictionary<int, AuthenticatedWebSocketConnection> _activeConnections;
 
         public AnperiWebSocketMiddleware(RequestDelegate next, ILogger<AnperiWebSocketMiddleware> logger, IOptions<Options> options)
         {
             _next = next;
             _logger = logger;
             _options = options;
-            _activeConnections = new List<AuthenticatedWebSocketConnection>();
+            _activeConnections = new Dictionary<int, AuthenticatedWebSocketConnection>();
         }
 
         public class Options
@@ -61,19 +61,6 @@ namespace JJA.Anperi.Server
                 if (!(se.InnerException is BadHttpRequestException)) throw;
                 _logger.LogWarning(
                     $"BadHttpRequestException occured while handling a websocket: {se.Message} -> {se.InnerException.Message}");
-            }
-            finally
-            {
-                lock (_syncRootActiveConnections)
-                {
-                    var connection =
-                        _activeConnections.SingleOrDefault(c => c.Context.Connection.Id == ctx.Connection.Id);
-                    if (connection != null)
-                    {
-                        if (_activeConnections.Remove(connection))
-                            OnDeviceLoggedOut(connection, connection.Device);
-                    }
-                }
             }
         }
 
@@ -128,12 +115,17 @@ namespace JJA.Anperi.Server
                                         AuthenticatedWebSocketConnection activeConn;
                                         lock (_activeConnections)
                                         {
-                                            activeConn = _activeConnections.SingleOrDefault(c => c.Device.Id == device.Id);
+                                            _activeConnections.TryGetValue(device.Id, out activeConn);
                                         }
-                                        if (activeConn != null)
+                                        if (activeConn == null)
                                         {
                                             closeStatus = await LoginDevice(ctx, socket, buffer, device, dbContext);
                                             authFailed = false;
+                                        }
+                                        else
+                                        {
+                                            await socket.SendJson(SharedJsonApiObjectFactory.CreateError(
+                                                "Error logging in ... a device with your token is already active."));
                                         }
                                     }
                                 }
@@ -204,34 +196,98 @@ namespace JJA.Anperi.Server
         private async Task<WebSocketCloseStatus> LoginDevice(HttpContext context, WebSocket socket, byte[] buffer, RegisteredDevice device, AnperiDbContext dbContext)
         {
             await socket.SendJson(SharedJsonApiObjectFactory.CreateLoginResponse(true, device.Name));
-            var connection = new AuthenticatedWebSocketConnection(context, socket, buffer, device, dbContext, _logger, this);
+            List<AuthenticatedWebSocketConnection> connectedPairedDevices = await GetOnlinePairedDevices(device, dbContext);
+            var connection = new AuthenticatedWebSocketConnection(context, socket, buffer, device, dbContext, _logger, this, connectedPairedDevices);
             lock (_syncRootActiveConnections)
             {
-                _activeConnections.Add(connection);
+                _activeConnections.Add(connection.Device.Id, connection);
             }
-            OnDeviceLoggedIn(connection, device);
-            WebSocketCloseStatus closeStatus = await connection.Run(_options.Value.RequestCancelToken);
-            OnDeviceLoggedOut(connection, device);
+            WebSocketCloseStatus closeStatus;
+            try
+            { 
+                await OnDeviceLoggedIn(connection, dbContext);
+                closeStatus = await connection.Run(_options.Value.RequestCancelToken);
+            }
+            catch (WebSocketException se)
+            {
+                if (!(se.InnerException is BadHttpRequestException)) throw;
+                closeStatus = WebSocketCloseStatus.Empty;
+                _logger.LogWarning(
+                    $"BadHttpRequestException occured while handling a websocket: {se.Message} -> {se.InnerException.Message}");
+            }
+            finally
+            {
+                lock (_syncRootActiveConnections)
+                {
+                    _activeConnections.Remove(connection.Device.Id);
+                }
+                await OnDeviceLoggedOut(connection, dbContext);
+            }
             lock (_syncRootActiveConnections)
             {
-                _activeConnections.Remove(connection);
+                _activeConnections.Remove(connection.Device.Id);
             }
             return closeStatus;
         }
 
-        private void OnDeviceLoggedOut(AuthenticatedWebSocketConnection connection, RegisteredDevice device)
+        private async Task<IEnumerable<int>> GetPairedDeviceIds(RegisteredDevice device, AnperiDbContext dbContext)
         {
+            return await Task.Run(() =>
+            {
+                IEnumerable<int> pairedDeviceIds;
+                if (device is Host)
+                {
+                    pairedDeviceIds = dbContext.HostPeripherals.Where(hp => hp.HostId == device.Id)
+                        .Select(hp => hp.PeripheralId);
+                }
+                else if (device is Peripheral)
+                {
+                    pairedDeviceIds = dbContext.HostPeripherals.Where(hp => hp.PeripheralId == device.Id)
+                        .Select(hp => hp.HostId);
+                }
+                else
+                    throw new NotImplementedException(
+                        $"The device type {device.GetType().AssemblyQualifiedName} is not implemented in GetPairedDeviceIds");
+                return pairedDeviceIds.ToList();
+            });
+        }
+
+        private async Task<List<AuthenticatedWebSocketConnection>> GetOnlinePairedDevices(
+            RegisteredDevice device, AnperiDbContext dbContext)
+        {
+            IEnumerable<int> pairedDeviceIds = await GetPairedDeviceIds(device, dbContext);
+
             lock (_activeConnections)
             {
-                //TODO: implement
+                return _activeConnections.Where(c => pairedDeviceIds.Contains(c.Key)).Select(c => c.Value).ToList();
             }
         }
 
-        private void OnDeviceLoggedIn(AuthenticatedWebSocketConnection connection, RegisteredDevice device)
+        private async Task OnDeviceLoggedOut(AuthenticatedWebSocketConnection connection, AnperiDbContext dbContext)
         {
+            IEnumerable<int> pairedDeviceIds = await GetPairedDeviceIds(connection.Device, dbContext);
+            
             lock (_activeConnections)
             {
-                //TODO: implement
+                foreach (int pairedDeviceId in pairedDeviceIds)
+                {
+                    _activeConnections.TryGetValue(pairedDeviceId, out var c);
+                    c?.OnPairedDeviceLogoff(this, new AuthenticatedWebSocketEventArgs(connection));
+                }
+            }
+        }
+
+        private async Task OnDeviceLoggedIn(AuthenticatedWebSocketConnection connection, AnperiDbContext dbContext)
+        {
+            IEnumerable<int> pairedDeviceIds = await GetPairedDeviceIds(connection.Device, dbContext);
+
+            lock (_activeConnections)
+            {
+                foreach (int pairedDeviceId in pairedDeviceIds)
+                {
+                    _activeConnections.TryGetValue(pairedDeviceId, out var c);
+                    c?.OnPairedDeviceLogin(this, new AuthenticatedWebSocketEventArgs(connection));
+                }
             }
         }
 
@@ -239,7 +295,8 @@ namespace JJA.Anperi.Server
         {
             lock (_activeConnections)
             {
-                return _activeConnections.SingleOrDefault(c => c.Device.Id == id);
+                _activeConnections.TryGetValue(id, out var val);
+                return val;
             }
         }
     }
