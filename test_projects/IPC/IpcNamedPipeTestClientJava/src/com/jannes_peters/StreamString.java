@@ -50,8 +50,8 @@ public class StreamString
         byte[] res = new byte[4];
         res[0] |= (byte)(val & 0x000000FF);
         res[1] |= (byte)((val & 0x0000FF00) >> 8);
-        res[2] |= (byte)((val & 0x00FF0000) >> 8);
-        res[3] |= (byte)((val & 0xFF000000) >> 8);
+        res[2] |= (byte)((val & 0x00FF0000) >> 16);
+        res[3] |= (byte)((val & 0xFF000000) >> 24);
         return res;
     }
 }
