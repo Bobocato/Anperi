@@ -33,18 +33,19 @@ namespace JJA.Anperi.Host
         private string _name = "";
         private bool _butConnectVisible = true;
         private bool _butDisconnectVisible = false;
+
         private string _wsAddress = "ws://localhost:5000/api/ws";
         //private string _wsAddress = "wss://anperi.jannes-peters.com/api/ws";
         private string _token = "";
         private WebSocket _ws;
-        private readonly Dispatcher _dispatcher;
+        private List<HostJsonApiObjectFactory.ApiPeripheral> _periList;
         private Queue<string> _messages;
+        private bool _closing = false;
         private int _connectedPeripheral;
 
-        public HostModel(Dispatcher dispatcher)
+        public HostModel()
         {
-            _dispatcher = dispatcher;
-            Peripherals = new ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral>();
+            _periList = new List<HostJsonApiObjectFactory.ApiPeripheral>();
             _messages = new Queue<string>();
             if (File.Exists(_filePath))
             {
@@ -85,7 +86,17 @@ namespace JJA.Anperi.Host
                 _connectedTo = value;
                 OnPropertyChanged(nameof(ConnectedTo));
             } }
-        public ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral> Peripherals { get; set; }
+
+        public List<HostJsonApiObjectFactory.ApiPeripheral> Peripherals
+        {
+            get { return _periList; }
+            set
+            {
+                _periList = value;
+                OnPropertyChanged(nameof(Peripherals));
+            }
+        }
+
         public bool ButConnect
         {
             get { return _butConnectVisible;}
@@ -177,11 +188,14 @@ namespace JJA.Anperi.Host
 
                     _ws.OnClose += (sender, e) =>
                     {
-                        Info1 = "No current WebSocket connection";
-                        if (!_ws.IsAlive)
+                        if (!_closing)
                         {
-                            Thread.Sleep(2000);
-                            _ws.Connect();
+                            Info1 = "No current WebSocket connection";
+                            if (!_ws.IsAlive)
+                            {
+                                Thread.Sleep(2000);
+                                _ws.Connect();
+                            }
                         }
                     };
 
@@ -227,22 +241,19 @@ namespace JJA.Anperi.Host
                     json.data.TryGetValue("devices", out dynamic list);
                     if (list != null)
                     {
-                        _dispatcher.Invoke(() =>
+                        Peripherals.Clear();
+                        foreach (var x in list)
                         {
-                            Peripherals.Clear();
-                            foreach (var x in list)
+                            JObject jo = x;
+                            if (jo.TryGetCastValue("name", out string name) && jo.TryGetCastValue("id", out int id))
                             {
-                                JObject jo = x;
-                                if (jo.TryGetCastValue("name", out string name) && jo.TryGetCastValue("id", out int id))
-                                {
-                                    Peripherals.Add(new HostJsonApiObjectFactory.ApiPeripheral { id = id, name = name });
-                                }
-                                else
-                                {
-                                    Trace.TraceError($"couldn't parse get_available_peripherals answer: {list.ToString()}");
-                                }
+                                Peripherals.Add(new HostJsonApiObjectFactory.ApiPeripheral { id = id, name = name });
                             }
-                        });
+                            else
+                            {
+                                Trace.TraceError($"couldn't parse get_available_peripherals answer: {list.ToString()}");
+                            }
+                        }
                     }
                     else
                     {
@@ -473,6 +484,7 @@ namespace JJA.Anperi.Host
 
         public void Close()
         {
+            _closing = true;
             if (_ws.IsAlive)
             {
                 _ws.Close();
