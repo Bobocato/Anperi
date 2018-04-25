@@ -41,4 +41,8 @@
     </Reference>
   </ItemGroup>
 
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="echo fn|xcopy /d /i &quot;$(ProjectDir)appsettings.Default.json&quot; &quot;$(ProjectDir)appsettings.json&quot;" />
+  </Target>
+
 </Project>
