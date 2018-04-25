@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -13,7 +14,6 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.widget.EditText;
 import android.widget.Toast;
-import android.os.Build;
 
 import com.neovisionaries.ws.client.WebSocket;
 import com.neovisionaries.ws.client.WebSocketAdapter;
@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         //Get Screenmetrics
-         metrics = new DisplayMetrics();
+        metrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
         //Create Fragments and show loading fragment
         keyFragment = new KeyFragment();
@@ -204,7 +204,7 @@ public class MainActivity extends AppCompatActivity {
                 public void run() {
                     switch (action) {
                         case success:
-                            if(apiObject.messageData != null){
+                            if (apiObject.messageData != null) {
                                 Toast.makeText(getApplicationContext(), action.toString() + ": " + apiObject.messageData.toString(), Toast.LENGTH_SHORT).show();
                             } else {
                                 Toast.makeText(getApplicationContext(), action.toString() + ": " + apiObject.messageCode, Toast.LENGTH_SHORT).show();
@@ -255,9 +255,10 @@ public class MainActivity extends AppCompatActivity {
                                             break;
                                         case "set_layout":
                                             showLoad();
-                                            createFragment = new CreateFragment();
-                                            createFragment.createLayout(apiObject);
+                                            //createFragment = new CreateFragment();
+                                            createFragment.setLayout(apiObject);
                                             showCreate();
+
                                             break;
                                         case "set_element_param":
                                             showLoad();
