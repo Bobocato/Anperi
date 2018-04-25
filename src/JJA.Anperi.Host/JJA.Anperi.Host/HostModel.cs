@@ -33,12 +33,14 @@ namespace JJA.Anperi.Host
         private string _name = "";
         private bool _butConnectVisible = true;
         private bool _butDisconnectVisible = false;
+
         private string _wsAddress = "ws://localhost:5000/api/ws";
         //private string _wsAddress = "wss://anperi.jannes-peters.com/api/ws";
         private string _token = "";
         private WebSocket _ws;
         private List<HostJsonApiObjectFactory.ApiPeripheral> _periList;
         private Queue<string> _messages;
+        private bool _closing = false;
         private int _connectedPeripheral;
 
         public HostModel()
@@ -186,11 +188,14 @@ namespace JJA.Anperi.Host
 
                     _ws.OnClose += (sender, e) =>
                     {
-                        Info1 = "No current WebSocket connection";
-                        if (!_ws.IsAlive)
+                        if (!_closing)
                         {
-                            Thread.Sleep(2000);
-                            _ws.Connect();
+                            Info1 = "No current WebSocket connection";
+                            if (!_ws.IsAlive)
+                            {
+                                Thread.Sleep(2000);
+                                _ws.Connect();
+                            }
                         }
                     };
 
@@ -479,6 +484,7 @@ namespace JJA.Anperi.Host
 
         public void Close()
         {
+            _closing = true;
             if (_ws.IsAlive)
             {
                 _ws.Close();
