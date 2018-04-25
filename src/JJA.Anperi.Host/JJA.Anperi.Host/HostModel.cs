@@ -37,12 +37,13 @@ namespace JJA.Anperi.Host
         //private string _wsAddress = "wss://anperi.jannes-peters.com/api/ws";
         private string _token = "";
         private WebSocket _ws;
+        private List<HostJsonApiObjectFactory.ApiPeripheral> _periList;
         private Queue<string> _messages;
         private int _connectedPeripheral;
 
-        public HostModel(Dispatcher dispatcher)
+        public HostModel()
         {
-            Peripherals = new ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral>();
+            _periList = new List<HostJsonApiObjectFactory.ApiPeripheral>();
             _messages = new Queue<string>();
             if (File.Exists(_filePath))
             {
@@ -83,7 +84,17 @@ namespace JJA.Anperi.Host
                 _connectedTo = value;
                 OnPropertyChanged(nameof(ConnectedTo));
             } }
-        public ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral> Peripherals { get; set; }
+
+        public List<HostJsonApiObjectFactory.ApiPeripheral> Peripherals
+        {
+            get { return _periList; }
+            set
+            {
+                _periList = value;
+                OnPropertyChanged(nameof(Peripherals));
+            }
+        }
+
         public bool ButConnect
         {
             get { return _butConnectVisible;}
@@ -225,7 +236,6 @@ namespace JJA.Anperi.Host
                     json.data.TryGetValue("devices", out dynamic list);
                     if (list != null)
                     {
-                        //TODO: test if still working
                         Peripherals.Clear();
                         foreach (var x in list)
                         {

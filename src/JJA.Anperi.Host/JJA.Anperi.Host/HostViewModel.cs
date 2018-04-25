@@ -93,7 +93,7 @@ namespace JJA.Anperi.Host
         
         public ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral> Peripherals
         {
-            get { return _model.Peripherals; }
+            get { return new ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral>(_model.Peripherals); }
         }
 
         public void Close()
