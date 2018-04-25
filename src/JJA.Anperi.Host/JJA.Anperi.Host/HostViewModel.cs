@@ -27,7 +27,7 @@ namespace JJA.Anperi.Host
         public HostViewModel(Dispatcher dispatcher)
         {
             _dispatcher = dispatcher;
-            _model = new HostModel(_dispatcher);
+            _model = new HostModel();
             _model.PropertyChanged += OnModelPropertyChanged;
         }
         

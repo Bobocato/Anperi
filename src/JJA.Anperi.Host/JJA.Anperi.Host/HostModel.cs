@@ -37,13 +37,11 @@ namespace JJA.Anperi.Host
         //private string _wsAddress = "wss://anperi.jannes-peters.com/api/ws";
         private string _token = "";
         private WebSocket _ws;
-        private readonly Dispatcher _dispatcher;
         private Queue<string> _messages;
         private int _connectedPeripheral;
 
         public HostModel(Dispatcher dispatcher)
         {
-            _dispatcher = dispatcher;
             Peripherals = new ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral>();
             _messages = new Queue<string>();
             if (File.Exists(_filePath))
@@ -227,22 +225,20 @@ namespace JJA.Anperi.Host
                     json.data.TryGetValue("devices", out dynamic list);
                     if (list != null)
                     {
-                        _dispatcher.Invoke(() =>
+                        //TODO: test if still working
+                        Peripherals.Clear();
+                        foreach (var x in list)
                         {
-                            Peripherals.Clear();
-                            foreach (var x in list)
+                            JObject jo = x;
+                            if (jo.TryGetCastValue("name", out string name) && jo.TryGetCastValue("id", out int id))
                             {
-                                JObject jo = x;
-                                if (jo.TryGetCastValue("name", out string name) && jo.TryGetCastValue("id", out int id))
-                                {
-                                    Peripherals.Add(new HostJsonApiObjectFactory.ApiPeripheral { id = id, name = name });
-                                }
-                                else
-                                {
-                                    Trace.TraceError($"couldn't parse get_available_peripherals answer: {list.ToString()}");
-                                }
+                                Peripherals.Add(new HostJsonApiObjectFactory.ApiPeripheral { id = id, name = name });
                             }
-                        });
+                            else
+                            {
+                                Trace.TraceError($"couldn't parse get_available_peripherals answer: {list.ToString()}");
+                            }
+                        }
                     }
                     else
                     {
