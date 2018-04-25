@@ -50,13 +50,13 @@ public class CreateFragment extends Fragment {
     public void changeElement(JsonApiObject json) {
     }
 
-    private GridLayout.LayoutParams createParams(int row, int column, int row_span, int column_span, float row_weight, float column_weight) {
-        GridLayout.LayoutParams param = new GridLayout.LayoutParams();
-        param.height = GridLayout.LayoutParams.WRAP_CONTENT;
-        param.width = GridLayout.LayoutParams.WRAP_CONTENT;
+    private android.support.v7.widget.GridLayout.LayoutParams createParams(int row, int column, int row_span, int column_span, float row_weight, float column_weight) {
+        android.support.v7.widget.GridLayout.LayoutParams param = new android.support.v7.widget.GridLayout.LayoutParams();
+        param.height = android.support.v7.widget.GridLayout.LayoutParams.WRAP_CONTENT;
+        param.width = android.support.v7.widget.GridLayout.LayoutParams.WRAP_CONTENT;
         param.setGravity(Gravity.CENTER);
-        param.columnSpec = GridLayout.spec(column, column_span, column_weight);
-        param.rowSpec = GridLayout.spec(row, row_span, row_weight);
+        param.columnSpec = android.support.v7.widget.GridLayout.spec(column, column_span, column_weight);
+        param.rowSpec = android.support.v7.widget.GridLayout.spec(row, row_span, row_weight);
         return param;
     }
 
