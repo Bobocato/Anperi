@@ -1,5 +1,7 @@
 package com.jannes_peters;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
@@ -7,22 +9,22 @@ import java.nio.charset.StandardCharsets;
 
 public class StreamString
 {
-    private RandomAccessFile _ioStream;
+    private RandomAccessFile _inputStream;
+    private RandomAccessFile _outputStream;
+
     private Charset _charset;
 
-    public StreamString(RandomAccessFile ioStream)
+    public StreamString(RandomAccessFile inputStream, RandomAccessFile outputStream)
     {
-        _ioStream = ioStream;
+        _inputStream = inputStream;
+        _outputStream = outputStream;
         _charset = StandardCharsets.UTF_8;
     }
 
     public String ReadString() throws IOException {
-        byte[] lenbuff = new byte[4];
-        _ioStream.read(lenbuff);
+        byte[] lenbuff = readFromFileInputStream(_inputStream, 4);
         int len = toInt(lenbuff);
-
-        byte[] inBuffer = new byte[len];
-        _ioStream.read(inBuffer, 0, len);
+        byte[] inBuffer = readFromFileInputStream(_inputStream, len);
 
         return new String(inBuffer, _charset);
     }
@@ -30,9 +32,21 @@ public class StreamString
     public int WriteString(String outString) throws IOException {
         byte[] outBuffer = outString.getBytes(_charset);
         int len = outBuffer.length;
-        _ioStream.write(toBytes(len));
-        _ioStream.write(outBuffer, 0, len);
+        _outputStream.write(toBytes(len));
+        _outputStream.write(outBuffer, 0, len);
         return outBuffer.length + 4;
+    }
+
+    private byte[] readFromFileInputStream(RandomAccessFile fis, int amount) throws IOException {
+        byte[] result = new byte[amount];
+        int bytesRead = 0;
+        int lastReadCount = 0;
+        while (lastReadCount != -1 && bytesRead < amount) {
+            lastReadCount = fis.read(result, bytesRead, result.length - bytesRead);
+            bytesRead += lastReadCount;
+        }
+        if (lastReadCount == -1) throw new IOException("Couldn't read all bytes because the end of the pipe got hit.");
+        return result;
     }
 
     private int toInt(byte[] bytes)

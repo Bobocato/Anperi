@@ -8,8 +8,11 @@ namespace IpcSocketServer
 {
     public interface IIpcClient
     {
-        Task Send(string message);
+        void StartReceive();
+        void Close();
+        void Send(string message);
         string Id { get; }
         event EventHandler<MessageEventArgs> Message;
+        event EventHandler Closed;
     }
 }

@@ -3,29 +3,31 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace IpcSocketServer
 {
     class StreamString
     {
-        private Stream ioStream;
+        private Stream _inputStream, _outputStream;
         private UTF8Encoding streamEncoding;
 
-        public StreamString(Stream ioStream)
+        public StreamString(Stream inputStream, Stream outputStream)
         {
-            this.ioStream = ioStream;
+            _inputStream = inputStream;
+            _outputStream = outputStream;
             streamEncoding = new UTF8Encoding();
         }
 
-        public string ReadString()
+        public async Task<string> ReadString(CancellationToken token)
         {
             int len = 0;
             byte[] lenbuff = new byte[4];
-            ioStream.Read(lenbuff, 0, 4);
+            await _inputStream.ReadAsync(lenbuff, 0, 4, token);
             len = ToInt(lenbuff);
             byte[] inBuffer = new byte[len];
-            ioStream.Read(inBuffer, 0, len);
+            await _inputStream.ReadAsync(inBuffer, 0, len, token);
 
             return streamEncoding.GetString(inBuffer);
         }
@@ -54,9 +56,9 @@ namespace IpcSocketServer
         {
             byte[] outBuffer = streamEncoding.GetBytes(outString);
             byte[] len = ToBytes(outBuffer.Length);
-            ioStream.Write(len, 0, len.Length);
-            ioStream.Write(outBuffer, 0, outBuffer.Length);
-            ioStream.Flush();
+            _outputStream.Write(len, 0, len.Length);
+            _outputStream.Write(outBuffer, 0, outBuffer.Length);
+            _outputStream.Flush();
 
             return outBuffer.Length + 4;
         }

@@ -9,7 +9,7 @@ namespace IpcSocketServer
 {
     public interface IIpcServer
     {
-        void Run();
+        void Start();
         void Stop();
         bool IsRunning { get; }
 
@@ -18,6 +18,5 @@ namespace IpcSocketServer
 
         event EventHandler<ErrorEventArgs> Error;
         event EventHandler Closed;
-
     }
 }
