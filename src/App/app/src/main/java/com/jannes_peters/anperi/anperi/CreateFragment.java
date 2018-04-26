@@ -26,7 +26,7 @@ import java.io.IOException;
 
 public class CreateFragment extends Fragment {
     private static final String TAG = "jja.anperi";
-    private JsonApiObject currentLayout;
+    private JSONObject currentLayout;
     private FrameLayout create_container;
     private Boolean isStarted = false;
     private Boolean isAttached = false;
@@ -56,15 +56,15 @@ public class CreateFragment extends Fragment {
         super.onAttach(activity);
     }
 
-    public void setLayout(JsonApiObject json) {
+    public void setLayout(JSONObject json) {
         currentLayout = json;
         if (getActivity() != null && isStarted) createLayout(json);
     }
 
-    public void createLayout(JsonApiObject json) {
+    public void createLayout(JSONObject json) {
         try {
             Log.v(TAG, "createLayout was called");
-            JSONObject grid = json.messageData.getJSONObject("grid");
+            JSONObject grid = json.getJSONObject("grid");
             JSONArray elements = grid.getJSONArray("elements");
             android.support.v7.widget.GridLayout newGrid = createGrid(elements);
             create_container = this.getView().findViewById(R.id.create_container);

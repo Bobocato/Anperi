@@ -39,6 +39,8 @@ public class MainActivity extends AppCompatActivity {
     private int version;
     private DisplayMetrics metrics;
 
+    private InstanceObject instance;
+
     private KeyFragment keyFragment;
     private LoadingFragment loadingFragment;
     private TestFragment testFragment;
@@ -49,53 +51,80 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //Get Version
-        try {
-            PackageInfo pInfo = this.getPackageManager().getPackageInfo(getPackageName(), 0);
-            version = pInfo.versionCode;
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-        //Get Screenmetrics
-        metrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(metrics);
-        //Create Fragments and show loading fragment
-        keyFragment = new KeyFragment();
-        loadingFragment = new LoadingFragment();
-        testFragment = new TestFragment();
-        createFragment = new CreateFragment();
-        showLoad();
-        //Ask for server url
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.enter_server);
-        final EditText input = new EditText(this);
-        //input.setHint("ws://10.0.2.2:5000/api/ws");
-        input.setHint("wss://anperi.jannes-peters.com/api/ws");
-        input.setInputType(InputType.TYPE_TEXT_VARIATION_URI | InputType.TYPE_CLASS_TEXT);
-        builder.setView(input);
-        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                if (!input.getText().toString().equals("")) {
-                    serverUrl = input.getText().toString();
-                } else {
-                    serverUrl = input.getHint().toString();
-                }
-                //Set server and start websocket
-                MyWebSocket.setServer(serverUrl);
+        instance = new InstanceObject();
+        //Check for savedStates
+        if (savedInstanceState != null) {
+            Log.v(TAG, "The SavedInstance was not null");
+            if (savedInstanceState.getBoolean("customLayout")) {
+                Log.v(TAG, "Set to custom layout");
                 try {
-                    ws = MyWebSocket.getInstance();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (WebSocketException e) {
+                    loadingFragment = new LoadingFragment();
+                    showLoad();
+                    createFragment = new CreateFragment();
+                    createFragment.setLayout(new JSONObject(savedInstanceState.getString("currentLayout")));
+                    showCreate();
+                } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                addWsListeners();
-                //Wait for connection...
             }
-        });
-        builder.show();
+        } else {
+            //Get Version
+            try {
+                PackageInfo pInfo = this.getPackageManager().getPackageInfo(getPackageName(), 0);
+                version = pInfo.versionCode;
+            } catch (PackageManager.NameNotFoundException e) {
+                e.printStackTrace();
+                version = 1;
+            }
+            //Get Screenmetrics
+            metrics = new DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getMetrics(metrics);
+            //Create Fragments and show loading fragment
+            keyFragment = new KeyFragment();
+            loadingFragment = new LoadingFragment();
+            testFragment = new TestFragment();
+            createFragment = new CreateFragment();
+            showLoad();
+            //Ask for server url
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(R.string.enter_server);
+            final EditText input = new EditText(this);
+            //input.setHint("ws://10.0.2.2:5000/api/ws");
+            input.setHint("wss://anperi.jannes-peters.com/api/ws");
+            input.setInputType(InputType.TYPE_TEXT_VARIATION_URI | InputType.TYPE_CLASS_TEXT);
+            builder.setView(input);
+            builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    if (!input.getText().toString().equals("")) {
+                        serverUrl = input.getText().toString();
+                    } else {
+                        serverUrl = input.getHint().toString();
+                    }
+                    //Set server and start websocket
+                    MyWebSocket.setServer(serverUrl);
+                    try {
+                        ws = MyWebSocket.getInstance();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (WebSocketException e) {
+                        e.printStackTrace();
+                    }
+                    addWsListeners();
+                    //Wait for connection...
+                }
+            });
+            builder.show();
+        }
     }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putBoolean("customLayout", instance.isCustomLayout);
+        savedInstanceState.putCharSequence("currentLayout", instance.layoutString);
+    }
+
 
     private void connected() {
         if (debug) {
@@ -256,9 +285,10 @@ public class MainActivity extends AppCompatActivity {
                                         case "set_layout":
                                             showLoad();
                                             createFragment = new CreateFragment();
-                                            createFragment.setLayout(apiObject);
+                                            instance.isCustomLayout = true;
+                                            instance.layoutString = apiObject.messageData.toString();
+                                            createFragment.setLayout(apiObject.messageData);
                                             showCreate();
-
                                             break;
                                         case "set_element_param":
                                             showLoad();
