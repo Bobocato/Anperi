@@ -11,12 +11,12 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
-using JJA.Anperi.HostApi;
 using WebSocketSharp;
-using JJA.Anperi.Api;
-using JJA.Anperi.Api.Shared;
-using JJA.Anperi.DeviceApi;
 using JJA.Anperi.Host.Utility;
+using JJA.Anperi.Internal.Api;
+using JJA.Anperi.Internal.Api.Device;
+using JJA.Anperi.Internal.Api.Host;
+using JJA.Anperi.Internal.Api.Shared;
 using Newtonsoft.Json.Linq;
 
 

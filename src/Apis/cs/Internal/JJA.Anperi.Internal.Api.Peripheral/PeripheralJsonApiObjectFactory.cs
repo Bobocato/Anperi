@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Dynamic;
-using System.Text;
-using JJA.Anperi.Api;
 
-namespace JJA.Anperi.PeripheralApi
+namespace JJA.Anperi.Internal.Api.Peripheral
 {
     public enum PeripheralRequestCode
     {

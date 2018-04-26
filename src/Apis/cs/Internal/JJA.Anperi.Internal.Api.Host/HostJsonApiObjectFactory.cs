@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using JJA.Anperi.Api;
-using Newtonsoft.Json;
 
-namespace JJA.Anperi.HostApi
+namespace JJA.Anperi.Internal.Api.Host
 {
     // ReSharper disable InconsistentNaming
     public enum HostRequestCode

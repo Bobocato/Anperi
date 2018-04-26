@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using JJA.Anperi.Api;
 
-namespace JJA.Anperi.DeviceApi
+namespace JJA.Anperi.Internal.Api.Device
 {
     public enum DeviceRequestCode
     {

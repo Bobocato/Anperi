@@ -6,8 +6,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using JJA.Anperi.Api;
-using JJA.Anperi.Server.Model;
+using JJA.Anperi.Internal.Api;
 using Microsoft.CSharp.RuntimeBinder;
 using Newtonsoft.Json;
 

@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\JJA.Anperi.Api\JJA.Anperi.Api.csproj" />
+    <ProjectReference Include="..\JJA.Anperi.Internal.Api\JJA.Anperi.Internal.Api.csproj" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

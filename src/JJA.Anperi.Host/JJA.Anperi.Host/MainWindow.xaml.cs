@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using JJA.Anperi.HostApi;
 
 namespace JJA.Anperi.Host
 {

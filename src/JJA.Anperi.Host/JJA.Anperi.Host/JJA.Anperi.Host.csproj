@@ -8,11 +8,12 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>JJA.Anperi.Host</RootNamespace>
     <AssemblyName>JJA.Anperi.Host</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -33,26 +34,29 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>JJA.Anperi.Host.App</StartupObject>
+  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="JJA.Anperi.Api">
-      <HintPath>..\..\Apis\cs\JJA.Anperi.HostApi\bin\Debug\netstandard2.0\JJA.Anperi.Api.dll</HintPath>
+    <Reference Include="JJA.Anperi.Internal.Api">
+      <HintPath>..\..\Apis\cs\Internal\binaries\Debug\JJA.Anperi.Internal.Api.dll</HintPath>
     </Reference>
-    <Reference Include="JJA.Anperi.Api.Shared">
-      <HintPath>..\..\Apis\cs\JJA.Anperi.Api.Shared\bin\Debug\netstandard2.0\JJA.Anperi.Api.Shared.dll</HintPath>
+    <Reference Include="JJA.Anperi.Internal.Api.Device">
+      <HintPath>..\..\Apis\cs\Internal\binaries\Debug\JJA.Anperi.Internal.Api.Device.dll</HintPath>
     </Reference>
-    <Reference Include="JJA.Anperi.DeviceApi">
-      <HintPath>..\..\Apis\cs\JJA.Anperi.DeviceApi\bin\Debug\netstandard2.0\JJA.Anperi.DeviceApi.dll</HintPath>
+    <Reference Include="JJA.Anperi.Internal.Api.Host">
+      <HintPath>..\..\Apis\cs\Internal\binaries\Debug\JJA.Anperi.Internal.Api.Host.dll</HintPath>
     </Reference>
-    <Reference Include="JJA.Anperi.HostApi">
-      <HintPath>..\..\Apis\cs\JJA.Anperi.HostApi\bin\Debug\netstandard2.0\JJA.Anperi.HostApi.dll</HintPath>
+    <Reference Include="JJA.Anperi.Internal.Api.Shared">
+      <HintPath>..\..\Apis\cs\Internal\binaries\Debug\JJA.Anperi.Internal.Api.Shared.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -63,9 +67,9 @@
     <Reference Include="websocket-sharp-core, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\websocketsharp.core.1.0.0\lib\netstandard2.0\websocket-sharp-core.dll</HintPath>
     </Reference>
-    <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">

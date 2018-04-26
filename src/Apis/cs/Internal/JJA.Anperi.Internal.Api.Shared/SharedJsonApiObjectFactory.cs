@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Dynamic;
-using System.Text;
 using Newtonsoft.Json;
 
-namespace JJA.Anperi.Api.Shared
+namespace JJA.Anperi.Internal.Api.Shared
 {
     public enum SharedJsonMessageCode
     {

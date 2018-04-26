@@ -3,15 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27428.2011
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JJA.Anperi.PeripheralApi", "JJA.Anperi.PeripheralApi\JJA.Anperi.PeripheralApi.csproj", "{F359F3CC-BF30-4A9A-9BD5-A4A6391AA5A2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JJA.Anperi.Internal.Api.Peripheral", "JJA.Anperi.Internal.Api.Peripheral\JJA.Anperi.Internal.Api.Peripheral.csproj", "{F359F3CC-BF30-4A9A-9BD5-A4A6391AA5A2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JJA.Anperi.Api", "JJA.Anperi.Api\JJA.Anperi.Api.csproj", "{CEDDE924-A1A6-471F-BD83-32824ABAD276}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JJA.Anperi.Internal.Api", "JJA.Anperi.Internal.Api\JJA.Anperi.Internal.Api.csproj", "{CEDDE924-A1A6-471F-BD83-32824ABAD276}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JJA.Anperi.Api.Shared", "JJA.Anperi.Api.Shared\JJA.Anperi.Api.Shared.csproj", "{5E9C1C64-A708-4E10-BCB4-9C1253D90E21}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JJA.Anperi.Internal.Api.Shared", "JJA.Anperi.Internal.Api.Shared\JJA.Anperi.Internal.Api.Shared.csproj", "{5E9C1C64-A708-4E10-BCB4-9C1253D90E21}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JJA.Anperi.HostApi", "JJA.Anperi.HostApi\JJA.Anperi.HostApi.csproj", "{058C4337-8759-454D-8C60-A931A8CC604F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JJA.Anperi.Internal.Api.Host", "JJA.Anperi.Internal.Api.Host\JJA.Anperi.Internal.Api.Host.csproj", "{058C4337-8759-454D-8C60-A931A8CC604F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JJA.Anperi.DeviceApi", "JJA.Anperi.DeviceApi\JJA.Anperi.DeviceApi.csproj", "{313492CD-D702-44D5-8FA1-C88FAE5EC463}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JJA.Anperi.Internal.Api.Device", "JJA.Anperi.Internal.Api.Device\JJA.Anperi.Internal.Api.Device.csproj", "{313492CD-D702-44D5-8FA1-C88FAE5EC463}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -32,6 +32,7 @@ namespace JJA.Anperi.Server
                 catch (Exception ex)
                 {
                     logger.LogCritical(ex, "Error reading or creating database! Shutting down ...\nYou might want to enable InMemoryDatabase in appsettings.json.");
+                    Console.WriteLine("Error testing database ... press enter to shutdown.");
                     return;
                 }
                 try
@@ -56,6 +57,7 @@ namespace JJA.Anperi.Server
                 {
                     logger.LogCritical("Testing database structure: ERROR");
                     logger.LogCritical(ex, "Error testing DB structure! Shutting down ...\nYou might need to wipe the database.");
+                    Console.WriteLine("Error testing database ... press enter to shutdown.");
                     return;
                 }
             }

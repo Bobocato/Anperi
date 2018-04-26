@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
-using JJA.Anperi.HostApi;
+using JJA.Anperi.Internal.Api.Host;
 
 namespace JJA.Anperi.Host
 {

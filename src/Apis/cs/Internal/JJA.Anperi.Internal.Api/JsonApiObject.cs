@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Text;
+﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace JJA.Anperi.Api
+namespace JJA.Anperi.Internal.Api
 {
     // ReSharper disable InconsistentNaming
     public enum JsonApiContextTypes

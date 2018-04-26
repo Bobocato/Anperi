@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
+    <StartupObject></StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,20 +25,20 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="JJA.Anperi.Api">
-      <HintPath>..\..\Apis\cs\binaries\Debug\JJA.Anperi.Api.dll</HintPath>
-      <Private>true</Private>
+    <Reference Include="JJA.Anperi.Internal.Api">
+      <HintPath>..\..\Apis\cs\Internal\binaries\Debug\JJA.Anperi.Internal.Api.dll</HintPath>
     </Reference>
-    <Reference Include="JJA.Anperi.Api.Shared">
-      <HintPath>..\..\Apis\cs\binaries\Debug\JJA.Anperi.Api.Shared.dll</HintPath>
+    <Reference Include="JJA.Anperi.Internal.Api.Device">
+      <HintPath>..\..\Apis\cs\Internal\binaries\Debug\JJA.Anperi.Internal.Api.Device.dll</HintPath>
     </Reference>
-    <Reference Include="JJA.Anperi.HostApi">
-      <HintPath>..\..\Apis\cs\binaries\Debug\JJA.Anperi.HostApi.dll</HintPath>
-      <Private>true</Private>
+    <Reference Include="JJA.Anperi.Internal.Api.Host">
+      <HintPath>..\..\Apis\cs\Internal\binaries\Debug\JJA.Anperi.Internal.Api.Host.dll</HintPath>
     </Reference>
-    <Reference Include="JJA.Anperi.PeripheralApi">
-      <HintPath>..\..\Apis\cs\binaries\Debug\JJA.Anperi.PeripheralApi.dll</HintPath>
-      <Private>true</Private>
+    <Reference Include="JJA.Anperi.Internal.Api.Peripheral">
+      <HintPath>..\..\Apis\cs\Internal\binaries\Debug\JJA.Anperi.Internal.Api.Peripheral.dll</HintPath>
+    </Reference>
+    <Reference Include="JJA.Anperi.Internal.Api.Shared">
+      <HintPath>..\..\Apis\cs\Internal\binaries\Debug\JJA.Anperi.Internal.Api.Shared.dll</HintPath>
     </Reference>
   </ItemGroup>
 
