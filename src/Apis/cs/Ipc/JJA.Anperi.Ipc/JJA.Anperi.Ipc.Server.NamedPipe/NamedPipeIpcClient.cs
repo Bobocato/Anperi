@@ -4,7 +4,9 @@ using System.Diagnostics;
 using System.IO.Pipes;
 using System.Text;
 using System.Threading;
+using JJA.Anperi.Ipc.Dto;
 using JJA.Anperi.Ipc.Server.Utility;
+using Newtonsoft.Json;
 
 namespace JJA.Anperi.Ipc.Server.NamedPipe
 {
@@ -72,9 +74,9 @@ namespace JJA.Anperi.Ipc.Server.NamedPipe
             _streamString.WriteString("OK");
         }
 
-        public void Send(string message)
+        public void Send(IpcMessage message)
         {
-            _streamString?.WriteString(message);
+            _streamString?.WriteString(JsonConvert.SerializeObject(message));
         }
 
         private async void ReceiveLoop(CancellationToken token)
@@ -100,12 +102,21 @@ namespace JJA.Anperi.Ipc.Server.NamedPipe
 
         public string Id { get; }
 
-        public event EventHandler<MessageEventArgs> Message;
+        public event EventHandler<IpcMessageEventArgs> Message;
 
         protected void OnMessage(string message)
         {
             Trace.TraceInformation($"Received: {message}");
-            Message?.Invoke(this, new MessageEventArgs(message));
+            IpcMessage im = null;
+            try
+            {
+                im = JsonConvert.DeserializeObject<IpcMessage>(message);
+            }
+            catch (JsonException ex)
+            {
+                Util.TraceException("Error parsing JSON:", ex);
+            }
+            if (im != null) Message?.Invoke(this, new IpcMessageEventArgs(im));
         }
 
         public event EventHandler Closed;

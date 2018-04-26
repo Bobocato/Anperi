@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\JJA.Anperi.Ipc.Dto\JJA.Anperi.Ipc.Dto.csproj" />
+    <ProjectReference Include="..\JJA.Anperi.Ipc.Client\JJA.Anperi.Ipc.Client.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using JJA.Anperi.Ipc.Dto;
 
 namespace JJA.Anperi.Ipc.Server
 {
@@ -8,9 +9,11 @@ namespace JJA.Anperi.Ipc.Server
     {
         void StartReceive();
         void Close();
-        void Send(string message);
+        void Send(IpcMessage message);
+
         string Id { get; }
-        event EventHandler<MessageEventArgs> Message;
+
+        event EventHandler<IpcMessageEventArgs> Message;
         event EventHandler Closed;
     }
 }

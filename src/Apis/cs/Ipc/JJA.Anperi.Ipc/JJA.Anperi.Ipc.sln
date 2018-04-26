@@ -3,9 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27428.2011
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JJA.Anperi.Ipc.Server", "JJA.Anperi.Ipc.Server\JJA.Anperi.Ipc.Server.csproj", "{D46734A9-9DE0-4ED2-82A4-088175169CAC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JJA.Anperi.Ipc.Server", "JJA.Anperi.Ipc.Server\JJA.Anperi.Ipc.Server.csproj", "{D46734A9-9DE0-4ED2-82A4-088175169CAC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JJA.Anperi.Ipc.Server.NamedPipe", "JJA.Anperi.Ipc.Server.NamedPipe\JJA.Anperi.Ipc.Server.NamedPipe.csproj", "{F6F3C65A-7A3C-4223-A58A-210EA0150FA7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JJA.Anperi.Ipc.Server.NamedPipe", "JJA.Anperi.Ipc.Server.NamedPipe\JJA.Anperi.Ipc.Server.NamedPipe.csproj", "{F6F3C65A-7A3C-4223-A58A-210EA0150FA7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JJA.Anperi.Ipc.Client", "JJA.Anperi.Ipc.Client\JJA.Anperi.Ipc.Client.csproj", "{810E84E3-176C-4E79-80CE-69954BB46D78}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JJA.Anperi.Ipc.Dto", "JJA.Anperi.Ipc.Dto\JJA.Anperi.Ipc.Dto.csproj", "{0E0E294E-D997-4CCD-A43B-7061857D7A5D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JJA.Anperi.Ipc.Client.NamedPipe", "JJA.Anperi.Ipc.Client.NamedPipe\JJA.Anperi.Ipc.Client.NamedPipe.csproj", "{5C65D80C-786B-431A-B796-A7418792954C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +27,18 @@ Global
 		{F6F3C65A-7A3C-4223-A58A-210EA0150FA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F6F3C65A-7A3C-4223-A58A-210EA0150FA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F6F3C65A-7A3C-4223-A58A-210EA0150FA7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{810E84E3-176C-4E79-80CE-69954BB46D78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{810E84E3-176C-4E79-80CE-69954BB46D78}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{810E84E3-176C-4E79-80CE-69954BB46D78}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{810E84E3-176C-4E79-80CE-69954BB46D78}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E0E294E-D997-4CCD-A43B-7061857D7A5D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E0E294E-D997-4CCD-A43B-7061857D7A5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E0E294E-D997-4CCD-A43B-7061857D7A5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E0E294E-D997-4CCD-A43B-7061857D7A5D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C65D80C-786B-431A-B796-A7418792954C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C65D80C-786B-431A-B796-A7418792954C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C65D80C-786B-431A-B796-A7418792954C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C65D80C-786B-431A-B796-A7418792954C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
