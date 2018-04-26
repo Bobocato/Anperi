@@ -92,7 +92,8 @@ namespace JJA.Anperi.Host
             get { return _periList; }
             set
             {
-                _periList = value;
+                var tmp = from x in value orderby x.online descending select x;
+                _periList = tmp.ToList();
                 OnPropertyChanged(nameof(Peripherals));
             }
         }
@@ -245,9 +246,9 @@ namespace JJA.Anperi.Host
                         foreach (var x in list)
                         {
                             JObject jo = x;
-                            if (jo.TryGetCastValue("name", out string name) && jo.TryGetCastValue("id", out int id))
+                            if (jo.TryGetCastValue("name", out string name) && jo.TryGetCastValue("id", out int id) && jo.TryGetCastValue("online", out bool online))
                             {
-                                Peripherals.Add(new HostJsonApiObjectFactory.ApiPeripheral { id = id, name = name });
+                                Peripherals.Add(new HostJsonApiObjectFactory.ApiPeripheral { id = id, name = name, online = online});
                             }
                             else
                             {
@@ -289,7 +290,7 @@ namespace JJA.Anperi.Host
                             else
                             {
                                 ConnectedTo =
-                                    "Connected to:";
+                                    "";
                                 _connectedPeripheral = -1;
                                 ButConnect = true;
                                 ButDisconnect = false;
@@ -377,6 +378,8 @@ namespace JJA.Anperi.Host
                     break;
                 case SharedJsonMessageCode.partner_disconnected:
                     ConnectedTo = "";
+                    ButDisconnect = false;
+                    ButConnect = true;
                     break;
             }
         }
