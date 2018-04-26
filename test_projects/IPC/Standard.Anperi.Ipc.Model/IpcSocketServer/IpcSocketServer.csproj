@@ -45,10 +45,12 @@
     <Compile Include="EventArgs.cs" />
     <Compile Include="IIpcClient.cs" />
     <Compile Include="IIpcServer.cs" />
+    <Compile Include="NamedPipeIpcClient.cs" />
     <Compile Include="NamedPipeServer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StreamString.cs" />
+    <Compile Include="Util.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
