@@ -3,6 +3,8 @@ package com.jannes_peters.anperi.anperi;
 import android.app.Activity;
 import android.app.Fragment;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -14,9 +16,13 @@ import android.widget.FrameLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.neovisionaries.ws.client.WebSocketException;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.IOException;
 
 public class CreateFragment extends Fragment {
     private static final String TAG = "jja.anperi";
@@ -147,34 +153,183 @@ public class CreateFragment extends Fragment {
         return grid;
     }
 
-    private TextView createTextView(String id, String text) {
+    private TextView createTextView(final String id, String text) {
         TextView textView = new TextView(getActivity());
         textView.setText(text);
         textView.setTag(id);
+        textView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                noDataClick("on_click", id);
+            }
+        });
+        textView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                noDataClick("on_click_long", id);
+                return false;
+            }
+        });
         return textView;
     }
 
-    private EditText createEditText(String id, String text, String hint) {
+    private EditText createEditText(final String id, String text, String hint) {
         EditText editText = new EditText(getActivity());
         editText.setHint(hint);
         editText.setText(text);
         editText.setTag(id);
+        editText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                try {
+                    String jsonString = new JSONObject()
+                            .put("context", "device")
+                            .put("message_type", "message")
+                            .put("message_code", "event_fired")
+                            .put("data", new JSONObject()
+                                    .put("type", "on_input")
+                                    .put("id", id)
+                                    .put("data", new JSONObject()
+                                        .put("text", charSequence.toString()))).toString();
+                    MyWebSocket.getInstance().sendText(jsonString);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                } catch (WebSocketException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                try {
+                    String jsonString = new JSONObject()
+                            .put("context", "device")
+                            .put("message_type", "message")
+                            .put("message_code", "event_fired")
+                            .put("data", new JSONObject()
+                                    .put("type", "on_input")
+                                    .put("id", id)
+                                    .put("data", new JSONObject()
+                                            .put("text", charSequence.toString()))).toString();
+                    MyWebSocket.getInstance().sendText(jsonString);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                } catch (WebSocketException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
         return editText;
     }
 
-    private Button createButton(String id, String text) {
+    private Button createButton(final String id, String text) {
         Button button = new Button(getActivity());
         button.setText(text);
         button.setTag(id);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                noDataClick("on_click", id);
+            }
+        });
+        button.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                noDataClick("on_click_long", id);
+                return false;
+            }
+        });
         return button;
     }
 
-    private SeekBar createSlider(String id, int min, int max, int progress, int step_size) {
+    private SeekBar createSlider(final String id, final int min, int max, int progress, int step_size) {
         SeekBar seekBar = new SeekBar(getActivity());
-        seekBar.setMax(max - min);
+        seekBar.setMax(max);
         seekBar.setProgress(progress);
         seekBar.setTag(id);
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                if(b){
+                    try {
+                        JSONObject data = new JSONObject().put("progress", i - min);
+                        dataClick("on_change", id, data);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                try {
+                    JSONObject data = new JSONObject().put("progress", seekBar.getProgress() - min);
+                    dataClick("on_change", id, data);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                try {
+                    JSONObject data = new JSONObject().put("progress", seekBar.getProgress() -min);
+                    dataClick("on_change", id, data);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
         return seekBar;
     }
 
+    //Helper Functions..
+    private void dataClick(String type, String id, JSONObject data){
+        try {
+            String jsonString = new JSONObject()
+                    .put("context", "device")
+                    .put("message_type", "message")
+                    .put("message_code", "event_fired")
+                    .put("data", new JSONObject()
+                            .put("type", type)
+                            .put("id", id)
+                            .put("data", data)).toString();
+            MyWebSocket.getInstance().sendText(jsonString);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (WebSocketException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void noDataClick(String type, String id){
+        try {
+            String jsonString = new JSONObject()
+                    .put("context", "device")
+                    .put("message_type", "message")
+                    .put("message_code", "event_fired")
+                    .put("data", new JSONObject()
+                            .put("type", type)
+                            .put("id", id)
+                            .put("data", null)).toString();
+            MyWebSocket.getInstance().sendText(jsonString);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (WebSocketException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

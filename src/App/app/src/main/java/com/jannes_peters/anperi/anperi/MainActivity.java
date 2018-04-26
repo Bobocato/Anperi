@@ -255,7 +255,7 @@ public class MainActivity extends AppCompatActivity {
                                             break;
                                         case "set_layout":
                                             showLoad();
-                                            //createFragment = new CreateFragment();
+                                            createFragment = new CreateFragment();
                                             createFragment.setLayout(apiObject);
                                             showCreate();
 

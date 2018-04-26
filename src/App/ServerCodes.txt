@@ -1,0 +1,94 @@
+//Codes used for testing the App 
+//Used on https://anperi.jannes-peters.com/
+
+//Clear Console:
+var ul = document.getElementById("messages");
+while(ul.hasChildNodes){
+	ul.removeChild(ul.firstElementChild)
+}
+
+//Register:
+{
+  "context": "server",
+  "message_type": "request",
+  "message_code": "register",
+  "data": {
+    "device_type": "host",
+    "name": "host1"
+  }
+}
+//Pair:
+{
+  "context": "server",
+  "message_type": "request",
+  "message_code": "pair",
+  "data": {
+    "code": "121937"
+  }
+}
+//Get Pairebels:
+{
+  "context": "server",
+  "message_type": "request",
+  "message_code": "get_available_peripherals",
+  "data": null
+}
+//Connect:
+{
+  "context": "server",
+  "message_type": "request",
+  "message_code": "connect_to_peripheral",
+  "data": {
+    "id": 6
+  }
+}
+//Debug: 
+{
+  "context": "device",
+  "message_type": "message",
+  "message_code": "debug",
+  "data": {
+    "msg": "OMEGALUL"
+  }
+}
+//Get_Info:
+{
+  "context": "device",
+  "message_type": "request",
+  "message_code": "get_info",
+  "data": null
+}
+//set_layout:
+{
+  "context": "device",
+  "message_type": "request",
+  "message_code": "set_layout",
+  "data": {
+    "grid": {
+      "elements": [
+        {
+          "row": 0,
+          "column": 0,
+          "row_span": 2,
+          "column_span": 2,
+          "row_weight": 1,
+          "column_weight": 1,
+          "type": "label",
+          "id": "Der Text",
+          "text": "Hallo Test"
+        },
+        {
+          "row": 4,
+          "column": 0,
+          "row_span": 2,
+          "column_span": 2,
+          "row_weight": 1,
+          "column_weight": 1,
+          "type": "button",
+          "id": "Der Button",
+          "text": "Submit"
+        }
+      ]
+    }
+  }
+}
