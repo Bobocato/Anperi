@@ -42,8 +42,14 @@
     </Reference>
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="echo fn|xcopy /d /i &quot;$(ProjectDir)appsettings.Default.json&quot; &quot;$(ProjectDir)appsettings.json&quot;" />
+    <Exec Command="echo fdn|xcopy /d /i &quot;$(ProjectDir)appsettings.Default.json&quot; &quot;$(ProjectDir)appsettings.json&quot;" />
   </Target>
 
 </Project>

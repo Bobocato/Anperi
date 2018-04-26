@@ -12,9 +12,9 @@ namespace IpcSocketServer
 {
     public class NamedPipeServer
     {
-        private static string PipeName { get; } = "5573a4cb-03d2-47a2-b4e7-5db71c3fcd91";
-        public static string InputPipeName => PipeName + "_input";
-        public static string OutputPipeName => PipeName + "_output";
+        private static string PipeName { get; } = "anperi.lib.ipc.server";
+        public static string InputPipeName => PipeName + ".input";
+        public static string OutputPipeName => PipeName + ".output";
 
         public bool IsRunning
         {

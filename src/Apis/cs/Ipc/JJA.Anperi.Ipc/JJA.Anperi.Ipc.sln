@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27428.2011
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JJA.Anperi.Ipc.Server", "JJA.Anperi.Ipc.Server\JJA.Anperi.Ipc.Server.csproj", "{D46734A9-9DE0-4ED2-82A4-088175169CAC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JJA.Anperi.Ipc.Server.NamedPipe", "JJA.Anperi.Ipc.Server.NamedPipe\JJA.Anperi.Ipc.Server.NamedPipe.csproj", "{F6F3C65A-7A3C-4223-A58A-210EA0150FA7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D46734A9-9DE0-4ED2-82A4-088175169CAC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D46734A9-9DE0-4ED2-82A4-088175169CAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D46734A9-9DE0-4ED2-82A4-088175169CAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D46734A9-9DE0-4ED2-82A4-088175169CAC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6F3C65A-7A3C-4223-A58A-210EA0150FA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6F3C65A-7A3C-4223-A58A-210EA0150FA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6F3C65A-7A3C-4223-A58A-210EA0150FA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6F3C65A-7A3C-4223-A58A-210EA0150FA7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B65352C1-2A90-4690-B1C6-551FC2317536}
+	EndGlobalSection
+EndGlobal
