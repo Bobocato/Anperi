@@ -6,14 +6,12 @@ using System.IO.Pipes;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using JJA.Anperi.Ipc.Common.NamedPipe;
 
 namespace JJA.Anperi.Ipc.Server.NamedPipe
 {
     public class NamedPipeIpcServer : IIpcServer
     {
-        private static string PipeName { get; } = "anperi.lib.ipc.server";
-        public static string InputPipeName => PipeName + ".input";
-        public static string OutputPipeName => PipeName + ".output";
 
         public bool IsRunning
         {
@@ -88,7 +86,7 @@ namespace JJA.Anperi.Ipc.Server.NamedPipe
         {
             if (direction == PipeDirection.InOut) throw new ArgumentException("InOut is not a valid value. Use In OR Out!");
             id = direction == PipeDirection.In ? $"i_{id}" : $"o_{id}";
-            NamedPipeServerStream pipeServer = new NamedPipeServerStream(direction == PipeDirection.In ? InputPipeName : OutputPipeName, PipeDirection.InOut, _maxConnections);
+            NamedPipeServerStream pipeServer = new NamedPipeServerStream(direction == PipeDirection.In ? Settings.ServerInputPipeName : Settings.ServerOutputPipeName, PipeDirection.InOut, _maxConnections);
             Trace.TraceInformation($"Server {id} waiting for connection ...");
             SemaphoreSlim semaphore = direction == PipeDirection.In
                 ? _semaphoreStartInputConnections

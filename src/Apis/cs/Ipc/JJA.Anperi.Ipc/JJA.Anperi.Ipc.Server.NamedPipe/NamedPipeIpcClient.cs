@@ -4,8 +4,9 @@ using System.Diagnostics;
 using System.IO.Pipes;
 using System.Text;
 using System.Threading;
+using JJA.Anperi.Ipc.Common.NamedPipe;
 using JJA.Anperi.Ipc.Dto;
-using JJA.Anperi.Ipc.Server.Utility;
+using JJA.Anperi.Utility;
 using Newtonsoft.Json;
 
 namespace JJA.Anperi.Ipc.Server.NamedPipe
@@ -70,16 +71,30 @@ namespace JJA.Anperi.Ipc.Server.NamedPipe
 
         public void StartReceive(CancellationToken cancellationToken)
         {
-            ReceiveLoop(cancellationToken);
-            _streamString.WriteString("OK");
+            _streamString.WriteString(Settings.ConnectionSuccessString);
+            ReceiveLoopAsync(cancellationToken); 
         }
 
         public void Send(IpcMessage message)
         {
-            _streamString?.WriteString(JsonConvert.SerializeObject(message));
+            try
+            {
+                _streamString?.WriteString(JsonConvert.SerializeObject(message));
+            }
+            catch (ArgumentException)
+            {
+                _threwException = true;
+                OnClosed();
+            }
+            catch (Exception ex)
+            {
+                Util.TraceException("Error receiving data from pipe.", ex);
+                _threwException = true;
+                OnClosed();
+            }
         }
 
-        private async void ReceiveLoop(CancellationToken token)
+        private async void ReceiveLoopAsync(CancellationToken token)
         {
             try
             {
@@ -97,6 +112,8 @@ namespace JJA.Anperi.Ipc.Server.NamedPipe
             catch (Exception ex)
             {
                 Util.TraceException("Error receiving data from pipe.", ex);
+                _threwException = true;
+                OnClosed();
             }
         }
 

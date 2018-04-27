@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using JJA.Anperi.Ipc.Dto;
 using JJA.Anperi.Ipc.Server;
 using JJA.Anperi.Ipc.Server.NamedPipe;
 
@@ -50,7 +51,7 @@ namespace ConsoleIpcServer
         {
             Trace.TraceInformation($"Client {e.Client.Id} connected.");
             e.Client.StartReceive();
-            e.Client.Message += (o, args) => (o as IIpcClient)?.Send("Echo: " + args.Message);
+            e.Client.Message += (o, args) => (o as IIpcClient)?.Send(args.Message);
         }
     }
 }

@@ -9,7 +9,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\JJA.Anperi.Ipc.Common.NamedPipe\JJA.Anperi.Ipc.Common.NamedPipe.csproj" />
     <ProjectReference Include="..\JJA.Anperi.Ipc.Server\JJA.Anperi.Ipc.Server.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="JJA.Anperi.Utility">
+      <HintPath>..\..\..\..\..\utility\JJA.Anperi.Utility\JJA.Anperi.Utility\bin\Debug\netstandard2.0\JJA.Anperi.Utility.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

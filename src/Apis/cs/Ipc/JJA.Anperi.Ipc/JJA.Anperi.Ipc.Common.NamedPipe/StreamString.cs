@@ -1,22 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace JJA.Anperi.Ipc.Server.NamedPipe
+namespace JJA.Anperi.Ipc.Common.NamedPipe
 {
-    class StreamString
+    public class StreamString
     {
         private Stream _inputStream, _outputStream;
-        private UTF8Encoding streamEncoding;
+        private Encoding streamEncoding;
 
-        public StreamString(Stream inputStream, Stream outputStream)
+        public StreamString(Stream inputStream, Stream outputStream) : this(inputStream, outputStream, new UTF8Encoding()) { }
+        public StreamString(Stream inputStream, Stream outputStream, Encoding encoding)
         {
             _inputStream = inputStream;
             _outputStream = outputStream;
-            streamEncoding = new UTF8Encoding();
+            streamEncoding = encoding;
         }
 
         public async Task<string> ReadString(CancellationToken token)
@@ -31,7 +30,19 @@ namespace JJA.Anperi.Ipc.Server.NamedPipe
             return streamEncoding.GetString(inBuffer);
         }
 
-        private int ToInt(byte[] bytes)
+        public static int WriteString(Stream stream, string msg) => WriteString(stream, msg, new UTF8Encoding());
+        public static int WriteString(Stream stream, string msg, Encoding encoding)
+        {
+            byte[] outBuffer = encoding.GetBytes(msg);
+            byte[] len = ToBytes(outBuffer.Length);
+            stream.Write(len, 0, len.Length);
+            stream.Write(outBuffer, 0, outBuffer.Length);
+            stream.Flush();
+
+            return outBuffer.Length + 4;
+        }
+
+        private static int ToInt(byte[] bytes)
         {
             int res = 0;
             res |= bytes[0];
@@ -41,7 +52,7 @@ namespace JJA.Anperi.Ipc.Server.NamedPipe
             return res;
         }
 
-        private byte[] ToBytes(int val)
+        private static byte[] ToBytes(int val)
         {
             byte[] res = new byte[4];
             res[0] |= (byte)(val & 0x000000FF);
