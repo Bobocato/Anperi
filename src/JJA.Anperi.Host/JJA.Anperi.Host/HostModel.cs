@@ -39,7 +39,7 @@ namespace JJA.Anperi.Host
         private string _token = "";
         private WebSocket _ws;
         private List<HostJsonApiObjectFactory.ApiPeripheral> _periList;
-        private Queue<string> _messages;
+        private readonly Queue<string> _messages;
         private bool _closing = false;
         private int _connectedPeripheral;
 
@@ -54,14 +54,17 @@ namespace JJA.Anperi.Host
             InitializeWebSocket();
         }
 
+        #region Properties
+
         public string Info1
         {
-            get { return _info1;}
+            get { return _info1; }
             set
             {
                 _info1 = value;
                 OnPropertyChanged(nameof(Info1));
-            } }
+            }
+        }
         public string Info2
         {
             get { return _info2; }
@@ -69,23 +72,26 @@ namespace JJA.Anperi.Host
             {
                 _info2 = value;
                 OnPropertyChanged(nameof(Info2));
-            } }
+            }
+        }
         public string Info3
         {
-            get { return _info3;}
+            get { return _info3; }
             set
             {
                 _info3 = value;
                 OnPropertyChanged(nameof(Info3));
-            } }
+            }
+        }
         public string ConnectedTo
         {
-            get { return _connectedTo;}
+            get { return _connectedTo; }
             set
             {
                 _connectedTo = value;
                 OnPropertyChanged(nameof(ConnectedTo));
-            } }
+            }
+        }
 
         public List<HostJsonApiObjectFactory.ApiPeripheral> Peripherals
         {
@@ -100,12 +106,13 @@ namespace JJA.Anperi.Host
 
         public bool ButConnect
         {
-            get { return _butConnectVisible;}
+            get { return _butConnectVisible; }
             set
             {
                 _butConnectVisible = value;
                 OnPropertyChanged(nameof(ButConnect));
-            } }
+            }
+        }
         public bool ButDisconnect
         {
             get { return _butDisconnectVisible; }
@@ -115,6 +122,8 @@ namespace JJA.Anperi.Host
                 OnPropertyChanged(nameof(ButDisconnect));
             }
         }
+
+        #endregion
 
         private void InitializeWebSocket()
         {
@@ -210,8 +219,10 @@ namespace JJA.Anperi.Host
             });
         }
 
+        #region response handling
+
         private void HandleHostRequestCode(HostRequestCode code,
-            JsonApiObject json)
+    JsonApiObject json)
         {
             switch (code)
             {
@@ -248,7 +259,7 @@ namespace JJA.Anperi.Host
                             JObject jo = x;
                             if (jo.TryGetCastValue("name", out string name) && jo.TryGetCastValue("id", out int id) && jo.TryGetCastValue("online", out bool online))
                             {
-                                Peripherals.Add(new HostJsonApiObjectFactory.ApiPeripheral { id = id, name = name, online = online});
+                                Peripherals.Add(new HostJsonApiObjectFactory.ApiPeripheral { id = id, name = name, online = online });
                             }
                             else
                             {
@@ -280,7 +291,8 @@ namespace JJA.Anperi.Host
                                 if (peripheral != null)
                                 {
                                     ConnectedTo = peripheral.name;
-                                }else
+                                }
+                                else
                                 {
                                     QueueMessage("Couldn't find the connected device in peripheral list!");
                                 }
@@ -399,6 +411,11 @@ namespace JJA.Anperi.Host
             }
         }
 
+
+        #endregion
+
+        #region websocket requests
+
         private void SendPeripheralRequest()
         {
             var jsonPeri = HostJsonApiObjectFactory.CreateAvailablePeripheralRequest();
@@ -440,6 +457,9 @@ namespace JJA.Anperi.Host
                 HostJsonApiObjectFactory.CreatePairingRequest(pairCode);
             SendToWebsocket(json.Serialize());
         }
+
+
+        #endregion
 
         private void SendToWebsocket(string message)
         {
