@@ -91,6 +91,11 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 //Not even a connection to the Server -> Connect
                 Log.v(TAG, "Reload of the MainActivity without without a connection... ");
+                LoadingFragment loadFrag = (LoadingFragment)getFragmentManager().findFragmentByTag("loadFrag");
+                getFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, loadFrag, "loadFrag")
+                        .commit();
+
                 startUp();
             }
         } else {
@@ -99,6 +104,7 @@ public class MainActivity extends AppCompatActivity {
             loadingFragment = new LoadingFragment();
             testFragment = new TestFragment();
             createFragment = new CreateFragment();
+            showLoad();
             startUp();
         }
     }
@@ -314,7 +320,6 @@ public class MainActivity extends AppCompatActivity {
 
     //Startup the WS
     private void startUp(){
-        showLoad();
         //Ask for server url
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.enter_server);
