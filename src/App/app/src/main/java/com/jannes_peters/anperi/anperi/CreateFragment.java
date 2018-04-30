@@ -42,6 +42,7 @@ public class CreateFragment extends Fragment {
         return view;
     }
 
+    //Check for Layout and createLayout if anything is ready.
     public void onStart() {
         isStarted = true;
         if (currentLayout != null && isAttached) {
@@ -50,12 +51,14 @@ public class CreateFragment extends Fragment {
         super.onStart();
     }
 
+    //Check for Layout and createLayout if anything is ready.
     public void onAttach(Activity activity) {
         isAttached = true;
         if (currentLayout != null && isStarted) createLayout(currentLayout);
         super.onAttach(activity);
     }
 
+    //Check for View and createLayout if anything is ready.
     public void setLayout(JSONObject json) {
         currentLayout = json;
         if (getActivity() != null && isStarted) createLayout(json);
@@ -71,12 +74,45 @@ public class CreateFragment extends Fragment {
             create_container.addView(newGrid);
             //gridLayout = createGrid(elements);
         } catch (JSONException e) {
-            Log.v(TAG, "THE CONVERSION OHHHH NO!");
+            Log.v(TAG, "The Element could not be converted");
             e.printStackTrace();
         }
     }
 
-    public void changeElement(JsonApiObject json) {
+    public void changeElement(JSONObject json) {
+        try {
+            View view = this.getView().findViewWithTag(json.getString("id"));
+            switch (json.getString("param_name")) {
+                case "row":
+                    break;
+                case "column":
+                    break;
+                case "row_span":
+                    break;
+                case "column_span":
+                    break;
+                case "row_weight":
+                    break;
+                case "column_weight":
+                    break;
+                case "id":
+                    break;
+                case "text":
+                    break;
+                case "hint":
+                    break;
+                case "min":
+                    break;
+                case "max":
+                    break;
+                case "progress":
+                    break;
+                case "step_size":
+                    break;
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     private android.support.v7.widget.GridLayout.LayoutParams createParams(int row, int column, int row_span, int column_span, float row_weight, float column_weight) {
@@ -190,7 +226,7 @@ public class CreateFragment extends Fragment {
                                     .put("type", "on_input")
                                     .put("id", id)
                                     .put("data", new JSONObject()
-                                        .put("text", charSequence.toString()))).toString();
+                                            .put("text", charSequence.toString()))).toString();
                     MyWebSocket.getInstance().sendText(jsonString);
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -259,7 +295,7 @@ public class CreateFragment extends Fragment {
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                if(b){
+                if (b) {
                     try {
                         JSONObject data = new JSONObject().put("progress", i - min);
                         dataClick("on_change", id, data);
@@ -282,7 +318,7 @@ public class CreateFragment extends Fragment {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 try {
-                    JSONObject data = new JSONObject().put("progress", seekBar.getProgress() -min);
+                    JSONObject data = new JSONObject().put("progress", seekBar.getProgress() - min);
                     dataClick("on_change", id, data);
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -293,7 +329,7 @@ public class CreateFragment extends Fragment {
     }
 
     //Helper Functions..
-    private void dataClick(String type, String id, JSONObject data){
+    private void dataClick(String type, String id, JSONObject data) {
         try {
             String jsonString = new JSONObject()
                     .put("context", "device")
@@ -313,7 +349,7 @@ public class CreateFragment extends Fragment {
         }
     }
 
-    private void noDataClick(String type, String id){
+    private void noDataClick(String type, String id) {
         try {
             String jsonString = new JSONObject()
                     .put("context", "device")

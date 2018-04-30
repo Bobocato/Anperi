@@ -1,5 +1,6 @@
 package com.jannes_peters.anperi.anperi;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -9,6 +10,10 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 public class KeyFragment extends Fragment {
+    private String pairingCode;
+    private Boolean isStarted = false;
+    private Boolean isAttached = false;
+
 
     public KeyFragment() {
     }
@@ -23,5 +28,30 @@ public class KeyFragment extends Fragment {
         keyText.setText(key);
         sharedPref.edit().putString("pairingcode", null).apply();
         return view;
+    }
+
+    //Check for Layout and createLayout if anything is ready.
+    public void onStart() {
+        isStarted = true;
+        if (pairingCode != null && isAttached) {
+            setCode(pairingCode);
+        }
+        super.onStart();
+    }
+
+    //Check for Layout and createLayout if anything is ready.
+    public void onAttach(Activity activity) {
+        isAttached = true;
+        if (pairingCode != null && isStarted) setCode(pairingCode);
+        super.onAttach(activity);
+    }
+
+
+    public void setCode(String code) {
+        pairingCode = code;
+        if (isAttached && isStarted) {
+            TextView text = this.getView().findViewById(R.id.keyText);
+            text.setText(code);
+        }
     }
 }
