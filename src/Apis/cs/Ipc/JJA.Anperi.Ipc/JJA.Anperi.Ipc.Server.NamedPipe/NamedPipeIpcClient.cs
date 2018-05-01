@@ -11,7 +11,7 @@ using Newtonsoft.Json;
 
 namespace JJA.Anperi.Ipc.Server.NamedPipe
 {
-    public class NamedPipeIpcClient : IIpcClient
+    internal class NamedPipeIpcClient : IIpcClient
     {
         internal NamedPipeServerStream InputPipe
         {
@@ -47,12 +47,13 @@ namespace JJA.Anperi.Ipc.Server.NamedPipe
         }
 
         private bool _threwException = false;
+        private bool _isReceiving = false;
         private StreamString _streamString = null;
         private NamedPipeServerStream _inputPipe;
         private NamedPipeServerStream _outputPipe;
 
 
-        public NamedPipeIpcClient(string id)
+        internal NamedPipeIpcClient(string id)
         {
             Id = id;
         }
@@ -71,6 +72,8 @@ namespace JJA.Anperi.Ipc.Server.NamedPipe
 
         public void StartReceive(CancellationToken cancellationToken)
         {
+            if (_isReceiving) throw new InvalidOperationException("Startreceive can only be called once.");
+            _isReceiving = true;
             _streamString.WriteString(Settings.ConnectionSuccessString);
             ReceiveLoopAsync(cancellationToken); 
         }

@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using JJA.Anperi.Ipc.Common.NamedPipe;
+using JJA.Anperi.Utility;
 
 namespace JJA.Anperi.Ipc.Server.NamedPipe
 {
@@ -46,14 +48,34 @@ namespace JJA.Anperi.Ipc.Server.NamedPipe
         {
             _running = false;
             _cts?.Cancel();
+            _cts?.Dispose();
             lock (_syncRootClients)
             {
                 foreach (NamedPipeIpcClient namedPipeIpcClient in _clients.Values)
                 {
-                    namedPipeIpcClient.Close();
-                    namedPipeIpcClient.Dispose();
+                    try
+                    {
+                        namedPipeIpcClient.Close();
+                        namedPipeIpcClient.Dispose();
+                    }
+                    catch (Exception)
+                    {
+                        //ignored
+                    }
                 }
                 _clients.Clear();
+            }
+            OnClosed();
+        }
+
+        public List<IIpcClient> Clients
+        {
+            get
+            {
+                lock (_syncRootClients)
+                {
+                    return _clients.Values.Cast<IIpcClient>().ToList();
+                }
             }
         }
 
@@ -84,76 +106,94 @@ namespace JJA.Anperi.Ipc.Server.NamedPipe
 
         private async void CreatePipe(string id, PipeDirection direction, CancellationToken token)
         {
-            if (direction == PipeDirection.InOut) throw new ArgumentException("InOut is not a valid value. Use In OR Out!");
-            id = direction == PipeDirection.In ? $"i_{id}" : $"o_{id}";
-            NamedPipeServerStream pipeServer = new NamedPipeServerStream(direction == PipeDirection.In ? Settings.ServerInputPipeName : Settings.ServerOutputPipeName, PipeDirection.InOut, _maxConnections);
-            Trace.TraceInformation($"Server {id} waiting for connection ...");
-            SemaphoreSlim semaphore = direction == PipeDirection.In
-                ? _semaphoreStartInputConnections
-                : _semaphoreStartOutputConnections;
-            await semaphore.WaitAsync(token);
             try
             {
-                await pipeServer.WaitForConnectionAsync(token);
-            }
-            catch (Exception e)
-            {
-                Trace.TraceError("Error waiting for pipe connection: {0}", e.Message);
-                pipeServer.Dispose();
-                return;
-            }
-            finally { _semaphoreStartInputConnections.Release(); }
-            Trace.TraceInformation($"Client connected on id: {id}");
-            try
-            {
-                StreamString ss = new StreamString(pipeServer, null);
-                string clientId = await ss.ReadString(token);
-                lock (_syncRootClients)
+                if (direction == PipeDirection.InOut)
+                    throw new ArgumentException("InOut is not a valid value. Use In OR Out!");
+                id = direction == PipeDirection.In ? $"i_{id}" : $"o_{id}";
+                NamedPipeServerStream pipeServer = new NamedPipeServerStream(
+                    direction == PipeDirection.In ? Settings.ServerInputPipeName : Settings.ServerOutputPipeName,
+                    PipeDirection.InOut, _maxConnections);
+                Trace.TraceInformation($"Server {id} waiting for connection ...");
+                SemaphoreSlim semaphore = direction == PipeDirection.In
+                    ? _semaphoreStartInputConnections
+                    : _semaphoreStartOutputConnections;
+                await semaphore.WaitAsync(token);
+                try
                 {
-                    if (_pendingClients.TryGetValue(clientId, out NamedPipeIpcClient val))
+                    await pipeServer.WaitForConnectionAsync(token);
+                }
+                catch (Exception e)
+                {
+                    Trace.TraceError("Error waiting for pipe connection: {0}", e.Message);
+                    pipeServer.Dispose();
+                    return;
+                }
+                finally
+                {
+                    _semaphoreStartInputConnections.Release();
+                }
+                Trace.TraceInformation($"Client connected on id: {id}");
+                try
+                {
+                    StreamString ss = new StreamString(pipeServer, null);
+                    string clientId = await ss.ReadString(token);
+                    lock (_syncRootClients)
                     {
-                        if (direction == PipeDirection.In)
+                        if (_pendingClients.TryGetValue(clientId, out NamedPipeIpcClient val))
                         {
-                            if (val.InputPipe == null) val.InputPipe = pipeServer;
-                            else Trace.TraceWarning($"Client {val.Id} tried to register two input pipes, closing ...");
+                            if (direction == PipeDirection.In)
+                            {
+                                if (val.InputPipe == null) val.InputPipe = pipeServer;
+                                else
+                                    Trace.TraceWarning(
+                                        $"Client {val.Id} tried to register two input pipes, closing ...");
+                            }
+                            else
+                            {
+                                if (val.OutputPipe == null) val.OutputPipe = pipeServer;
+                                else
+                                    Trace.TraceWarning(
+                                        $"Client {val.Id} tried to register two output pipes, closing ...");
+                            }
+                            if (val.InputPipe != null && val.OutputPipe != null)
+                            {
+                                Trace.TraceInformation($"Client {val.Id} successfully connected two pipes.");
+                                _clients.Add(val.Id, val);
+                                _pendingClients.Remove(val.Id);
+                                OnClientConnected(val);
+                            }
+                            else
+                            {
+                                pipeServer.Close();
+                                pipeServer.Dispose();
+                            }
                         }
                         else
                         {
-                            if (val.OutputPipe == null) val.OutputPipe = pipeServer;
-                            else Trace.TraceWarning($"Client {val.Id} tried to register two output pipes, closing ...");
+                            Trace.TraceInformation($"Client {clientId} registered on {id}");
+                            NamedPipeIpcClient npic = new NamedPipeIpcClient(clientId);
+                            if (direction == PipeDirection.In) npic.InputPipe = pipeServer;
+                            else npic.OutputPipe = pipeServer;
+                            npic.Closed += NamedPipeIpcClient_Closed;
+                            _pendingClients.Add(clientId, npic);
                         }
-                        if (val.InputPipe != null && val.OutputPipe != null)
-                        {
-                            Trace.TraceInformation($"Client {val.Id} successfully connected two pipes.");
-                            _clients.Add(val.Id, val);
-                            _pendingClients.Remove(val.Id);
-                            OnClientConnected(val);
-                        }
-                        else
-                        {
-                            pipeServer.Close();
-                            pipeServer.Dispose();
-                        }
-                    }
-                    else
-                    {
-                        Trace.TraceInformation($"Client {clientId} registered on {id}");
-                        NamedPipeIpcClient npic = new NamedPipeIpcClient(clientId);
-                        if (direction == PipeDirection.In) npic.InputPipe = pipeServer;
-                        else npic.OutputPipe = pipeServer;
-                        npic.Closed += NamedPipeIpcClient_Closed;
-                        _pendingClients.Add(clientId, npic);
                     }
                 }
+                catch (IOException e)
+                {
+                    Trace.TraceError(e.Message);
+                }
+                catch (ArgumentException)
+                {
+                    Trace.TraceInformation($"Client disconnected before he sent an Id on connection {id}.");
+                    pipeServer.Dispose();
+                }
             }
-            catch (IOException e)
+            catch (Exception ex)
             {
-                Trace.TraceError(e.Message);
-            }
-            catch (ArgumentException)
-            {
-                Trace.TraceInformation($"Client disconnected before he sent an Id on connection {id}.");
-                pipeServer.Dispose();
+                Util.TraceException("Error creating pipe", ex);
+                OnError(ex);
             }
         }
 
@@ -175,6 +215,17 @@ namespace JJA.Anperi.Ipc.Server.NamedPipe
             s.Dispose();
         }
 
+        private void OnError(Exception e)
+        {
+            Error?.Invoke(this, new ErrorEventArgs(e));
+            Stop();
+        }
+
+        private void OnClosed()
+        {
+            Closed?.Invoke(this, EventArgs.Empty);
+        }
+
         private void OnClientClosed(NamedPipeIpcClient val)
         {
             ClientDisconnected?.Invoke(this, new ClientEventArgs(val));
@@ -189,16 +240,15 @@ namespace JJA.Anperi.Ipc.Server.NamedPipe
         {
             foreach (NamedPipeIpcClient client in _pendingClients.Values)
             {
-                client.Dispose();
+                try { client?.Dispose(); } catch (ObjectDisposedException) { }
             }
             foreach (NamedPipeIpcClient client in _clients.Values)
             {
-                client.Dispose();
+                try { client?.Dispose(); } catch (ObjectDisposedException) { }
             }
-
-            _cts?.Dispose();
-            _semaphoreStartInputConnections?.Dispose();
-            _semaphoreStartOutputConnections?.Dispose();
+            try { _cts?.Dispose(); } catch(ObjectDisposedException) { }
+            try { _semaphoreStartInputConnections?.Dispose(); } catch (ObjectDisposedException) { }
+            try { _semaphoreStartOutputConnections?.Dispose(); } catch (ObjectDisposedException) { }
         }
     }
 }
