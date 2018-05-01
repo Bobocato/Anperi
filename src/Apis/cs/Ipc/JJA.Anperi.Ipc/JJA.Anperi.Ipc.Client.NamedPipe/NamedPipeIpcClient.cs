@@ -18,25 +18,25 @@ namespace JJA.Anperi.Ipc.Client.NamedPipe
     {
         private NamedPipeClientStream _streamIn, _streamOut;
         private StreamString _ss;
-        private readonly CancellationTokenSource _cts;
+        private CancellationTokenSource _cts;
         private string _token;
         private bool _isAuthenticated = false;
 
 
         public NamedPipeIpcClient()
         {
-            _cts = new CancellationTokenSource();
         }
 
         public async void Connect()
         {
+            _cts = new CancellationTokenSource();
             try
             {
                 _token = "cs.api.referencelib." + Guid.NewGuid();
                 _streamIn = new NamedPipeClientStream(Settings.ServerOutputPipeName);
                 _streamOut = new NamedPipeClientStream(Settings.ServerInputPipeName);
-                await _streamIn.ConnectAsync(_cts.Token);
-                await _streamOut.ConnectAsync(_cts.Token);
+                await _streamIn.ConnectAsync(2000, _cts.Token);
+                await _streamOut.ConnectAsync(2000, _cts.Token);
 
                 StreamString.WriteString(_streamIn, _token);
                 StreamString.WriteString(_streamOut, _token);
@@ -132,6 +132,30 @@ namespace JJA.Anperi.Ipc.Client.NamedPipe
             }
         }
 
+        private void ResetClient()
+        {
+            _isAuthenticated = false;
+            try
+            {
+                _streamIn?.Dispose();
+            }
+            catch (ObjectDisposedException) { }
+            _streamIn = null;
+            try
+            {
+                _streamOut?.Dispose();
+            }
+            catch (ObjectDisposedException) { }
+            _streamOut?.Dispose();
+            _streamOut = null;
+            _ss = null;
+            try
+            {
+                _cts?.Dispose();
+            }
+            catch (ObjectDisposedException) { }
+        }
+
         public bool IsOpen => _streamIn?.IsConnected == true && _streamOut?.IsConnected == true && _isAuthenticated;
 
         private void OnMessageReceived(IpcMessage message)
@@ -142,19 +166,14 @@ namespace JJA.Anperi.Ipc.Client.NamedPipe
 
         private void OnError(Exception exception)
         {
+            ResetClient();
             Error?.Invoke(this, new ErrorEventArgs(exception));
-            OnClosed();
         }
         public event EventHandler<ErrorEventArgs> Error;
 
         private void OnClosed()
         {
-            _isAuthenticated = false;
-            _streamIn?.Dispose();
-            _streamIn = null;
-            _streamOut?.Dispose();
-            _streamOut = null;
-            _ss = null;
+            ResetClient();
             Closed?.Invoke(this, EventArgs.Empty);
         }
         public event EventHandler Closed;
@@ -167,13 +186,7 @@ namespace JJA.Anperi.Ipc.Client.NamedPipe
 
         public void Dispose()
         {
-            _isAuthenticated = false;
-            _streamIn?.Dispose();
-            _streamIn = null;
-            _streamOut?.Dispose();
-            _streamOut = null;
-            _ss = null;
-            _cts?.Dispose();
+            ResetClient();
         }
     }
 }
