@@ -3,6 +3,7 @@ package com.jannes_peters.anperi.anperi;
 import android.app.Activity;
 import android.app.Fragment;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -27,9 +28,9 @@ import java.io.IOException;
 public class CreateFragment extends Fragment {
     private static final String TAG = "jja.anperi";
     private JSONObject currentLayout;
+    private JSONObject currentElement;
     private FrameLayout create_container;
     private Boolean isStarted = false;
-    private Boolean isAttached = false;
 
     public CreateFragment() {
     }
@@ -45,23 +46,26 @@ public class CreateFragment extends Fragment {
     //Check for Layout and createLayout if anything is ready.
     public void onStart() {
         isStarted = true;
-        if (currentLayout != null && isAttached) {
-            createLayout(currentLayout);
+        if (currentElement == null) {
+            if (currentLayout != null) {
+                createLayout(currentLayout);
+            }
+        } else {
+            changeElement(currentElement);
         }
         super.onStart();
     }
 
-    //Check for Layout and createLayout if anything is ready.
-    public void onAttach(Activity activity) {
-        isAttached = true;
-        if (currentLayout != null && isStarted) createLayout(currentLayout);
-        super.onAttach(activity);
+    //Reset values on stop...
+    public void onStop() {
+        isStarted = false;
+        super.onStop();
     }
 
     //Check for View and createLayout if anything is ready.
     public void setLayout(JSONObject json) {
         currentLayout = json;
-        if (getActivity() != null && isStarted) createLayout(json);
+        if (isStarted) createLayout(json);
     }
 
     public void createLayout(JSONObject json) {
@@ -79,40 +83,142 @@ public class CreateFragment extends Fragment {
         }
     }
 
+    public void setElement(JSONObject json) {
+        currentElement = json;
+        if (isStarted) changeElement(json);
+    }
+
     public void changeElement(JSONObject json) {
         try {
+            //Get View
             View view = this.getView().findViewWithTag(json.getString("id"));
-            switch (json.getString("param_name")) {
-                case "row":
-                    break;
-                case "column":
-                    break;
-                case "row_span":
-                    break;
-                case "column_span":
-                    break;
-                case "row_weight":
-                    break;
-                case "column_weight":
-                    break;
-                case "id":
-                    break;
-                case "text":
-                    break;
-                case "hint":
-                    break;
-                case "min":
-                    break;
-                case "max":
-                    break;
-                case "progress":
-                    break;
-                case "step_size":
-                    break;
+            //Get the json part to the requested view
+            JSONObject jsonObject = getJsonObjectFromID(json.getString("id"), currentLayout.getJSONObject("grid").getJSONArray("elements"));
+            if (jsonObject == null) {
+                MyWebSocket.sendError("There is no such Objekt");
+            } else {
+                currentLayout.getJSONObject("grid").put("elements", changeJsonObjectfromID(json.getString("id"), currentLayout.getJSONObject("grid").getJSONArray("elements"), json));
+                StatusObject.layoutString = currentLayout.toString();
+                int rowSpan = (jsonObject.get("row_span") == null) ? 1 : jsonObject.getInt("row_span");
+                int columnSpan = (jsonObject.get("column_span") == null) ? 1 : jsonObject.getInt("column_span");
+                android.support.v7.widget.GridLayout.LayoutParams params = createParams(
+                        jsonObject.getInt("row"),
+                        jsonObject.getInt("column"),
+                        rowSpan,
+                        columnSpan,
+                        (float) jsonObject.getDouble("row_weight"),
+                        (float) jsonObject.getDouble("column_span"));
+                switch (json.getString("param_name")) {
+                    case "row":
+                        params.rowSpec = android.support.v7.widget.GridLayout.spec(json.getInt("param_value"), rowSpan, (float) jsonObject.getDouble("column_weight"));
+                        break;
+                    case "column":
+                        params.columnSpec = android.support.v7.widget.GridLayout.spec(json.getInt("param_value"), columnSpan, (float) jsonObject.getDouble("column_weight"));
+                        break;
+                    case "row_span":
+                        params.rowSpec = android.support.v7.widget.GridLayout.spec(jsonObject.getInt("row"), json.getInt("param_value"), (float) jsonObject.getDouble("column_weight"));
+                        break;
+                    case "column_span":
+                        params.columnSpec = android.support.v7.widget.GridLayout.spec(jsonObject.getInt("column"), json.getInt("param_value"), (float) jsonObject.getDouble("column_weight"));
+                        break;
+                    case "row_weight":
+                        params.rowSpec = android.support.v7.widget.GridLayout.spec(jsonObject.getInt("row"), rowSpan, (float) json.getDouble("param_value"));
+                        break;
+                    case "column_weight":
+                        params.columnSpec = android.support.v7.widget.GridLayout.spec(jsonObject.getInt("column"), columnSpan, (float) json.getDouble("param_value"));
+                        break;
+                    case "id":
+                        view.setTag(json.getString("param_value"));
+                        break;
+                    case "text":
+                        if (view instanceof SeekBar) {
+                            MyWebSocket.sendError("Sliders dont have a Text");
+                        } else {
+                            TextView textView = (TextView) view;
+                            textView.setText(json.getString("param_value"));
+                        }
+                        break;
+                    case "hint":
+                        if (view instanceof EditText) {
+                            EditText editText = (EditText) view;
+                            editText.setHint(json.getString("param_value"));
+                        } else {
+                            MyWebSocket.sendError("Only Textinputs have hints");
+                        }
+                        break;
+                    case "min":
+                        if (view instanceof SeekBar) {
+                            SeekBar seekBar = (SeekBar) view;
+                            //TODO figure out how...
+                        } else {
+                            MyWebSocket.sendError("Only Slider have a min");
+                        }
+                        break;
+                    case "max":
+                        if (view instanceof SeekBar) {
+                            SeekBar seekBar = (SeekBar) view;
+                            seekBar.setMax(json.getInt("param_value"));
+                        } else {
+                            MyWebSocket.sendError("Only Slider have a min");
+                        }
+                        break;
+                    case "progress":
+                        if (view instanceof SeekBar) {
+                            SeekBar seekBar = (SeekBar) view;
+                            seekBar.setProgress(json.getInt("param_value"));
+                        } else {
+                            MyWebSocket.sendError("Only Slider have a min");
+                        }
+                        break;
+                    case "step_size":
+                        if (view instanceof SeekBar) {
+                            SeekBar seekBar = (SeekBar) view;
+                            //TODO figure out how...
+                        } else {
+                            MyWebSocket.sendError("Only Slider have a min");
+                        }
+                        break;
+                    default:
+                        MyWebSocket.sendError("Not familiar with this parameter" + json.getString("param_name"));
+                }
             }
         } catch (JSONException e) {
             e.printStackTrace();
+        } catch (Exception e){
+            Log.v(TAG, e.toString());
         }
+    }
+
+    //Searches the JSONArray for a object and returns it. Returns null if element was not found
+    private JSONObject getJsonObjectFromID(String id, JSONArray objects) throws JSONException {
+        for (int i = 0; i < objects.length(); i++) {
+            //Current ID
+            JSONObject currentObj = objects.getJSONObject(i);
+            String type = currentObj.getString("type");
+            String currentID = currentObj.getString("id");
+            if (currentID.equals(id)) {
+                return currentObj;
+            } else if (type.equals("grid")) {
+                getJsonObjectFromID(id, currentObj.getJSONArray("grid"));
+            }
+        }
+        return null;
+    }
+
+    //Changes the JSONArray as needed and returns it. Returns null if no element was found
+    private JSONArray changeJsonObjectfromID(String id, JSONArray objects, JSONObject newData) throws JSONException {
+        for (int i = 0; i < objects.length(); i++) {
+            JSONObject currentObj = objects.getJSONObject(i);
+            String type = currentObj.getString("type");
+            String currentID = currentObj.getString("id");
+            if (currentID.equals(id)) {
+                currentObj.put(newData.getString("param_name"), newData.get("param_value"));
+                return objects;
+            } else if (type.equals("grid")) {
+                getJsonObjectFromID(id, currentObj.getJSONArray("grid"));
+            }
+        }
+        return null;
     }
 
     private android.support.v7.widget.GridLayout.LayoutParams createParams(int row, int column, int row_span, int column_span, float row_weight, float column_weight) {
@@ -203,7 +309,7 @@ public class CreateFragment extends Fragment {
             @Override
             public boolean onLongClick(View view) {
                 noDataClick("on_click_long", id);
-                return false;
+                return true;
             }
         });
         return textView;
@@ -281,7 +387,7 @@ public class CreateFragment extends Fragment {
             @Override
             public boolean onLongClick(View view) {
                 noDataClick("on_click_long", id);
-                return false;
+                return true;
             }
         });
         return button;

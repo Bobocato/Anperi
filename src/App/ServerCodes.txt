@@ -3,6 +3,7 @@
 
 //Clear Console:
 var ul = document.getElementById("messages");
+
 while(ul.hasChildNodes){
 	ul.removeChild(ul.firstElementChild)
 }
@@ -23,7 +24,7 @@ while(ul.hasChildNodes){
   "message_type": "request",
   "message_code": "pair",
   "data": {
-    "code": "121937"
+    "code": "039863"
   }
 }
 //Get Pairebels:
@@ -90,5 +91,16 @@ while(ul.hasChildNodes){
         }
       ]
     }
+  }
+}
+//Change Layout
+{
+  "context": "device",
+  "message_type": "request",
+  "message_code": "set_element_param",
+  "data": {
+    "id": "Der Button",
+    "param_name": "text",
+    "param_value": "Nicht mehr Submit"
   }
 }
