@@ -68,7 +68,9 @@ public class MainActivity extends AppCompatActivity {
                 Log.v(TAG, "Reload with custom layout");
                 try {
                     showLoad();
-                    createFragment.setLayout(new JSONObject(savedInstanceState.getString("currentLayout")));
+                    CreateFragment createFrag = (CreateFragment) getFragmentManager().findFragmentByTag("createFrag");
+                    Log.v(TAG,savedInstanceState.getString("layoutString"));
+                    createFrag.setLayout(new JSONObject(savedInstanceState.getString("layoutString")));
                     showCreate();
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -295,9 +297,9 @@ public class MainActivity extends AppCompatActivity {
                                             showCreate();
                                             break;
                                         case "set_element_param":
-                                            showLoad();
-                                            createFragment.changeElement(apiObject.messageData);
-                                            showCreate();
+                                            //showLoad();
+                                            createFragment.setElement(apiObject.messageData);
+                                            //showCreate();
                                             break;
                                     }
                                     break;
@@ -418,6 +420,9 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences sharedPrefs = this.getSharedPreferences(this.getString(R.string.preference_file_name), Context.MODE_PRIVATE);
         String key = sharedPrefs.getString("pairingcode", null);
         if (key != null) {
+            if(getFragmentManager().findFragmentByTag("keyFrag") != null){
+                keyFragment = (KeyFragment) getFragmentManager().findFragmentByTag("keyFrag");
+            }
             getFragmentManager().beginTransaction()
                     .setCustomAnimations(R.animator.enter_from_left, R.animator.exit_to_right)
                     .replace(R.id.fragment_container, keyFragment, "keyFrag")
@@ -426,6 +431,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showLoad() {
+        if(getFragmentManager().findFragmentByTag("loadFrag") != null){
+            loadingFragment = (LoadingFragment) getFragmentManager().findFragmentByTag("loadFrag");
+        }
         getFragmentManager().beginTransaction()
                 .setCustomAnimations(R.animator.enter_from_left, R.animator.exit_to_right)
                 .replace(R.id.fragment_container, loadingFragment, "loadFrag")
@@ -433,6 +441,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showTest() {
+        if(getFragmentManager().findFragmentByTag("testFrag") != null){
+            testFragment = (TestFragment) getFragmentManager().findFragmentByTag("testFrag");
+        }
         getFragmentManager().beginTransaction()
                 .setCustomAnimations(R.animator.enter_from_left, R.animator.exit_to_right)
                 .replace(R.id.fragment_container, testFragment, "testFrag")
@@ -440,9 +451,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showCreate() {
+        if(getFragmentManager().findFragmentByTag("createFrag") != null){
+            createFragment = (CreateFragment) getFragmentManager().findFragmentByTag("createFrag");
+        }
         getFragmentManager().beginTransaction()
                 .setCustomAnimations(R.animator.enter_from_left, R.animator.exit_to_right)
-                .replace(R.id.fragment_container, createFragment, "keyFrag")
+                .replace(R.id.fragment_container, createFragment, "createFrag")
                 .commit();
     }
 

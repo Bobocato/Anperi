@@ -8,6 +8,9 @@ import com.neovisionaries.ws.client.WebSocketException;
 import com.neovisionaries.ws.client.WebSocketExtension;
 import com.neovisionaries.ws.client.WebSocketFactory;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 
 public class MyWebSocket {
@@ -58,6 +61,21 @@ public class MyWebSocket {
                 .createSocket(server)
                 .addExtension(WebSocketExtension.PERMESSAGE_DEFLATE)
                 .connectAsynchronously();
+    }
+
+    public static void sendError(String text){
+        //Build JSON and send it
+        try {
+            String jsonString = new JSONObject()
+                    .put("context", "device")
+                    .put("message_type", "message")
+                    .put("message_code", "error")
+                    .put("data", new JSONObject()
+                            .put("msg", text)).toString();
+            instance.sendText(jsonString);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
 }
