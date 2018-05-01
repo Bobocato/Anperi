@@ -131,7 +131,7 @@ namespace JJA.Anperi.Ipc.Server.NamedPipe
                 }
                 finally
                 {
-                    _semaphoreStartInputConnections.Release();
+                    semaphore.Release();
                 }
                 Trace.TraceInformation($"Client connected on id: {id}");
                 try
