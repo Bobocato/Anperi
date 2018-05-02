@@ -17,6 +17,9 @@ using JJA.Anperi.Internal.Api;
 using JJA.Anperi.Internal.Api.Device;
 using JJA.Anperi.Internal.Api.Host;
 using JJA.Anperi.Internal.Api.Shared;
+using JJA.Anperi.Ipc.Dto;
+using JJA.Anperi.Ipc.Server;
+using JJA.Anperi.Ipc.Server.NamedPipe;
 using Newtonsoft.Json.Linq;
 
 
@@ -25,6 +28,7 @@ namespace JJA.Anperi.Host
     class HostModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
+
         private string _info1 = "No Current WebSocket connection!";
         private string _info2 = "";
         private string _info3 = "";
@@ -42,16 +46,21 @@ namespace JJA.Anperi.Host
         private readonly Queue<string> _messages;
         private bool _closing = false;
         private int _connectedPeripheral;
+        private NamedPipeIpcServer _ipcServer;
+        private readonly List<IIpcClient> _ipcClients;
+        private IIpcClient _curIpcClient;
 
         public HostModel()
         {
             _periList = new List<HostJsonApiObjectFactory.ApiPeripheral>();
+            _ipcClients = new List<IIpcClient>();
             _messages = new Queue<string>();
             if (File.Exists(_filePath))
             {
                 _token = File.ReadLines(_filePath).First();
             }
             InitializeWebSocket();
+            InitializeIpcServer();
         }
 
         #region Properties
@@ -124,6 +133,80 @@ namespace JJA.Anperi.Host
         }
 
         #endregion
+
+        private void InitializeIpcServer()
+        {
+            Task.Run(() =>
+            {
+                _ipcServer = new NamedPipeIpcServer();
+                _ipcServer.Start();
+                _ipcServer.ClientConnected += (sender, args) =>
+                {
+                    var client = args.Client;
+                    _ipcClients.Add(client);
+                    _curIpcClient = client;
+                    client.Message += (o, eventArgs) =>
+                    {
+                        var message = eventArgs.Message;
+                        var messageType = message.MessageCode;
+
+                        switch (messageType)
+                        {
+                            case IpcMessageCode.Debug:
+                                //TODO: handle data from message
+                                var data = message.Data;
+                                var dataType = data["type"];
+                                switch (dataType)
+                                {
+                                    case "set_elem_param":
+                                        var setParam = new JsonApiObject(JsonApiContextTypes.device, JsonApiMessageTypes.message, "set_element_param", data);
+                                        SendToWebsocket(setParam.Serialize());
+                                        break;
+                                    case "get_info":
+                                        var getInfo = new JsonApiObject(JsonApiContextTypes.device, JsonApiMessageTypes.request, "get_info", data);
+                                        SendToWebsocket(getInfo.Serialize());
+                                        break;
+                                    case "set_layout":
+                                        var setLayout = new JsonApiObject(JsonApiContextTypes.device, JsonApiMessageTypes.message, "set_layout", data);
+                                        SendToWebsocket(setLayout.Serialize());
+                                        break;
+                                    default:
+                                        throw new NotImplementedException($"Didnt implement: {dataType}");
+                                }
+                                break;
+                            case IpcMessageCode.Unset:
+                                client.Send(message);
+                                break;
+                            default:
+                                throw new NotImplementedException($"Didnt implement: {messageType}");
+                        }
+                    };
+                    client.StartReceive();
+                };
+
+                _ipcServer.ClientDisconnected += (sender, args) =>
+                {
+                    var client = args.Client;
+                    _ipcClients.Remove(client);
+                    if (_curIpcClient.Equals(client))
+                    {
+                        _curIpcClient = null;
+                    }
+                };
+
+                _ipcServer.Closed += (sender, args) =>
+                {
+                    _ipcClients.ForEach(x => x.Close());
+                    _ipcClients.Clear();
+                };
+
+                _ipcServer.Error += (sender, args) =>
+                {
+                    //TODO: maybe dc all clients here
+                    Trace.TraceError("IPC-Server error: " + args.ToString());
+                };
+            });
+        }
 
         private void InitializeWebSocket()
         {
@@ -401,10 +484,26 @@ namespace JJA.Anperi.Host
             switch (deviceCode)
             {
                 case DeviceRequestCode.debug:
-                    if (json.data.TryGetValue("msg", out string msg))
+                    var messageCode = json.message_code;
+                    switch (messageCode)
                     {
-                        QueueMessage(msg);
+                        case "debug":
+                            if (json.data.TryGetValue("msg", out string msg))
+                            {
+                                QueueMessage(msg);
+                            }
+                            break;
+                        case "get_info":
+                            var ipcMessage = new IpcMessage();
+                            ipcMessage.MessageCode = IpcMessageCode.Debug;
+                            var data = json.data;
+                            data.Add("type", "set_layout");
+                            _curIpcClient.Send(ipcMessage);
+                            break;
+                        default:
+                            throw new NotImplementedException($"Didnt implement: {messageCode}");
                     }
+
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(deviceCode), deviceCode, null);
