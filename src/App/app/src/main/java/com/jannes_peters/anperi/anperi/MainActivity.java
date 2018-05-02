@@ -290,7 +290,6 @@ public class MainActivity extends AppCompatActivity {
                                             break;
                                         case "set_layout":
                                             showLoad();
-                                            createFragment = new CreateFragment();
                                             StatusObject.isCustomLayout = true;
                                             StatusObject.layoutString = apiObject.messageData.toString();
                                             createFragment.setLayout(apiObject.messageData);

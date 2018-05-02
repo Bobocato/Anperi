@@ -45,6 +45,7 @@ public class CreateFragment extends Fragment {
 
     //Check for Layout and createLayout if anything is ready.
     public void onStart() {
+        super.onStart();
         isStarted = true;
         if (currentElement == null) {
             if (currentLayout != null) {
@@ -53,13 +54,12 @@ public class CreateFragment extends Fragment {
         } else {
             changeElement(currentElement);
         }
-        super.onStart();
     }
 
     //Reset values on stop...
     public void onStop() {
-        isStarted = false;
         super.onStop();
+        isStarted = false;
     }
 
     //Check for View and createLayout if anything is ready.
@@ -71,6 +71,7 @@ public class CreateFragment extends Fragment {
     public void createLayout(JSONObject json) {
         try {
             Log.v(TAG, "createLayout was called");
+            removeLayout();
             JSONObject grid = json.getJSONObject("grid");
             JSONArray elements = grid.getJSONArray("elements");
             android.support.v7.widget.GridLayout newGrid = createGrid(elements);
@@ -184,7 +185,7 @@ public class CreateFragment extends Fragment {
             }
         } catch (JSONException e) {
             e.printStackTrace();
-        } catch (Exception e){
+        } catch (Exception e) {
             Log.v(TAG, e.toString());
         }
     }
@@ -247,6 +248,8 @@ public class CreateFragment extends Fragment {
                         columnSpan,
                         (float) currentElement.getDouble("row_weight"),
                         (float) currentElement.getDouble("column_span"));
+                String text, hint, id;
+                int min, max, progress, step_size;
                 switch (currentElement.getString("type")) {
                     case "grid":
                         android.support.v7.widget.GridLayout subGrid = createGrid(currentElement.getJSONArray("elements"));
@@ -254,34 +257,70 @@ public class CreateFragment extends Fragment {
                         grid.addView(subGrid);
                         break;
                     case "label":
-                        TextView label = createTextView(
-                                currentElement.getString("id"),
-                                currentElement.getString("text"));
+                        try {
+                            text = currentElement.getString("text");
+                        } catch (Exception e) {
+                            text = "";
+                        }
+                        try {
+                            id = currentElement.getString("id");
+                        } catch (Exception e) {
+                            MyWebSocket.sendError("No ID given to label...");
+                            break;
+                        }
+                        TextView label = createTextView(id, text);
                         label.setLayoutParams(params);
                         grid.addView(label);
                         break;
                     case "slider":
-                        SeekBar seekbar = createSlider(
-                                currentElement.getString("id"),
-                                currentElement.getInt("min"),
-                                currentElement.getInt("max"),
-                                currentElement.getInt("progress"),
-                                currentElement.getInt("step_size"));
+                        try {
+                            id = currentElement.getString("id");
+                            min = currentElement.getInt("min");
+                            max = currentElement.getInt("max");
+                            progress = currentElement.getInt("progress");
+                            step_size = currentElement.getInt("step_size");
+                        } catch (Exception e) {
+                            MyWebSocket.sendError("Slider with missing Parameter");
+                            break;
+                        }
+                        SeekBar seekbar = createSlider(id, min, max, progress, step_size);
                         seekbar.setLayoutParams(params);
                         grid.addView(seekbar);
                         break;
                     case "button":
-                        Button button = createButton(
-                                currentElement.getString("id"),
-                                currentElement.getString("text"));
+                        try {
+                            text = currentElement.getString("text");
+                        } catch (Exception e) {
+                            text = "";
+                        }
+                        try {
+                            id = currentElement.getString("id");
+                        } catch (Exception e) {
+                            MyWebSocket.sendError("No ID given to button...");
+                            break;
+                        }
+                        Button button = createButton(id, text);
                         button.setLayoutParams(params);
                         grid.addView(button);
                         break;
                     case "textbox":
-                        EditText editText = createEditText(
-                                currentElement.getString("id"),
-                                currentElement.getString("text"),
-                                currentElement.getString("hint"));
+                        try {
+                            text = currentElement.getString("text");
+                        } catch (Exception e) {
+                            text = "";
+                        }
+                        try {
+                            hint = currentElement.getString("hint");
+                        } catch (Exception e) {
+                            hint = "";
+                        }
+                        try {
+                            id = currentElement.getString("id");
+                        } catch (Exception e) {
+                            MyWebSocket.sendError("No ID given to textbox...");
+                            break;
+                        }
+                        EditText editText = createEditText(id, text, hint);
                         editText.setLayoutParams(params);
                         grid.addView(editText);
                         break;
@@ -320,6 +359,19 @@ public class CreateFragment extends Fragment {
         editText.setHint(hint);
         editText.setText(text);
         editText.setTag(id);
+        editText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                noDataClick("on_click", id);
+            }
+        });
+        editText.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                noDataClick("on_click_long", id);
+                return true;
+            }
+        });
         editText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -393,18 +445,38 @@ public class CreateFragment extends Fragment {
         return button;
     }
 
-    private SeekBar createSlider(final String id, final int min, int max, int progress, int step_size) {
+    private SeekBar createSlider(final String id, final int min, int max, int progress, final int step_size) {
         SeekBar seekBar = new SeekBar(getActivity());
-        seekBar.setMax(max);
-        seekBar.setProgress(progress);
+        seekBar.setMax(max - min);
+        seekBar.setProgress(progress - min);
         seekBar.setTag(id);
+        seekBar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                noDataClick("on_click", id);
+            }
+        });
+        seekBar.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                noDataClick("on_click_long", id);
+                return true;
+            }
+        });
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            int currentProgress = 1;
+
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
                 if (b) {
                     try {
-                        JSONObject data = new JSONObject().put("progress", i - min);
-                        dataClick("on_change", id, data);
+                        if (currentProgress >= step_size) {
+                            currentProgress = 1;
+                            JSONObject data = new JSONObject().put("progress", i + min);
+                            dataClick("on_change", id, data);
+                        } else {
+                            currentProgress++;
+                        }
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -414,7 +486,7 @@ public class CreateFragment extends Fragment {
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
                 try {
-                    JSONObject data = new JSONObject().put("progress", seekBar.getProgress() - min);
+                    JSONObject data = new JSONObject().put("progress", seekBar.getProgress() + min);
                     dataClick("on_change", id, data);
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -424,7 +496,7 @@ public class CreateFragment extends Fragment {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 try {
-                    JSONObject data = new JSONObject().put("progress", seekBar.getProgress() - min);
+                    JSONObject data = new JSONObject().put("progress", seekBar.getProgress() + min);
                     dataClick("on_change", id, data);
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -473,5 +545,11 @@ public class CreateFragment extends Fragment {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    //Empty the container...
+    private void removeLayout() {
+        FrameLayout frame = this.getView().findViewById(R.id.create_container);
+        frame.removeAllViews();
     }
 }

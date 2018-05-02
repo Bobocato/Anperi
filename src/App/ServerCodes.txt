@@ -4,7 +4,7 @@
 //Clear Console:
 var ul = document.getElementById("messages");
 
-while(ul.hasChildNodes){
+while(ul.childElementCount > 0){
 	ul.removeChild(ul.firstElementChild)
 }
 
@@ -24,7 +24,7 @@ while(ul.hasChildNodes){
   "message_type": "request",
   "message_code": "pair",
   "data": {
-    "code": "039863"
+    "code": "828870"
   }
 }
 //Get Pairebels:
@@ -70,24 +70,50 @@ while(ul.hasChildNodes){
         {
           "row": 0,
           "column": 0,
-          "row_span": 2,
+          "row_span": 1,
           "column_span": 2,
           "row_weight": 1,
           "column_weight": 1,
           "type": "label",
-          "id": "Der Text",
+          "id": "Text",
           "text": "Hallo Test"
         },
         {
-          "row": 4,
+          "row": 1,
           "column": 0,
-          "row_span": 2,
+          "row_span": 1,
           "column_span": 2,
           "row_weight": 1,
           "column_weight": 1,
           "type": "button",
-          "id": "Der Button",
+          "id": "Button",
           "text": "Submit"
+        },
+        {
+          "row": 2,
+          "column": 0,
+          "row_span": 1,
+          "column_span": 2,
+          "row_weight": 1,
+          "column_weight": 1,
+          "type": "slider",
+          "id": "Slider",
+          "min": 5,
+          "max": 50,
+          "progress": 7,
+          "step_size": 10
+        },
+        {
+          "row": 3,
+          "column": 0,
+          "row_span": 1,
+          "column_span": 2,
+          "row_weight": 1,
+          "column_weight": 1,
+          "type": "textbox",
+          "id": "Textbox",
+          "hint": "Dies ist ein HINT..."
+
         }
       ]
     }
@@ -99,7 +125,7 @@ while(ul.hasChildNodes){
   "message_type": "request",
   "message_code": "set_element_param",
   "data": {
-    "id": "Der Button",
+    "id": "Button",
     "param_name": "text",
     "param_value": "Nicht mehr Submit"
   }
