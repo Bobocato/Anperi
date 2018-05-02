@@ -17,7 +17,17 @@
 		<ListBox x:Name="PeriBox" Height="100" Margin="10,10,10,0" VerticalAlignment="Top" ItemsSource="{Binding Path=Peripherals}">
 			<ListBox.ItemTemplate>
 				<DataTemplate>
-					<Label Content="{Binding Path=name}"/>
+					<Label Content="{Binding Path=name}">
+						<Label.Style>
+							<Style TargetType="Label">
+								<Style.Triggers>
+									<DataTrigger Binding="{Binding Path=online}" Value="True">
+										<Setter Property="FontWeight" Value="Bold"/>
+									</DataTrigger>
+								</Style.Triggers>
+							</Style>
+						</Label.Style>
+					</Label>
 				</DataTemplate>
 			</ListBox.ItemTemplate>
 		</ListBox>
