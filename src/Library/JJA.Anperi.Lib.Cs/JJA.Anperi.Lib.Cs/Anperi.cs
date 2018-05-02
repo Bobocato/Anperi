@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using JJA.Anperi.Ipc.Client;
 using JJA.Anperi.Ipc.Client.NamedPipe;
 using JJA.Anperi.Ipc.Dto;
+using JJA.Anperi.Lib.Cs.Elements;
 using JJA.Anperi.Lib.Cs.Message;
 using JJA.Anperi.Utility;
 
@@ -13,7 +14,7 @@ namespace JJA.Anperi.Lib.Cs
 {
     public class Anperi
     {
-        public event EventHandler<AnperiMessageEventArgs> DebugMessage;
+        public event EventHandler<AnperiMessageEventArgs> Message;
         public event EventHandler Connected;
         public event EventHandler Disconnected; 
 
@@ -30,6 +31,16 @@ namespace JJA.Anperi.Lib.Cs
         }
 
         public bool IsConnected => _ipcClient.IsOpen;
+
+        public void RequestPeripheralInfo()
+        {
+            _ipcClient.Send(new IpcMessage {MessageCode = IpcMessageCode.GetPeripheralInfo});
+        }
+
+        public void SetLayout(RootGrid layout)
+        {
+            _ipcClient.Send(new IpcMessage {MessageCode = IpcMessageCode.SetPeripheralLayout, Data = new Dictionary<string, dynamic>{{"grid", layout}}});
+        }
 
         private void _ipcClient_Error(object sender, System.IO.ErrorEventArgs e)
         {
@@ -71,7 +82,7 @@ namespace JJA.Anperi.Lib.Cs
                     OnMessage(new ErrorAnperiMessage(e.Message.Data));
                     break;
                 case IpcMessageCode.GetPeripheralInfo:
-                    OnMessage(new PeripheralInfoMessage(e.Message.Data));
+                    OnMessage(new PeripheralInfoAnperiMessage(e.Message.Data));
                     break;
                 case IpcMessageCode.PeripheralEventFired:
                     OnMessage(new EventFiredAnperiMessage(e.Message.Data));
@@ -98,7 +109,7 @@ namespace JJA.Anperi.Lib.Cs
 
         protected virtual void OnMessage(AnperiMessage e)
         {
-            DebugMessage?.Invoke(this, new AnperiMessageEventArgs(e));
+            Message?.Invoke(this, new AnperiMessageEventArgs(e));
         }
 
         protected virtual void OnConnected()

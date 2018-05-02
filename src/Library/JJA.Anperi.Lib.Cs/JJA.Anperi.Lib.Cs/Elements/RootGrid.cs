@@ -6,6 +6,6 @@ namespace JJA.Anperi.Lib.Cs.Elements
 {
     public class RootGrid
     {
-        private List<Element> elements { get; set; } = new List<Element>();
+        public List<Element> elements { get; set; } = new List<Element>();
     }
 }

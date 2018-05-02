@@ -6,11 +6,11 @@ using JJA.Anperi.Utility;
 
 namespace JJA.Anperi.Lib.Cs.Message
 {
-    public class PeripheralInfoMessage : AnperiMessage
+    public class PeripheralInfoAnperiMessage : AnperiMessage
     {
         protected override IpcMessageCode MsgCode => IpcMessageCode.GetPeripheralInfo;
 
-        public PeripheralInfoMessage(Dictionary<string, dynamic> data) : base(data)
+        public PeripheralInfoAnperiMessage(Dictionary<string, dynamic> data) : base(data)
         {
         }
 
