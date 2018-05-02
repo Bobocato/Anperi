@@ -345,6 +345,7 @@ namespace JJA.Anperi.Host
                                 Trace.TraceError($"couldn't parse get_available_peripherals answer: {list.ToString()}");
                             }
                         }
+                        OnPropertyChanged(nameof(Peripherals));
                     }
                     else
                     {

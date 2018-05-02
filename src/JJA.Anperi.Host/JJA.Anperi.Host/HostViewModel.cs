@@ -23,12 +23,14 @@ namespace JJA.Anperi.Host
         private readonly Dispatcher _dispatcher;
         public event PropertyChangedEventHandler PropertyChanged;
         private HostModel _model;
+        private ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral> _peripherals;
 
         public HostViewModel(Dispatcher dispatcher)
         {
             _dispatcher = dispatcher;
             _model = new HostModel();
             _model.PropertyChanged += OnModelPropertyChanged;
+            _peripherals = new ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral>();
         }
         
         public bool ButConnect
@@ -90,11 +92,8 @@ namespace JJA.Anperi.Host
                 OnPropertyChanged(nameof(ConnectedTo));
             }
         }
-        
-        public ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral> Peripherals
-        {
-            get { return new ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral>(_model.Peripherals); }
-        }
+
+        public ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral> Peripherals => _peripherals;
 
         public void Close()
         {
@@ -129,7 +128,21 @@ namespace JJA.Anperi.Host
         private void OnModelPropertyChanged(object sender,
             PropertyChangedEventArgs e)
         {
-            OnPropertyChanged(e.PropertyName);
+            if (e.PropertyName == nameof(HostModel.Peripherals))
+            {
+                _dispatcher.Invoke(() =>
+                {
+                    _peripherals.Clear();
+                    _model.Peripherals.ForEach((a) =>
+                    {
+                        _peripherals.Add(a);
+                    });
+                });
+            }
+            else
+            {
+                OnPropertyChanged(e.PropertyName);
+            }
         }
 
         private void OnPropertyChanged(string property)
