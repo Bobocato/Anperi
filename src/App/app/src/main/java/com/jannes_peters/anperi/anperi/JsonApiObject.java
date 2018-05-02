@@ -74,18 +74,18 @@ public class JsonApiObject {
                             case "debug":
                                 //TODO: Display message
                                 return Action.debug;
+                            case "set_layout":
+                                Log.v(TAG, "set_layout was called");
+                                return Action.success;
+                            case "set_element_param":
+                                Log.v(TAG, "set_element_param was called");
+                                return Action.success;
                         }
                         break;
                     case "request":
                         switch (messageCode) {
                             case "get_info":
                                 Log.v(TAG, "get_info was called");
-                                return Action.success;
-                            case "set_layout":
-                                Log.v(TAG, "set_layout was called");
-                                return Action.success;
-                            case "set_element_param":
-                                Log.v(TAG, "set_element_param was called");
                                 return Action.success;
                         }
                         break;
