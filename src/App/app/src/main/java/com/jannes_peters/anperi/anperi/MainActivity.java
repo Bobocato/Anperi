@@ -283,6 +283,20 @@ public class MainActivity extends AppCompatActivity {
                         case debug:
                             Toast.makeText(getApplicationContext(), action.toString() + ": " + apiObject.messageData.toString(), Toast.LENGTH_LONG).show();
                             break;
+                        case error:
+                            switch (apiObject.messageContext) {
+                                case "server":
+                                    switch (apiObject.messageCode) {
+                                        case "login":
+                                            //The Login did not work... Maybe wrong Token?
+                                            //Delete Token!
+                                            clearPreferences();
+                                            //and try again
+                                            connected();
+                                            break;
+                                    }
+                                    break;
+                            }
                     }
                 }
             });
@@ -294,6 +308,9 @@ public class MainActivity extends AppCompatActivity {
     //------------------------------
     //-------Helper Functions-------
     //------------------------------
+    private void clearPreferences() {
+        this.getSharedPreferences(getString(R.string.preference_file_name), 0).edit().clear().apply();
+    }
 
     //Startup the WS
     private void startUp() {

@@ -50,7 +50,7 @@ public class CreateFragment extends Fragment {
         }
     }
 
-    //Reset values on stop...
+    //Reset isStarted on stop...
     public void onStop() {
         super.onStop();
         isStarted = false;
@@ -78,6 +78,7 @@ public class CreateFragment extends Fragment {
         }
     }
 
+    //Check for isStarted and call changeElement
     public void setElement(JSONObject json) {
         currentElement = json;
         if (isStarted) changeElement(json);
@@ -223,16 +224,7 @@ public class CreateFragment extends Fragment {
         return null;
     }
 
-    private android.support.v7.widget.GridLayout.LayoutParams createParams(int row, int column, int row_span, int column_span, float row_weight, float column_weight) {
-        android.support.v7.widget.GridLayout.LayoutParams param = new android.support.v7.widget.GridLayout.LayoutParams();
-        param.height = android.support.v7.widget.GridLayout.LayoutParams.WRAP_CONTENT;
-        param.width = android.support.v7.widget.GridLayout.LayoutParams.WRAP_CONTENT;
-        param.setGravity(Gravity.CENTER);
-        param.columnSpec = android.support.v7.widget.GridLayout.spec(column, column_span, column_weight);
-        param.rowSpec = android.support.v7.widget.GridLayout.spec(row, row_span, row_weight);
-        return param;
-    }
-
+    //Function for the creation of the Grid will be called recursively when grids are nested
     private android.support.v7.widget.GridLayout createGrid(JSONArray elements) {
         Log.v(TAG, "createGrid called");
         //Log.v(TAG, this.getActivity().toString());
@@ -333,6 +325,17 @@ public class CreateFragment extends Fragment {
             }
         }
         return grid;
+    }
+
+    //Function for the creation of Elements and their parameters
+    private android.support.v7.widget.GridLayout.LayoutParams createParams(int row, int column, int row_span, int column_span, float row_weight, float column_weight) {
+        android.support.v7.widget.GridLayout.LayoutParams param = new android.support.v7.widget.GridLayout.LayoutParams();
+        param.height = android.support.v7.widget.GridLayout.LayoutParams.WRAP_CONTENT;
+        param.width = android.support.v7.widget.GridLayout.LayoutParams.WRAP_CONTENT;
+        param.setGravity(Gravity.CENTER);
+        param.columnSpec = android.support.v7.widget.GridLayout.spec(column, column_span, column_weight);
+        param.rowSpec = android.support.v7.widget.GridLayout.spec(row, row_span, row_weight);
+        return param;
     }
 
     private TextView createTextView(final String id, String text) {
@@ -486,7 +489,9 @@ public class CreateFragment extends Fragment {
         return seekBar;
     }
 
-    //Helper Functions..
+    //------------------------------
+    //-------Helper Functions-------
+    //------------------------------
     private void dataClick(String type, String id, JSONObject data) {
         try {
             JSONObject dataX = new JSONObject();
@@ -511,8 +516,8 @@ public class CreateFragment extends Fragment {
         }
     }
 
-    //Empty the container...
     private void removeLayout() {
+        //Empty the container...
         FrameLayout frame = this.getView().findViewById(R.id.create_container);
         frame.removeAllViews();
     }

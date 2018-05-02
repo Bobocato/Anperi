@@ -31,27 +31,25 @@ public class MyWebSocket {
         return instance;
     }
 
-    public static void setServer(String server){
-        Log.v(TAG, "Der server des WebSockets wurde auf " + server + " gesetzt." );
+    public static void setServer(String server) {
+        Log.v(TAG, "Der server des WebSockets wurde auf " + server + " gesetzt.");
         MyWebSocket.server = server;
     }
 
-    public static void reconnect(){
+    public static void reconnect() {
         //Runnable delayedTask = new Runnable() {
-          //public void run() {
-                Log.v(TAG, "Trying to reconnect");
-                try {
-                    instance = instance.recreate().connect();
-                } catch (WebSocketException e) {
-                    reconnect();
-                } catch (IOException e) {
-                    e.printStackTrace();
-              }
-           // }
+        //public void run() {
+        Log.v(TAG, "Trying to reconnect");
+        try {
+            instance = instance.recreate().connect();
+        } catch (WebSocketException e) {
+            reconnect();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // }
         //};
         //mainThreadHandler.postDelayed(delayedTask, 2000);
-
-
     }
 
     private static com.neovisionaries.ws.client.WebSocket create() throws IOException {
@@ -63,7 +61,7 @@ public class MyWebSocket {
                 .connectAsynchronously();
     }
 
-    public static void sendMessage(String context, String message_type, String message_code, JSONObject data){
+    public static void sendMessage(String context, String message_type, String message_code, JSONObject data) {
         try {
             String jsonString = new JSONObject()
                     .put("context", context)
@@ -76,7 +74,7 @@ public class MyWebSocket {
         }
     }
 
-    public static void sendError(String text){
+    public static void sendError(String text) {
         //Build JSON and send it
         try {
             String jsonString = new JSONObject()
