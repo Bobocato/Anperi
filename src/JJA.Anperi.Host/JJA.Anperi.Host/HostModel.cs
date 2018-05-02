@@ -153,29 +153,25 @@ namespace JJA.Anperi.Host
                         switch (messageType)
                         {
                             case IpcMessageCode.Debug:
-                                //TODO: handle data from message
-                                var data = message.Data;
-                                var dataType = data["type"];
-                                switch (dataType)
+                                if (message.Data.TryGetValue("msg", out string msg))
                                 {
-                                    case "set_elem_param":
-                                        var setParam = new JsonApiObject(JsonApiContextTypes.device, JsonApiMessageTypes.message, "set_element_param", data);
-                                        SendToWebsocket(setParam.Serialize());
-                                        break;
-                                    case "get_info":
-                                        var getInfo = new JsonApiObject(JsonApiContextTypes.device, JsonApiMessageTypes.request, "get_info", data);
-                                        SendToWebsocket(getInfo.Serialize());
-                                        break;
-                                    case "set_layout":
-                                        var setLayout = new JsonApiObject(JsonApiContextTypes.device, JsonApiMessageTypes.message, "set_layout", data);
-                                        SendToWebsocket(setLayout.Serialize());
-                                        break;
-                                    default:
-                                        throw new NotImplementedException($"Didnt implement: {dataType}");
+                                    QueueMessage(msg);
                                 }
                                 break;
                             case IpcMessageCode.Unset:
                                 client.Send(message);
+                                break;
+                            case IpcMessageCode.GetPeripheralInfo:
+                                var getInfo = new JsonApiObject(JsonApiContextTypes.device, JsonApiMessageTypes.request, "get_info", message.Data);
+                                SendToWebsocket(getInfo.Serialize());
+                                break;
+                            case IpcMessageCode.SetPeripheralElementParam:
+                                var setParam = new JsonApiObject(JsonApiContextTypes.device, JsonApiMessageTypes.message, "set_element_param", message.Data);
+                                SendToWebsocket(setParam.Serialize());
+                                break;
+                            case IpcMessageCode.SetPeripheralLayout:
+                                var setLayout = new JsonApiObject(JsonApiContextTypes.device, JsonApiMessageTypes.message, "set_layout", message.Data);
+                                SendToWebsocket(setLayout.Serialize());
                                 break;
                             default:
                                 throw new NotImplementedException($"Didnt implement: {messageType}");
@@ -484,26 +480,26 @@ namespace JJA.Anperi.Host
             switch (deviceCode)
             {
                 case DeviceRequestCode.debug:
-                    var messageCode = json.message_code;
-                    switch (messageCode)
+                    if (json.data.TryGetValue("msg", out string msg))
                     {
-                        case "debug":
-                            if (json.data.TryGetValue("msg", out string msg))
-                            {
-                                QueueMessage(msg);
-                            }
-                            break;
-                        case "get_info":
-                            var ipcMessage = new IpcMessage();
-                            ipcMessage.MessageCode = IpcMessageCode.Debug;
-                            var data = json.data;
-                            data.Add("type", "set_layout");
-                            _curIpcClient.Send(ipcMessage);
-                            break;
-                        default:
-                            throw new NotImplementedException($"Didnt implement: {messageCode}");
+                        QueueMessage(msg);
                     }
-
+                    break;
+                case DeviceRequestCode.get_info:
+                    var getInfo = new IpcMessage
+                    {
+                        MessageCode = IpcMessageCode.GetPeripheralInfo,
+                        Data = json.data                       
+                    };
+                    _curIpcClient.Send(getInfo);
+                    break;
+                case DeviceRequestCode.eventFired:
+                    var eventFired = new IpcMessage
+                    {
+                        MessageCode = IpcMessageCode.PeripheralEventFired,
+                        Data = json.data
+                    };
+                    _curIpcClient.Send(eventFired);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(deviceCode), deviceCode, null);

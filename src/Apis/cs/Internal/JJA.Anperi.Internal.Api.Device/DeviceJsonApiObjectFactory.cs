@@ -6,7 +6,7 @@ namespace JJA.Anperi.Internal.Api.Device
     public enum DeviceRequestCode
     {
         // ReSharper disable InconsistentNaming
-        debug
+        debug, get_info, eventFired
     }
 
     public static class DeviceJsonApiObjectFactory
