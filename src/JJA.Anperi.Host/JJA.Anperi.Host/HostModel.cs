@@ -138,8 +138,7 @@ namespace JJA.Anperi.Host
         {
             Task.Run(() =>
             {
-                _ipcServer = new NamedPipeIpcServer();
-                _ipcServer.Start();
+                _ipcServer = new NamedPipeIpcServer();               
                 _ipcServer.ClientConnected += (sender, args) =>
                 {
                     var client = args.Client;
@@ -194,6 +193,12 @@ namespace JJA.Anperi.Host
                 {
                     _ipcClients.ForEach(x => x.Close());
                     _ipcClients.Clear();
+                    if (!_closing)
+                    {
+                        Thread.Sleep(2000);
+                        QueueMessage("Ipc Server is restarting!");
+                        _ipcServer.Start();
+                    }
                 };
 
                 _ipcServer.Error += (sender, args) =>
@@ -201,6 +206,9 @@ namespace JJA.Anperi.Host
                     //TODO: maybe dc all clients here
                     Trace.TraceError("IPC-Server error: " + args.ToString());
                 };
+
+                _ipcServer.Start();
+                QueueMessage("Ipc-Server is running!");
             });
         }
 
@@ -502,11 +510,18 @@ namespace JJA.Anperi.Host
                     };
                     _curIpcClient.Send(eventFired);
                     break;
+                case DeviceRequestCode.error:
+                    var errorMessage = new IpcMessage
+                    {
+                        MessageCode = IpcMessageCode.Error,
+                        Data = json.data
+                    };
+                    _curIpcClient.Send(errorMessage);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(deviceCode), deviceCode, null);
             }
         }
-
 
         #endregion
 
@@ -607,6 +622,11 @@ namespace JJA.Anperi.Host
             if (_ws.IsAlive)
             {
                 _ws.Close();
+            }
+
+            if (_ipcServer.IsRunning)
+            {
+                _ipcServer.Stop();
             }
         }
 
