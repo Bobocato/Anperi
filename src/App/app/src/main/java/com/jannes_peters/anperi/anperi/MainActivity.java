@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     showLoad();
                     CreateFragment createFrag = (CreateFragment) getFragmentManager().findFragmentByTag("createFrag");
-                    Log.v(TAG,savedInstanceState.getString("layoutString"));
+                    Log.v(TAG, savedInstanceState.getString("layoutString"));
                     createFrag.setLayout(new JSONObject(savedInstanceState.getString("layoutString")));
                     showCreate();
                 } catch (JSONException e) {
@@ -78,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
             } else if (savedInstanceState.getBoolean("isLoggedIn")) {
                 //Logged in but no Layout set... -> Show the Key
                 Log.v(TAG, "Reload the pairing Code");
-                KeyFragment keyFrag = (KeyFragment)getFragmentManager().findFragmentByTag("keyFrag");
+                KeyFragment keyFrag = (KeyFragment) getFragmentManager().findFragmentByTag("keyFrag");
                 keyFrag.setCode(savedInstanceState.getString("pairingCode"));
             } else if (savedInstanceState.getBoolean("isRegistered")) {
                 //Registered but not logged in... -> Login
@@ -93,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 //Not even a connection to the Server -> Connect
                 Log.v(TAG, "Reload of the MainActivity without without a connection... ");
-                LoadingFragment loadFrag = (LoadingFragment)getFragmentManager().findFragmentByTag("loadFrag");
+                LoadingFragment loadFrag = (LoadingFragment) getFragmentManager().findFragmentByTag("loadFrag");
                 getFragmentManager().beginTransaction()
                         .replace(R.id.fragment_container, loadFrag, "loadFrag")
                         .commit();
@@ -134,31 +134,22 @@ public class MainActivity extends AppCompatActivity {
             if (key == null) {
                 //Device name should be device model
                 String name = Build.DEVICE + " " + Build.VERSION.RELEASE;
-
                 //Build JSON and send it
                 try {
-                    String jsonString = new JSONObject()
-                            .put("context", "server")
-                            .put("message_type", "request")
-                            .put("message_code", "register")
-                            .put("data", new JSONObject()
-                                    .put("device_type", "peripheral")
-                                    .put("name", name)).toString();
-                    ws.sendText(jsonString);
+                    JSONObject data = new JSONObject();
+                    data.put("device_type", "peripheral");
+                    data.put("name", name);
+                    MyWebSocket.sendMessage("server", "request", "register", data);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
             } else {
                 //Login and show the key
                 try {
-                    String jsonString = new JSONObject()
-                            .put("context", "server")
-                            .put("message_type", "request")
-                            .put("message_code", "login")
-                            .put("data", new JSONObject()
-                                    .put("token", key)
-                                    .put("device_type", "peripheral")).toString();
-                    ws.sendText(jsonString);
+                    JSONObject data = new JSONObject();
+                    data.put("token", key);
+                    data.put("device_type", "peripheral");
+                    MyWebSocket.sendMessage("server", "request", "login", data);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -256,16 +247,7 @@ public class MainActivity extends AppCompatActivity {
                                         case "login":
                                             //User was logged in get a pairing code
                                             StatusObject.isLoggedIn = true;
-                                            try {
-                                                String jsonString = new JSONObject()
-                                                        .put("context", "server")
-                                                        .put("message_type", "request")
-                                                        .put("message_code", "get_pairing_code")
-                                                        .put("data", null).toString();
-                                                ws.sendText(jsonString);
-                                            } catch (JSONException e) {
-                                                e.printStackTrace();
-                                            }
+                                            MyWebSocket.sendMessage("server", "request", "get_pairing_code", null);
                                             break;
                                     }
                                     break;
@@ -274,16 +256,12 @@ public class MainActivity extends AppCompatActivity {
                                         case "get_info":
                                             //Host wants to know about the device
                                             try {
-                                                String jsonString = new JSONObject()
-                                                        .put("context", "device")
-                                                        .put("message_type", "response")
-                                                        .put("message_code", "get_info")
-                                                        .put("data", new JSONObject()
-                                                                .put("version", version)
-                                                                .put("screen_type", getString(R.string.screen_type))
-                                                                .put("screen_width", metrics.widthPixels)
-                                                                .put("screen_height", metrics.heightPixels)).toString();
-                                                ws.sendText(jsonString);
+                                                JSONObject data = new JSONObject();
+                                                data.put("version", version);
+                                                data.put("screen_type", getString(R.string.screen_type));
+                                                data.put("screen_width", metrics.widthPixels);
+                                                data.put("screen_height", metrics.heightPixels);
+                                                MyWebSocket.sendMessage("device", "response", "get_info", data);
                                             } catch (JSONException e) {
                                                 e.printStackTrace();
                                             }
@@ -318,7 +296,7 @@ public class MainActivity extends AppCompatActivity {
     //------------------------------
 
     //Startup the WS
-    private void startUp(){
+    private void startUp() {
         //Ask for server url
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.enter_server);
@@ -354,20 +332,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Web Socket Stuff
     private void getPairingCodeWS() {
-        try {
-            String jsonString = new JSONObject()
-                    .put("context", "server")
-                    .put("message_type", "request")
-                    .put("message_code", "get_pairing_code")
-                    .put("data", null).toString();
-            MyWebSocket.getInstance().sendText(jsonString);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (WebSocketException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        MyWebSocket.sendMessage("server", "request", "get_pairing_code", null);
     }
 
     private void registerWS() {
@@ -375,38 +340,22 @@ public class MainActivity extends AppCompatActivity {
         String name = Build.DEVICE + " " + Build.VERSION.RELEASE;
         //Build JSON and send it
         try {
-            String jsonString = new JSONObject()
-                    .put("context", "server")
-                    .put("message_type", "request")
-                    .put("message_code", "register")
-                    .put("data", new JSONObject()
-                            .put("device_type", "peripheral")
-                            .put("name", name)).toString();
-            MyWebSocket.getInstance().sendText(jsonString);
+            JSONObject data = new JSONObject();
+            data.put("device_type", "peripheral");
+            data.put("name", name);
+            MyWebSocket.sendMessage("server", "request", "register", data);
         } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (WebSocketException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     private void loginWS(String key) {
         try {
-            String jsonString = new JSONObject()
-                    .put("context", "server")
-                    .put("message_type", "request")
-                    .put("message_code", "login")
-                    .put("data", new JSONObject()
-                            .put("token", key)
-                            .put("device_type", "peripheral")).toString();
-            MyWebSocket.getInstance().sendText(jsonString);
+            JSONObject data = new JSONObject();
+            data.put("token", key);
+            data.put("device_type", "peripheral");
+            MyWebSocket.sendMessage("server", "request", "login", data);
         } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (WebSocketException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -417,7 +366,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences sharedPrefs = this.getSharedPreferences(this.getString(R.string.preference_file_name), Context.MODE_PRIVATE);
         String key = sharedPrefs.getString("pairingcode", null);
         if (key != null) {
-            if(getFragmentManager().findFragmentByTag("keyFrag") != null){
+            if (getFragmentManager().findFragmentByTag("keyFrag") != null) {
                 keyFragment = (KeyFragment) getFragmentManager().findFragmentByTag("keyFrag");
             }
             getFragmentManager().beginTransaction()
@@ -428,7 +377,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showLoad() {
-        if(getFragmentManager().findFragmentByTag("loadFrag") != null){
+        if (getFragmentManager().findFragmentByTag("loadFrag") != null) {
             loadingFragment = (LoadingFragment) getFragmentManager().findFragmentByTag("loadFrag");
         }
         getFragmentManager().beginTransaction()
@@ -438,7 +387,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showTest() {
-        if(getFragmentManager().findFragmentByTag("testFrag") != null){
+        if (getFragmentManager().findFragmentByTag("testFrag") != null) {
             testFragment = (TestFragment) getFragmentManager().findFragmentByTag("testFrag");
         }
         getFragmentManager().beginTransaction()
@@ -448,7 +397,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showCreate() {
-        if(getFragmentManager().findFragmentByTag("createFrag") != null){
+        if (getFragmentManager().findFragmentByTag("createFrag") != null) {
             createFragment = (CreateFragment) getFragmentManager().findFragmentByTag("createFrag");
         }
         getFragmentManager().beginTransaction()

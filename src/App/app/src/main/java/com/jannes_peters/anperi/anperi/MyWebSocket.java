@@ -63,6 +63,19 @@ public class MyWebSocket {
                 .connectAsynchronously();
     }
 
+    public static void sendMessage(String context, String message_type, String message_code, JSONObject data){
+        try {
+            String jsonString = new JSONObject()
+                    .put("context", context)
+                    .put("message_type", message_type)
+                    .put("message_code", message_code)
+                    .put("data", data).toString();
+            instance.sendText(jsonString);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void sendError(String text){
         //Build JSON and send it
         try {

@@ -1,9 +1,7 @@
 package com.jannes_peters.anperi.anperi;
 
-import android.app.Activity;
 import android.app.Fragment;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -17,13 +15,9 @@ import android.widget.FrameLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.neovisionaries.ws.client.WebSocketException;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.io.IOException;
 
 public class CreateFragment extends Fragment {
     private static final String TAG = "jja.anperi";
@@ -149,7 +143,8 @@ public class CreateFragment extends Fragment {
                         break;
                     case "min":
                         if (view instanceof SeekBar) {
-                            /*SeekBar seekBar = (SeekBar) view;
+                            /*
+                            SeekBar seekBar = (SeekBar) view;
                             JSONObject seekJSON = getJsonObjectFromID(json.getString("id"), currentLayout.getJSONObject("grid").getJSONArray("elements"));
                             SeekBar newSeekBar = createSlider(json.getString("id"), json.getInt("param_value"), seekBar.getMax(), seekBar.getProgress(), seekJSON.getInt("step_size"));
                             newSeekBar.
@@ -382,43 +377,22 @@ public class CreateFragment extends Fragment {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 try {
-                    String jsonString = new JSONObject()
-                            .put("context", "device")
-                            .put("message_type", "message")
-                            .put("message_code", "event_fired")
-                            .put("data", new JSONObject()
-                                    .put("type", "on_input")
-                                    .put("id", id)
-                                    .put("data", new JSONObject()
-                                            .put("text", charSequence.toString()))).toString();
-                    MyWebSocket.getInstance().sendText(jsonString);
+                    JSONObject data = new JSONObject();
+                    data.put("text", charSequence.toString());
+                    dataClick("on_input", id, data);
                 } catch (JSONException e) {
-                    e.printStackTrace();
-                } catch (WebSocketException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
                 try {
-                    String jsonString = new JSONObject()
-                            .put("context", "device")
-                            .put("message_type", "message")
-                            .put("message_code", "event_fired")
-                            .put("data", new JSONObject()
-                                    .put("type", "on_input")
-                                    .put("id", id)
-                                    .put("data", new JSONObject()
-                                            .put("text", charSequence.toString()))).toString();
-                    MyWebSocket.getInstance().sendText(jsonString);
+                    JSONObject data = new JSONObject();
+                    data.put("text", charSequence.toString());
+                    dataClick("on_input", id, data);
                 } catch (JSONException e) {
-                    e.printStackTrace();
-                } catch (WebSocketException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
@@ -515,40 +489,24 @@ public class CreateFragment extends Fragment {
     //Helper Functions..
     private void dataClick(String type, String id, JSONObject data) {
         try {
-            String jsonString = new JSONObject()
-                    .put("context", "device")
-                    .put("message_type", "message")
-                    .put("message_code", "event_fired")
-                    .put("data", new JSONObject()
-                            .put("type", type)
-                            .put("id", id)
-                            .put("data", data)).toString();
-            MyWebSocket.getInstance().sendText(jsonString);
+            JSONObject dataX = new JSONObject();
+            dataX.put("type", type);
+            dataX.put("id", id);
+            dataX.put("data", data);
+            MyWebSocket.sendMessage("device", "message", "event_fired", dataX);
         } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (WebSocketException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     private void noDataClick(String type, String id) {
         try {
-            String jsonString = new JSONObject()
-                    .put("context", "device")
-                    .put("message_type", "message")
-                    .put("message_code", "event_fired")
-                    .put("data", new JSONObject()
-                            .put("type", type)
-                            .put("id", id)
-                            .put("data", null)).toString();
-            MyWebSocket.getInstance().sendText(jsonString);
+            JSONObject data = new JSONObject();
+            data.put("type", type);
+            data.put("id", id);
+            data.put("data", null);
+            MyWebSocket.sendMessage("device", "message", "event_fired", data);
         } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (WebSocketException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
             e.printStackTrace();
         }
     }
