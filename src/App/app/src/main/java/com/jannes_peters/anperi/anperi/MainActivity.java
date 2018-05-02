@@ -296,9 +296,7 @@ public class MainActivity extends AppCompatActivity {
                                             showCreate();
                                             break;
                                         case "set_element_param":
-                                            //showLoad();
                                             createFragment.setElement(apiObject.messageData);
-                                            //showCreate();
                                             break;
                                     }
                                     break;

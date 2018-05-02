@@ -149,7 +149,13 @@ public class CreateFragment extends Fragment {
                         break;
                     case "min":
                         if (view instanceof SeekBar) {
-                            SeekBar seekBar = (SeekBar) view;
+                            /*SeekBar seekBar = (SeekBar) view;
+                            JSONObject seekJSON = getJsonObjectFromID(json.getString("id"), currentLayout.getJSONObject("grid").getJSONArray("elements"));
+                            SeekBar newSeekBar = createSlider(json.getString("id"), json.getInt("param_value"), seekBar.getMax(), seekBar.getProgress(), seekJSON.getInt("step_size"));
+                            newSeekBar.
+                            ((ViewGroup)seekBar.getParent()).removeView(seekBar);
+                            */
+                            //^this is shit...
                             //TODO figure out how...
                         } else {
                             MyWebSocket.sendError("Only Slider have a min");
@@ -160,7 +166,7 @@ public class CreateFragment extends Fragment {
                             SeekBar seekBar = (SeekBar) view;
                             seekBar.setMax(json.getInt("param_value"));
                         } else {
-                            MyWebSocket.sendError("Only Slider have a min");
+                            MyWebSocket.sendError("Only Slider have a max");
                         }
                         break;
                     case "progress":
@@ -168,7 +174,7 @@ public class CreateFragment extends Fragment {
                             SeekBar seekBar = (SeekBar) view;
                             seekBar.setProgress(json.getInt("param_value"));
                         } else {
-                            MyWebSocket.sendError("Only Slider have a min");
+                            MyWebSocket.sendError("Only Slider have progress");
                         }
                         break;
                     case "step_size":
@@ -176,7 +182,7 @@ public class CreateFragment extends Fragment {
                             SeekBar seekBar = (SeekBar) view;
                             //TODO figure out how...
                         } else {
-                            MyWebSocket.sendError("Only Slider have a min");
+                            MyWebSocket.sendError("Only Slider have step_size");
                         }
                         break;
                     default:
