@@ -1,16 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Threading;
 using JJA.Anperi.Internal.Api.Host;
 
@@ -22,13 +11,15 @@ namespace JJA.Anperi.Host
     {
         private readonly Dispatcher _dispatcher;
         public event PropertyChangedEventHandler PropertyChanged;
-        private HostModel _model;
+        private readonly HostModel _model;
+        private ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral> _peripherals;
 
         public HostViewModel(Dispatcher dispatcher)
         {
             _dispatcher = dispatcher;
             _model = new HostModel();
             _model.PropertyChanged += OnModelPropertyChanged;
+            _peripherals = new ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral>();
         }
         
         public bool ButConnect
@@ -90,11 +81,8 @@ namespace JJA.Anperi.Host
                 OnPropertyChanged(nameof(ConnectedTo));
             }
         }
-        
-        public ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral> Peripherals
-        {
-            get { return new ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral>(_model.Peripherals); }
-        }
+
+        public ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral> Peripherals => _peripherals;
 
         public void Close()
         {
@@ -129,7 +117,21 @@ namespace JJA.Anperi.Host
         private void OnModelPropertyChanged(object sender,
             PropertyChangedEventArgs e)
         {
-            OnPropertyChanged(e.PropertyName);
+            if (e.PropertyName == nameof(HostModel.Peripherals))
+            {
+                _dispatcher.Invoke(() =>
+                {
+                    _peripherals.Clear();
+                    _model.Peripherals.ForEach((a) =>
+                    {
+                        _peripherals.Add(a);
+                    });
+                });
+            }
+            else
+            {
+                OnPropertyChanged(e.PropertyName);
+            }
         }
 
         private void OnPropertyChanged(string property)

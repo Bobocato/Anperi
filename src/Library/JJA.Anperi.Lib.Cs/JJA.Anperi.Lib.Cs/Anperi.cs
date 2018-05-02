@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using JJA.Anperi.Ipc.Client;
 using JJA.Anperi.Ipc.Client.NamedPipe;
 using JJA.Anperi.Ipc.Dto;
+using JJA.Anperi.Lib.Cs.Elements;
 using JJA.Anperi.Lib.Cs.Message;
 using JJA.Anperi.Utility;
 
@@ -13,7 +14,7 @@ namespace JJA.Anperi.Lib.Cs
 {
     public class Anperi
     {
-        public event EventHandler<AnperiMessageEventArgs> DebugMessage;
+        public event EventHandler<AnperiMessageEventArgs> Message;
         public event EventHandler Connected;
         public event EventHandler Disconnected; 
 
@@ -30,6 +31,16 @@ namespace JJA.Anperi.Lib.Cs
         }
 
         public bool IsConnected => _ipcClient.IsOpen;
+
+        public void RequestPeripheralInfo()
+        {
+            _ipcClient.Send(new IpcMessage {MessageCode = IpcMessageCode.GetPeripheralInfo});
+        }
+
+        public void SetLayout(RootGrid layout)
+        {
+            _ipcClient.Send(new IpcMessage {MessageCode = IpcMessageCode.SetPeripheralLayout, Data = new Dictionary<string, dynamic>{{"grid", layout}}});
+        }
 
         private void _ipcClient_Error(object sender, System.IO.ErrorEventArgs e)
         {
@@ -65,11 +76,22 @@ namespace JJA.Anperi.Lib.Cs
                     Trace.TraceError("Received IpcMessage with unset code.\n{0}", e.Message.Data.ToDataString());
                     break;
                 case IpcMessageCode.Debug:
-                    OnDebugMessage(new DebugAnperiMessage(e.Message.Data));
+                    OnMessage(new DebugAnperiMessage(e.Message.Data));
                     break;
+                case IpcMessageCode.Error:
+                    OnMessage(new ErrorAnperiMessage(e.Message.Data));
+                    break;
+                case IpcMessageCode.GetPeripheralInfo:
+                    OnMessage(new PeripheralInfoAnperiMessage(e.Message.Data));
+                    break;
+                case IpcMessageCode.PeripheralEventFired:
+                    OnMessage(new EventFiredAnperiMessage(e.Message.Data));
+                    break;
+                case IpcMessageCode.SetPeripheralLayout:
+                case IpcMessageCode.SetPeripheralElementParam:
                 default:
                     Trace.TraceError("Message {0} not implemented, data:\n{1}", e.Message.MessageCode.ToString(), e.Message.Data.ToDataString());
-                    throw new ArgumentOutOfRangeException("e.Message.MessageCode");
+                    break;
             }
         }
 
@@ -85,9 +107,9 @@ namespace JJA.Anperi.Lib.Cs
             _ipcClient.Send(new DebugAnperiMessage(message).ToIpcMessage());
         }
 
-        protected virtual void OnDebugMessage(AnperiMessage e)
+        protected virtual void OnMessage(AnperiMessage e)
         {
-            DebugMessage?.Invoke(this, new AnperiMessageEventArgs(e));
+            Message?.Invoke(this, new AnperiMessageEventArgs(e));
         }
 
         protected virtual void OnConnected()

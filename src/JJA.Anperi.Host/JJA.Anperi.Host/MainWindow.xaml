@@ -13,24 +13,34 @@
 		<BooleanToVisibilityConverter x:Key="BoolToVis" />
 	</Window.Resources>
 	<Grid>
-		<TextBlock x:Name="InfoBlock" Margin="10,0,10,10" TextWrapping="Wrap" Text="{Binding Path = Info1, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Grid.ColumnSpan="2" Height="16" VerticalAlignment="Bottom"/>
-		<ListBox x:Name="PeriBox" Height="100" Margin="10,10,10,0" VerticalAlignment="Top" ItemsSource="{Binding Path=Peripherals}">
+		<TextBlock x:Name="InfoBlock" Margin="187,0,0,10" TextWrapping="Wrap" Text="{Binding Path = Info1, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Height="16" VerticalAlignment="Bottom"/>
+		<ListBox x:Name="PeriBox" Margin="10,10,0,52" ItemsSource="{Binding Path=Peripherals}" HorizontalAlignment="Left" Width="172">
 			<ListBox.ItemTemplate>
 				<DataTemplate>
-					<Label Content="{Binding Path=name}"/>
+					<Label Content="{Binding Path=name}">
+						<Label.Style>
+							<Style TargetType="Label">
+								<Style.Triggers>
+									<DataTrigger Binding="{Binding Path=online}" Value="True">
+										<Setter Property="FontWeight" Value="Bold"/>
+									</DataTrigger>
+								</Style.Triggers>
+							</Style>
+						</Label.Style>
+					</Label>
 				</DataTemplate>
 			</ListBox.ItemTemplate>
 		</ListBox>
-		<TextBox x:Name="CodeBox" Margin="10,123,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" Width="84" Height="25" VerticalAlignment="Top" />
-		<Button x:Name="ButPair" Content="Pair" HorizontalAlignment="Left" Margin="106,123,0,0" VerticalAlignment="Top" Width="75" Height="25" Click="ButPair_Click"/>
-		<Button x:Name="ButConnect" Visibility="{Binding ButConnect, Converter={StaticResource BoolToVis}, FallbackValue=Visible}" Content="Connect" Margin="0,123,10,0" Click="ButConnect_Click" HorizontalAlignment="Right" Width="75" Height="25" VerticalAlignment="Top"/>
-		<TextBox x:Name="MessageBox" HorizontalAlignment="Left" Height="23" Margin="10,178,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-		<Button x:Name="ButSendMessage" Content="Send Message" HorizontalAlignment="Left" Margin="142,178,0,0" VerticalAlignment="Top" Width="83" Height="25" Click="ButSendMessage_Click"/>
-		<TextBlock x:Name="BlockConnected" HorizontalAlignment="Left" Margin="223,127,0,0" TextWrapping="Wrap" Text="{Binding ConnectedTo, StringFormat='Connected to: {0}', UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Height="16" Width="178"/>
-		<Button x:Name="ButDisconnect" Visibility="{Binding ButDisconnect, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}" Content="Disconnect" Margin="0,123,10,0" VerticalAlignment="Top" Height="25" Click="ButDisconnect_Click" HorizontalAlignment="Right" Width="75"/>
-		<Button x:Name="ButUnpair" Content="Unpair" Margin="0,161,10,0" VerticalAlignment="Top" Height="25" Click="ButUnpair_Click" HorizontalAlignment="Right" Width="75"/>
-		<TextBlock x:Name="InfoBlock2" Text="{Binding Info2, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" HorizontalAlignment="Left" Margin="10,250,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="497" Height="17"/>
-		<TextBlock x:Name="InfoBlock3" Text="{Binding Info3, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" HorizontalAlignment="Left" Margin="10,267,0,0" TextWrapping="Wrap" VerticalAlignment="Top" RenderTransformOrigin="2.301,0.272" Width="502"/>
+		<TextBox x:Name="CodeBox" Margin="187,51,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" Width="84" Height="25" VerticalAlignment="Top" RenderTransformOrigin="2.936,2.34" />
+		<Button Content="Pair" HorizontalAlignment="Left" Margin="290,51,0,0" VerticalAlignment="Top" Width="75" Height="25" Click="ButPair_Click"/>
+		<TextBox x:Name="MessageBox" HorizontalAlignment="Left" Height="23" Margin="187,212,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="170"/>
+		<Button Content="Send Message" HorizontalAlignment="Left" Margin="402,212,0,0" VerticalAlignment="Top" Width="83" Height="25" Click="ButSendMessage_Click"/>
+		<TextBlock HorizontalAlignment="Left" Margin="187,10,0,0" TextWrapping="Wrap" Text="{Binding ConnectedTo, StringFormat='Connected to: {0}', UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Height="16" Width="178"/>
+		<Button Visibility="{Binding ButDisconnect, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}" Content="Disconnect" Margin="0,276,335,0" VerticalAlignment="Top" Height="25" Click="ButDisconnect_Click" HorizontalAlignment="Right" Width="75"/>
+		<Button Visibility="{Binding ButConnect, Converter={StaticResource BoolToVis}, FallbackValue=Visible}" Content="Connect" Margin="0,276,335,0" Click="ButConnect_Click" HorizontalAlignment="Right" Width="75" Height="25" VerticalAlignment="Top"/>
+		<Button Content="Unpair" Margin="0,276,432,0" VerticalAlignment="Top" Height="25" Click="ButUnpair_Click" HorizontalAlignment="Right" Width="75"/>
+		<TextBlock Text="{Binding Info3, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" HorizontalAlignment="Left" Margin="187,245,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="330" Height="17"/>
+		<TextBlock Text="{Binding Info2, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" HorizontalAlignment="Left" Margin="187,267,0,0" TextWrapping="Wrap" VerticalAlignment="Top" RenderTransformOrigin="2.301,0.272" Width="330"/>
 
 
 	</Grid>

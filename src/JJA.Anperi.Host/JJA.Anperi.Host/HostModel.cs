@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Threading;
 using WebSocketSharp;
 using JJA.Anperi.Host.Utility;
 using JJA.Anperi.Internal.Api;
@@ -227,7 +223,7 @@ namespace JJA.Anperi.Host
                         }
                         if (_token.Equals(""))
                         {
-                            var name = System.Environment.MachineName;
+                            var name = Environment.MachineName;
                             var json =
                                 SharedJsonApiObjectFactory
                                     .CreateRegisterRequest(
@@ -353,6 +349,7 @@ namespace JJA.Anperi.Host
                                 Trace.TraceError($"couldn't parse get_available_peripherals answer: {list.ToString()}");
                             }
                         }
+                        OnPropertyChanged(nameof(Peripherals));
                     }
                     else
                     {

@@ -1,21 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel;
 using System.Windows;
 
 namespace JJA.Anperi.Host
 {
-    public partial class MainWindow : Window
+    public partial class MainWindow
     {
         private readonly HostViewModel _viewModel;
 
         public MainWindow()
         {
             _viewModel = new HostViewModel(Dispatcher);
-            this.DataContext = _viewModel;
+            DataContext = _viewModel;
             InitializeComponent();
         }
 

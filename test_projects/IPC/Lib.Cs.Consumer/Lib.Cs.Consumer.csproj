@@ -32,22 +32,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="JJA.Anperi.Ipc.Client">
-      <HintPath>..\..\..\src\Library\JJA.Anperi.Lib.Cs\JJA.Anperi.Lib.Cs\bin\Debug\netstandard2.0\JJA.Anperi.Ipc.Client.dll</HintPath>
-    </Reference>
-    <Reference Include="JJA.Anperi.Ipc.Client.NamedPipe">
-      <HintPath>..\..\..\src\Library\JJA.Anperi.Lib.Cs\JJA.Anperi.Lib.Cs\bin\Debug\netstandard2.0\JJA.Anperi.Ipc.Client.NamedPipe.dll</HintPath>
-    </Reference>
-    <Reference Include="JJA.Anperi.Ipc.Common.NamedPipe">
-      <HintPath>..\..\..\src\Library\JJA.Anperi.Lib.Cs\JJA.Anperi.Lib.Cs\bin\Debug\netstandard2.0\JJA.Anperi.Ipc.Common.NamedPipe.dll</HintPath>
-    </Reference>
-    <Reference Include="JJA.Anperi.Ipc.Dto">
-      <HintPath>..\..\..\src\Library\JJA.Anperi.Lib.Cs\JJA.Anperi.Lib.Cs\bin\Debug\netstandard2.0\JJA.Anperi.Ipc.Dto.dll</HintPath>
-    </Reference>
-    <Reference Include="JJA.Anperi.Lib.Cs">
+    <Reference Include="JJA.Anperi.Lib.Cs, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\src\Library\JJA.Anperi.Lib.Cs\JJA.Anperi.Lib.Cs\bin\Debug\netstandard2.0\JJA.Anperi.Lib.Cs.dll</HintPath>
     </Reference>
-    <Reference Include="JJA.Anperi.Utility">
+    <Reference Include="JJA.Anperi.Utility, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\src\Library\JJA.Anperi.Lib.Cs\JJA.Anperi.Lib.Cs\bin\Debug\netstandard2.0\JJA.Anperi.Utility.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
