@@ -318,8 +318,8 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.enter_server);
         final EditText input = new EditText(this);
-        input.setHint("ws://10.0.2.2:5000/api/ws");
-        //input.setHint("wss://anperi.jannes-peters.com/api/ws");
+        //input.setHint("ws://10.0.2.2:5000/api/ws");
+        input.setHint("wss://anperi.jannes-peters.com/api/ws");
         input.setInputType(InputType.TYPE_TEXT_VARIATION_URI | InputType.TYPE_CLASS_TEXT);
         builder.setView(input);
         builder.setCancelable(false);

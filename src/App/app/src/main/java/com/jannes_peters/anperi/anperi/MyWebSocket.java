@@ -12,6 +12,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MyWebSocket {
     private static final String TAG = "jja.anperi";
@@ -37,19 +39,18 @@ public class MyWebSocket {
     }
 
     public static void reconnect() {
-        //Runnable delayedTask = new Runnable() {
-        //public void run() {
-        Log.v(TAG, "Trying to reconnect");
-        try {
-            instance = instance.recreate().connect();
-        } catch (WebSocketException e) {
-            reconnect();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        // }
-        //};
-        //mainThreadHandler.postDelayed(delayedTask, 2000);
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                Log.v(TAG, "Trying to reconnect");
+                try {
+                    instance = instance.recreate().connect();
+                } catch (WebSocketException e) {
+                    reconnect();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }            }
+        }, 2000);
     }
 
     private static com.neovisionaries.ws.client.WebSocket create() throws IOException {
