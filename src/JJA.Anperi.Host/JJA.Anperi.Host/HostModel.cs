@@ -34,8 +34,8 @@ namespace JJA.Anperi.Host
         private bool _butConnectVisible = true;
         private bool _butDisconnectVisible = false;
 
-        private string _wsAddress = "ws://localhost:5000/api/ws";
-        //private string _wsAddress = "wss://anperi.jannes-peters.com/api/ws";
+        //private string _wsAddress = "ws://localhost:5000/api/ws";
+        private string _wsAddress = "wss://anperi.jannes-peters.com/api/ws";
         private string _token = "";
         private WebSocket _ws;
         private List<HostJsonApiObjectFactory.ApiPeripheral> _periList;
@@ -498,7 +498,7 @@ namespace JJA.Anperi.Host
                     };
                     _curIpcClient.Send(getInfo);
                     break;
-                case DeviceRequestCode.eventFired:
+                case DeviceRequestCode.event_fired:
                     var eventFired = new IpcMessage
                     {
                         MessageCode = IpcMessageCode.PeripheralEventFired,
