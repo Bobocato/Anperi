@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="dotnet pack $(ProjectFileName) -c $(ConfigurationName) --no-build --include-source --no-restore -o $(SolutionDir)\nugetOut" />
+    <Exec Command="dotnet pack $(ProjectFileName) -c $(ConfigurationName) --no-build --include-source --no-restore -o &quot;$(SolutionDir)nugetOut&quot;" />
   </Target>
 
 </Project>
