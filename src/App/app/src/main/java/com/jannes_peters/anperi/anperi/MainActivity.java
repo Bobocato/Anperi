@@ -280,6 +280,17 @@ public class MainActivity extends AppCompatActivity {
                                     break;
                             }
                             break;
+                        case reset:
+                            switch (apiObject.messageContext) {
+                                case "server":
+                                    switch (apiObject.messageCode) {
+                                        case "partner_disconnected":
+                                            getPairingCodeWS();
+                                            break;
+                                    }
+                                    break;
+                            }
+                            break;
                         case debug:
                             Toast.makeText(getApplicationContext(), action.toString() + ": " + apiObject.messageData.toString(), Toast.LENGTH_LONG).show();
                             break;
