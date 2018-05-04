@@ -144,15 +144,14 @@ public class CreateFragment extends Fragment {
                         break;
                     case "min":
                         if (view instanceof SeekBar) {
-                            /*
                             SeekBar seekBar = (SeekBar) view;
+                            ViewGroup parent = (ViewGroup) seekBar.getParent();
                             JSONObject seekJSON = getJsonObjectFromID(json.getString("id"), currentLayout.getJSONObject("grid").getJSONArray("elements"));
                             SeekBar newSeekBar = createSlider(json.getString("id"), json.getInt("param_value"), seekBar.getMax(), seekBar.getProgress(), seekJSON.getInt("step_size"));
-                            newSeekBar.
-                            ((ViewGroup)seekBar.getParent()).removeView(seekBar);
-                            */
-                            //^this is shit...
-                            //TODO figure out how...
+                            newSeekBar.setLayoutParams(seekBar.getLayoutParams());
+                            int index = parent.indexOfChild(seekBar);
+                            parent.removeView(seekBar);
+                            parent.addView(newSeekBar, index);
                         } else {
                             MyWebSocket.sendError("Only Slider have a min");
                         }
@@ -176,7 +175,13 @@ public class CreateFragment extends Fragment {
                     case "step_size":
                         if (view instanceof SeekBar) {
                             SeekBar seekBar = (SeekBar) view;
-                            //TODO figure out how...
+                            ViewGroup parent = (ViewGroup) seekBar.getParent();
+                            JSONObject seekJSON = getJsonObjectFromID(json.getString("id"), currentLayout.getJSONObject("grid").getJSONArray("elements"));
+                            SeekBar newSeekBar = createSlider(json.getString("id"), seekJSON.getInt("min"), seekBar.getMax(), seekBar.getProgress(), json.getInt("param_value"));
+                            newSeekBar.setLayoutParams(seekBar.getLayoutParams());
+                            int index = parent.indexOfChild(seekBar);
+                            parent.removeView(seekBar);
+                            parent.addView(newSeekBar, index);
                         } else {
                             MyWebSocket.sendError("Only Slider have step_size");
                         }
@@ -327,6 +332,9 @@ public class CreateFragment extends Fragment {
         return grid;
     }
 
+    //------------------------------
+    //-------Helper Functions-------
+    //------------------------------
     //Function for the creation of Elements and their parameters
     private android.support.v7.widget.GridLayout.LayoutParams createParams(int row, int column, int row_span, int column_span, float row_weight, float column_weight) {
         android.support.v7.widget.GridLayout.LayoutParams param = new android.support.v7.widget.GridLayout.LayoutParams();
@@ -342,19 +350,8 @@ public class CreateFragment extends Fragment {
         TextView textView = new TextView(getActivity());
         textView.setText(text);
         textView.setTag(id);
-        textView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                noDataClick("on_click", id);
-            }
-        });
-        textView.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                noDataClick("on_click_long", id);
-                return true;
-            }
-        });
+        textView.setOnClickListener(onClickListener(id));
+        textView.setOnLongClickListener(onLongClickListener(id));
         return textView;
     }
 
@@ -363,19 +360,8 @@ public class CreateFragment extends Fragment {
         editText.setHint(hint);
         editText.setText(text);
         editText.setTag(id);
-        editText.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                noDataClick("on_click", id);
-            }
-        });
-        editText.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                noDataClick("on_click_long", id);
-                return true;
-            }
-        });
+        editText.setOnClickListener(onClickListener(id));
+        editText.setOnLongClickListener(onLongClickListener(id));
         editText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -390,7 +376,15 @@ public class CreateFragment extends Fragment {
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
+                try {
+                    JSONObject json = new JSONObject();
+                    json.put("param_name", "text");
+                    json.put("param_value", charSequence);
+                    currentLayout.getJSONObject("grid").put("elements", changeJsonObjectfromID(id, currentLayout.getJSONObject("grid").getJSONArray("elements"), json));
+                    StatusObject.layoutString = currentLayout.toString();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
                 try {
                     JSONObject data = new JSONObject();
                     data.put("text", charSequence.toString());
@@ -412,47 +406,61 @@ public class CreateFragment extends Fragment {
         Button button = new Button(getActivity());
         button.setText(text);
         button.setTag(id);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                noDataClick("on_click", id);
-            }
-        });
-        button.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                noDataClick("on_click_long", id);
-                return true;
-            }
-        });
+        button.setOnClickListener(onClickListener(id));
+        button.setOnLongClickListener(onLongClickListener(id));
         return button;
     }
 
-    private SeekBar createSlider(final String id, final int min, int max, int progress, final int step_size) {
+    private SeekBar createSlider(final String id, int min, int max, int progress, int step_size) {
         SeekBar seekBar = new SeekBar(getActivity());
         seekBar.setMax(max - min);
         seekBar.setProgress(progress - min);
         seekBar.setTag(id);
-        seekBar.setOnClickListener(new View.OnClickListener() {
+        seekBar.setOnClickListener(onClickListener(id));
+        seekBar.setOnLongClickListener(onLongClickListener(id));
+        seekBar.setOnSeekBarChangeListener(seekBarListener(min, step_size, id));
+        return seekBar;
+    }
+
+    //Listener Functions
+    private View.OnClickListener onClickListener(final String id){
+        return new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 noDataClick("on_click", id);
             }
-        });
-        seekBar.setOnLongClickListener(new View.OnLongClickListener() {
+        };
+    }
+
+    private View.OnLongClickListener onLongClickListener(final String id){
+        return new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
                 noDataClick("on_click_long", id);
                 return true;
             }
-        });
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        };
+    }
+
+    //For the Sliders
+    private SeekBar.OnSeekBarChangeListener seekBarListener(final int min, final int step_size, final String id) {
+        return new SeekBar.OnSeekBarChangeListener() {
             int currentProgress = 1;
 
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
                 if (b) {
                     try {
+                        JSONObject json = new JSONObject();
+                        json.put("param_name", "progress");
+                        json.put("param_value", i);
+                        currentLayout.getJSONObject("grid").put("elements", changeJsonObjectfromID(id, currentLayout.getJSONObject("grid").getJSONArray("elements"), json));
+                        StatusObject.layoutString = currentLayout.toString();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                     try {
                         if (currentProgress >= step_size) {
                             currentProgress = 1;
                             JSONObject data = new JSONObject().put("progress", i + min);
@@ -485,13 +493,10 @@ public class CreateFragment extends Fragment {
                     e.printStackTrace();
                 }
             }
-        });
-        return seekBar;
+        };
     }
 
-    //------------------------------
-    //-------Helper Functions-------
-    //------------------------------
+    //WS Stuff
     private void dataClick(String type, String id, JSONObject data) {
         try {
             JSONObject dataX = new JSONObject();

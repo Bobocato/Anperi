@@ -24,7 +24,7 @@ while(ul.childElementCount > 0){
   "message_type": "request",
   "message_code": "pair",
   "data": {
-    "code": "828870"
+    "code": "335642"
   }
 }
 //Get Pairebels:
@@ -117,6 +117,17 @@ while(ul.childElementCount > 0){
         }
       ]
     }
+  }
+}
+//Change min of "Slider"
+{
+	"context": "device",
+  "message_type": "request",
+  "message_code": "set_element_param",
+  "data": {
+    "id": "Slider",
+    "param_name": "min",
+    "param_value": 10
   }
 }
 //Change Layout
