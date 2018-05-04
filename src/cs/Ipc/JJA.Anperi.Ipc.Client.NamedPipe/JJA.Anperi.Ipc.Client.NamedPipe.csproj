@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Utility\JJA.Anperi.Utility.csproj" />
+    <ProjectReference Include="..\JJA.Anperi.Ipc.Client\JJA.Anperi.Ipc.Client.csproj" />
+    <ProjectReference Include="..\JJA.Anperi.Ipc.Common.NamedPipe\JJA.Anperi.Ipc.Common.NamedPipe.csproj" />
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="dotnet pack $(ProjectFileName) -c $(ConfigurationName) --no-build --include-source --no-restore -o $(SolutionDir)\nugetOut" />
+  </Target>
+
+</Project>

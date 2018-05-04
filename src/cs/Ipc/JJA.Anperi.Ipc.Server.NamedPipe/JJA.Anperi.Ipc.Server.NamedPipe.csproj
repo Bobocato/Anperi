@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Utility\JJA.Anperi.Utility.csproj" />
+    <ProjectReference Include="..\JJA.Anperi.Ipc.Common.NamedPipe\JJA.Anperi.Ipc.Common.NamedPipe.csproj" />
+    <ProjectReference Include="..\JJA.Anperi.Ipc.Server\JJA.Anperi.Ipc.Server.csproj" />
+  </ItemGroup>
+
+</Project>
