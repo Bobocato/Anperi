@@ -26,6 +26,7 @@ namespace Lib.Consumer
             {
                 Console.WriteLine("type a line to do stuff: periinf, perilay");
                 string text = Console.ReadLine();
+                anperi.ClaimControl();
                 switch (text)
                 {
                     case "periinf":

@@ -18,7 +18,7 @@ namespace JJA.Anperi.Ipc.Common.NamedPipe
             streamEncoding = encoding;
         }
 
-        public async Task<string> ReadString(CancellationToken token)
+        public async Task<string> ReadStringAsync(CancellationToken token)
         {
             int len = 0;
             byte[] lenbuff = new byte[4];
@@ -30,6 +30,31 @@ namespace JJA.Anperi.Ipc.Common.NamedPipe
             return streamEncoding.GetString(inBuffer);
         }
 
+        public string ReadString()
+        {
+            int len = 0;
+            byte[] lenbuff = new byte[4];
+            _inputStream.Read(lenbuff, 0, 4);
+            len = ToInt(lenbuff);
+            byte[] inBuffer = new byte[len];
+            _inputStream.Read(inBuffer, 0, len);
+
+            return streamEncoding.GetString(inBuffer);
+        }
+
+        public static async Task<int> WriteStringAsync(Stream stream, string msg, CancellationToken ct) => await WriteStringAsync(stream, msg, new UTF8Encoding(), ct).ConfigureAwait(false);
+        public static async Task<int> WriteStringAsync(Stream stream, string msg, Encoding encoding, CancellationToken ct)
+        {
+            byte[] outBuffer = encoding.GetBytes(msg);
+            byte[] len = ToBytes(outBuffer.Length);
+            await stream.WriteAsync(len, 0, len.Length, ct).ConfigureAwait(false);
+            await stream.WriteAsync(outBuffer, 0, outBuffer.Length, ct).ConfigureAwait(false);
+            await stream.FlushAsync(ct).ConfigureAwait(false);
+
+            return outBuffer.Length + 4;
+        }
+
+        public int WriteString(string outString) => WriteString(_outputStream, outString);
         public static int WriteString(Stream stream, string msg) => WriteString(stream, msg, new UTF8Encoding());
         public static int WriteString(Stream stream, string msg, Encoding encoding)
         {
@@ -62,15 +87,6 @@ namespace JJA.Anperi.Ipc.Common.NamedPipe
             return res;
         }
 
-        public int WriteString(string outString)
-        {
-            byte[] outBuffer = streamEncoding.GetBytes(outString);
-            byte[] len = ToBytes(outBuffer.Length);
-            _outputStream.Write(len, 0, len.Length);
-            _outputStream.Write(outBuffer, 0, outBuffer.Length);
-            _outputStream.Flush();
-
-            return outBuffer.Length + 4;
-        }
+        public async Task<int> WriteStringAsync(string outString, CancellationToken ct) => await WriteStringAsync(_outputStream, outString, ct).ConfigureAwait(false);
     }
 }

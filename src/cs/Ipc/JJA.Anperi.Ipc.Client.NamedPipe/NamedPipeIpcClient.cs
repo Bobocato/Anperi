@@ -7,6 +7,7 @@ using System.IO.Pipes;
 using System.Security.Authentication;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using JJA.Anperi.Ipc.Common.NamedPipe;
 using JJA.Anperi.Ipc.Dto;
 using JJA.Anperi.Utility;
@@ -27,7 +28,9 @@ namespace JJA.Anperi.Ipc.Client.NamedPipe
         {
         }
 
-        public async void Connect()
+        public Task ConnectAsync() => ConnectAsync(CancellationToken.None);
+
+        public async Task ConnectAsync(CancellationToken ct)
         {
             _cts = new CancellationTokenSource();
             try
@@ -35,14 +38,17 @@ namespace JJA.Anperi.Ipc.Client.NamedPipe
                 _token = "cs.api.referencelib." + Guid.NewGuid();
                 _streamIn = new NamedPipeClientStream(Settings.ServerOutputPipeName);
                 _streamOut = new NamedPipeClientStream(Settings.ServerInputPipeName);
-                await _streamIn.ConnectAsync(2000, _cts.Token);
-                await _streamOut.ConnectAsync(2000, _cts.Token);
+
+                await Task.WhenAll(
+                    _streamIn.ConnectAsync(2000, _cts.Token),
+                    _streamOut.ConnectAsync(2000, _cts.Token)
+                ).ConfigureAwait(false);
 
                 StreamString.WriteString(_streamIn, _token);
                 StreamString.WriteString(_streamOut, _token);
                 
                 _ss = new StreamString(_streamIn, _streamOut);
-                string res = await _ss.ReadString(_cts.Token);
+                string res = await _ss.ReadStringAsync(_cts.Token).ConfigureAwait(false);
                 if (Settings.ConnectionSuccessString.Equals(res))
                 {
                     _isAuthenticated = true;
@@ -68,7 +74,7 @@ namespace JJA.Anperi.Ipc.Client.NamedPipe
             {
                 while (!token.IsCancellationRequested && IsOpen)
                 {
-                    string s = await _ss.ReadString(token);
+                    string s = await _ss.ReadStringAsync(token);
                     IpcMessage msg = null;
                     if (s == null) throw new Exception("Got null string from server.");
                     try
@@ -114,10 +120,32 @@ namespace JJA.Anperi.Ipc.Client.NamedPipe
 
         public void Send(IpcMessage message)
         {
-            if (!IsOpen) throw new InvalidOperationException("The client is not connected.");
+            if (!IsOpen || _ss == null) throw new InvalidOperationException("The client is not connected.");
             try
             {
-                _ss?.WriteString(JsonConvert.SerializeObject(message));
+                _ss.WriteString(JsonConvert.SerializeObject(message));
+            }
+            catch (ArgumentException)
+            {
+                _isAuthenticated = false;
+                OnClosed();
+            }
+            catch (Exception ex)
+            {
+                Util.TraceException("Error receiving data from pipe.", ex);
+                _isAuthenticated = false;
+                OnClosed();
+            }
+        }
+
+        public Task SendAsync(IpcMessage message) => SendAsync(message, CancellationToken.None);
+
+        public async Task SendAsync(IpcMessage message, CancellationToken ct)
+        {
+            if (!IsOpen || _ss == null) throw new InvalidOperationException("The client is not connected.");
+            try
+            {
+                await _ss.WriteStringAsync(JsonConvert.SerializeObject(message), ct);
             }
             catch (ArgumentException)
             {

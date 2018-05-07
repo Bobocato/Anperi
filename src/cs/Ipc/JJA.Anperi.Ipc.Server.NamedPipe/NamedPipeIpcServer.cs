@@ -79,9 +79,9 @@ namespace JJA.Anperi.Ipc.Server.NamedPipe
             }
         }
 
-        private async void KeepEnoughConnections(CancellationToken token)
+        private void KeepEnoughConnections(CancellationToken token)
         {
-            await Task.Run(async () =>
+            Task.Run(async () =>
             {
                 int iId = 0;
                 int oId = 0;
@@ -89,11 +89,11 @@ namespace JJA.Anperi.Ipc.Server.NamedPipe
                 {
                     if (_semaphoreStartInputConnections.CurrentCount > 0)
                     {
-                        CreatePipe((iId++).ToString(), PipeDirection.In, token);
+                        CreatePipeAsync((iId++).ToString(), PipeDirection.In, token);
                     }
                     if (_semaphoreStartOutputConnections.CurrentCount > 0)
                     {
-                        CreatePipe((oId++).ToString(), PipeDirection.Out, token);
+                        CreatePipeAsync((oId++).ToString(), PipeDirection.Out, token);
                     }
                     try { await Task.Delay(TimeSpan.FromMilliseconds(100), token); }
                     catch
@@ -104,7 +104,7 @@ namespace JJA.Anperi.Ipc.Server.NamedPipe
             }, token);
         }
 
-        private async void CreatePipe(string id, PipeDirection direction, CancellationToken token)
+        private async void CreatePipeAsync(string id, PipeDirection direction, CancellationToken token)
         {
             try
             {
@@ -137,7 +137,7 @@ namespace JJA.Anperi.Ipc.Server.NamedPipe
                 try
                 {
                     StreamString ss = new StreamString(pipeServer, null);
-                    string clientId = await ss.ReadString(token);
+                    string clientId = await ss.ReadStringAsync(token);
                     lock (_syncRootClients)
                     {
                         if (_pendingClients.TryGetValue(clientId, out NamedPipeIpcClient val))

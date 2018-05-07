@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO.Pipes;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using JJA.Anperi.Ipc.Common.NamedPipe;
 using JJA.Anperi.Ipc.Dto;
 using JJA.Anperi.Utility;
@@ -78,11 +79,12 @@ namespace JJA.Anperi.Ipc.Server.NamedPipe
             ReceiveLoopAsync(cancellationToken); 
         }
 
-        public void Send(IpcMessage message)
+        public async Task SendAsync(IpcMessage message)
         {
+
             try
             {
-                _streamString?.WriteString(JsonConvert.SerializeObject(message));
+                await _streamString.WriteStringAsync(JsonConvert.SerializeObject(message), CancellationToken.None).ConfigureAwait(false);
             }
             catch (ArgumentException)
             {
@@ -103,7 +105,7 @@ namespace JJA.Anperi.Ipc.Server.NamedPipe
             {
                 while (!token.IsCancellationRequested && IsAlive)
                 {
-                    string s = await _streamString.ReadString(token);
+                    string s = await _streamString.ReadStringAsync(token).ConfigureAwait(false);
                     OnMessage(s);
                 }
             }

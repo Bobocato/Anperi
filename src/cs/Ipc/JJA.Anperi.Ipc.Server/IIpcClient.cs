@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using JJA.Anperi.Ipc.Dto;
 
 namespace JJA.Anperi.Ipc.Server
@@ -9,7 +10,7 @@ namespace JJA.Anperi.Ipc.Server
     {
         void StartReceive();
         void Close();
-        void Send(IpcMessage message);
+        Task SendAsync(IpcMessage message);
 
         string Id { get; }
 

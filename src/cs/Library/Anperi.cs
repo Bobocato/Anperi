@@ -26,56 +26,59 @@ namespace JJA.Anperi.Lib
             _ipcClient.MessageReceived += _ipcClient_MessageReceived;
             _ipcClient.Closed += _ipcClient_Closed;
             _ipcClient.Error += _ipcClient_Error;
-            _ipcClient.Connect();
+            _ipcClient.ConnectAsync();
         }
 
         public bool IsConnected => _ipcClient.IsOpen;
         public bool HasControl { get; private set; }
 
-        public void ClaimControl()
+        public async Task ClaimControl()
         {
-            _ipcClient.Send(new IpcMessage(IpcMessageCode.ClaimControl));
+            await _ipcClient.SendAsync(new IpcMessage(IpcMessageCode.ClaimControl)).ConfigureAwait(false);
             HasControl = true;
         }
 
-        public void FreeControl()
+        public async Task FreeControl()
         {
-            _ipcClient.Send(new IpcMessage(IpcMessageCode.FreeControl));
+            if (!HasControl) throw new InvalidOperationException("We aren't in control of the device.");
+            await _ipcClient.SendAsync(new IpcMessage(IpcMessageCode.FreeControl)).ConfigureAwait(false);
         }
 
-        public void RequestPeripheralInfo()
+        public async Task RequestPeripheralInfo()
         {
-            _ipcClient.Send(new IpcMessage {MessageCode = IpcMessageCode.GetPeripheralInfo});
+            if (!HasControl) throw new InvalidOperationException("We aren't in control of the device.");
+            await _ipcClient.SendAsync(new IpcMessage {MessageCode = IpcMessageCode.GetPeripheralInfo}).ConfigureAwait(false);
         }
 
-        public void SetLayout(RootGrid layout)
+        public async Task SetLayout(RootGrid layout)
         {
-            _ipcClient.Send(new IpcMessage {MessageCode = IpcMessageCode.SetPeripheralLayout, Data = new Dictionary<string, dynamic>{{"grid", layout}}});
+            if (!HasControl) throw new InvalidOperationException("We aren't in control of the device.");
+            await _ipcClient.SendAsync(new IpcMessage {MessageCode = IpcMessageCode.SetPeripheralLayout, Data = new Dictionary<string, dynamic>{{"grid", layout}}}).ConfigureAwait(false);
         }
 
-        private void _ipcClient_Error(object sender, System.IO.ErrorEventArgs e)
+        private async void _ipcClient_Error(object sender, System.IO.ErrorEventArgs e)
         {
             Util.TraceException("IIpcClient encountered error", e.GetException());
             OnDisconnected();
-            Task.Run(async () =>
+            await Task.Run(async () =>
             {
                 Trace.TraceInformation("Reconnecting in 1 second ...");
                 await Task.Delay(1000);
                 Trace.TraceInformation("Reconnecting now ...");
-                if (!_ipcClient.IsOpen) _ipcClient.Connect();
-            });
+                if (!_ipcClient.IsOpen) await _ipcClient.ConnectAsync().ConfigureAwait(false);
+            }).ConfigureAwait(false);
         }
 
-        private void _ipcClient_Closed(object sender, EventArgs e)
+        private async void _ipcClient_Closed(object sender, EventArgs e)
         {
             Trace.TraceWarning("IIpcClient closed.");
             OnDisconnected();
-            Task.Run(async () =>
+            await Task.Run(async () =>
             {
                 Trace.TraceInformation("Reconnecting in 1 second ...");
                 await Task.Delay(1000);
                 Trace.TraceInformation("Reconnecting now ...");
-                if (!_ipcClient.IsOpen) _ipcClient.Connect();
+                if (!_ipcClient.IsOpen) await _ipcClient.ConnectAsync();
             });
         }
 
