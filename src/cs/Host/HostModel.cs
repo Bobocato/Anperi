@@ -42,7 +42,7 @@ namespace JJA.Anperi.Host
         private List<HostJsonApiObjectFactory.ApiPeripheral> _periList;
         private readonly Queue<string> _messages;
         private bool _closing = false;
-        private int _connectedPeripheral;
+        private int _connectedPeripheral = -1;
         private NamedPipeIpcServer _ipcServer;
         private readonly List<IIpcClient> _ipcClients;
         private IIpcClient _curIpcClient;
@@ -95,6 +95,9 @@ namespace JJA.Anperi.Host
             set
             {
                 _connectedTo = value;
+                _curIpcClient?.Send(_connectedTo == ""
+                    ? new IpcMessage(IpcMessageCode.PeripheralDisconnected)
+                    : new IpcMessage(IpcMessageCode.PeripheralConnected));
                 OnPropertyChanged(nameof(ConnectedTo));
             }
         }
@@ -140,9 +143,9 @@ namespace JJA.Anperi.Host
                 {
                     var client = args.Client;
                     _ipcClients.Add(client);
-                    _curIpcClient = client;
                     client.Message += (o, eventArgs) =>
                     {
+                        IIpcClient senderClient = (IIpcClient) o;
                         var message = eventArgs.Message;
                         var messageType = message.MessageCode;
 
@@ -153,6 +156,7 @@ namespace JJA.Anperi.Host
                                 {
                                     QueueMessage(msg);
                                 }
+                                client.Send(message);
                                 break;
                             case IpcMessageCode.Unset:
                                 client.Send(message);
@@ -169,11 +173,37 @@ namespace JJA.Anperi.Host
                                 var setLayout = new JsonApiObject(JsonApiContextTypes.device, JsonApiMessageTypes.message, "set_layout", message.Data);
                                 SendToWebsocket(setLayout.Serialize());
                                 break;
+                            case IpcMessageCode.ClaimControl:
+                                if (_curIpcClient != null)
+                                {
+                                    _curIpcClient.Send(new IpcMessage(IpcMessageCode.ControlLost));
+                                    _curIpcClient = null;
+                                }
+                                _curIpcClient = (IIpcClient) o;
+                                break;
+                            case IpcMessageCode.FreeControl:
+                                senderClient.Send(new IpcMessage(IpcMessageCode.ControlLost));
+                                _curIpcClient = null;
+                                _ipcClients.AsParallel().ForAll(c => c.Send(new IpcMessage(IpcMessageCode.NotClaimed)));
+                                break;
+                            case IpcMessageCode.PeripheralEventFired:
+                            case IpcMessageCode.PeripheralDisconnected:
+                            case IpcMessageCode.PeripheralConnected:
+                            case IpcMessageCode.ControlLost:
+                            case IpcMessageCode.NotClaimed:
+                                //ignored
+                                break;
+                            case IpcMessageCode.Error:
                             default:
                                 throw new NotImplementedException($"Didnt implement: {messageType}");
                         }
                     };
                     client.StartReceive();
+
+                    if (_connectedPeripheral != -1)
+                    {
+                        client.Send(new IpcMessage(IpcMessageCode.PeripheralConnected));
+                    }
                 };
 
                 _ipcServer.ClientDisconnected += (sender, args) =>
@@ -492,25 +522,22 @@ namespace JJA.Anperi.Host
                     }
                     break;
                 case DeviceRequestCode.get_info:
-                    var getInfo = new IpcMessage
+                    var getInfo = new IpcMessage(IpcMessageCode.GetPeripheralInfo)
                     {
-                        MessageCode = IpcMessageCode.GetPeripheralInfo,
                         Data = json.data                       
                     };
                     _curIpcClient.Send(getInfo);
                     break;
                 case DeviceRequestCode.event_fired:
-                    var eventFired = new IpcMessage
+                    var eventFired = new IpcMessage(IpcMessageCode.PeripheralEventFired)
                     {
-                        MessageCode = IpcMessageCode.PeripheralEventFired,
                         Data = json.data
                     };
                     _curIpcClient.Send(eventFired);
                     break;
                 case DeviceRequestCode.error:
-                    var errorMessage = new IpcMessage
+                    var errorMessage = new IpcMessage(IpcMessageCode.Error)
                     {
-                        MessageCode = IpcMessageCode.Error,
                         Data = json.data
                     };
                     _curIpcClient.Send(errorMessage);

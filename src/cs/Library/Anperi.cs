@@ -30,6 +30,18 @@ namespace JJA.Anperi.Lib
         }
 
         public bool IsConnected => _ipcClient.IsOpen;
+        public bool HasControl { get; private set; }
+
+        public void ClaimControl()
+        {
+            _ipcClient.Send(new IpcMessage(IpcMessageCode.ClaimControl));
+            HasControl = true;
+        }
+
+        public void FreeControl()
+        {
+            _ipcClient.Send(new IpcMessage(IpcMessageCode.FreeControl));
+        }
 
         public void RequestPeripheralInfo()
         {
@@ -86,6 +98,21 @@ namespace JJA.Anperi.Lib
                 case IpcMessageCode.PeripheralEventFired:
                     OnMessage(new EventFiredAnperiMessage(e.Message.Data));
                     break;
+                case IpcMessageCode.PeripheralDisconnected:
+                    OnPeripheralDisconnected();
+                    break;
+                case IpcMessageCode.PeripheralConnected:
+                    OnPeripheralConnected();
+                    break;
+                case IpcMessageCode.ControlLost:
+                    HasControl = false;
+                    OnControlLost();
+                    break;
+                case IpcMessageCode.NotClaimed:
+                    OnHostNotClaimed();
+                    break;
+                case IpcMessageCode.ClaimControl:
+                case IpcMessageCode.FreeControl:
                 case IpcMessageCode.SetPeripheralLayout:
                 case IpcMessageCode.SetPeripheralElementParam:
                 default:
@@ -120,5 +147,29 @@ namespace JJA.Anperi.Lib
         {
             Disconnected?.Invoke(this, EventArgs.Empty);
         }
+
+        protected virtual void OnHostNotClaimed()
+        {
+            HostNotClaimed?.Invoke(this, EventArgs.Empty);
+        }
+        public event EventHandler HostNotClaimed;
+
+        protected virtual void OnControlLost()
+        {
+            ControlLost?.Invoke(this, EventArgs.Empty);
+        }
+        public event EventHandler ControlLost;
+
+        protected virtual void OnPeripheralConnected()
+        {
+            PeripheralConnected?.Invoke(this, EventArgs.Empty);
+        }
+        public event EventHandler PeripheralConnected;
+
+        protected virtual void OnPeripheralDisconnected()
+        {
+            PeripheralDisconnected?.Invoke(this, EventArgs.Empty);
+        }
+        public event EventHandler PeripheralDisconnected;
     }
 }

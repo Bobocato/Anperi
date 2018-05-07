@@ -12,15 +12,31 @@ namespace JJA.Anperi.Ipc.Dto
         /// </summary>
         Debug = 1,
         Error = 2,
-        GetPeripheralInfo = 3,
-        SetPeripheralLayout = 4,
-        SetPeripheralElementParam = 5,
-        PeripheralEventFired = 6
+
+        GetPeripheralInfo = 100,
+        SetPeripheralLayout = 101,
+        SetPeripheralElementParam = 102,
+        ClaimControl = 103,
+        FreeControl = 104,
+
+        PeripheralEventFired = 200,
+        PeripheralDisconnected = 201,
+        PeripheralConnected = 202,
+        ControlLost = 203,
+        NotClaimed = 204
     }
 
     public class IpcMessage
     {
-        public IpcMessageCode MessageCode { get; set; } = IpcMessageCode.Unset;
-        public Dictionary<string, dynamic> Data { get; set; } = new Dictionary<string, dynamic>();
+        public IpcMessage()
+        {
+        }
+        public IpcMessage(IpcMessageCode code)
+        {
+            MessageCode = code;
+        }
+
+        public IpcMessageCode MessageCode { get; set; }
+        public Dictionary<string, dynamic> Data { get; set; }
     }
 }
