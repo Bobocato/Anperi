@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     showLoad();
                     CreateFragment createFrag = (CreateFragment) getFragmentManager().findFragmentByTag("createFrag");
-                    Log.v(TAG, savedInstanceState.getString("layoutString"));
+                    Log.v(TAG, "The saved Layout is: " + savedInstanceState.getString("layoutString"));
                     createFrag.setLayout(new JSONObject(savedInstanceState.getString("layoutString")));
                     showCreate();
                 } catch (JSONException e) {
@@ -80,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.v(TAG, "Reload the pairing Code");
                 KeyFragment keyFrag = (KeyFragment) getFragmentManager().findFragmentByTag("keyFrag");
                 keyFrag.setCode(savedInstanceState.getString("pairingCode"));
+                getPairingCodeWS();
             } else if (savedInstanceState.getBoolean("isRegistered")) {
                 //Registered but not logged in... -> Login
                 Log.v(TAG, "Reload and login");
@@ -285,6 +286,11 @@ public class MainActivity extends AppCompatActivity {
                                 case "server":
                                     switch (apiObject.messageCode) {
                                         case "partner_disconnected":
+                                            if (getFragmentManager().findFragmentByTag("createFrag") != null) {
+                                                createFragment = (CreateFragment) getFragmentManager().findFragmentByTag("createFrag");
+                                            }
+                                            if (createFragment != null)
+                                                getFragmentManager().beginTransaction().remove(createFragment).commit();
                                             getPairingCodeWS();
                                             break;
                                     }

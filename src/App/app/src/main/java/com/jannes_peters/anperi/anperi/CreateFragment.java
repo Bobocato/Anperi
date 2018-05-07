@@ -13,6 +13,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.SeekBar;
+import android.widget.Space;
 import android.widget.TextView;
 
 import org.json.JSONArray;
@@ -25,6 +26,9 @@ public class CreateFragment extends Fragment {
     private JSONObject currentElement;
     private FrameLayout create_container;
     private Boolean isStarted = false;
+
+    //TODO After orientation change the "set_element_param" cant be used...
+    //Maybe there are two instances of this Fragment???
 
     public CreateFragment() {
     }
@@ -254,6 +258,17 @@ public class CreateFragment extends Fragment {
                         subGrid.setLayoutParams(params);
                         grid.addView(subGrid);
                         break;
+                    case "spacer":
+                        try {
+                            id = currentElement.getString("id");
+                        } catch (Exception e) {
+                            MyWebSocket.sendError("No ID given to spacer...");
+                            break;
+                        }
+                        Space space = createSpaceView(id);
+                        space.setLayoutParams(params);
+                        grid.addView(space);
+                        break;
                     case "label":
                         try {
                             text = currentElement.getString("text");
@@ -344,6 +359,14 @@ public class CreateFragment extends Fragment {
         param.columnSpec = android.support.v7.widget.GridLayout.spec(column, column_span, column_weight);
         param.rowSpec = android.support.v7.widget.GridLayout.spec(row, row_span, row_weight);
         return param;
+    }
+
+    private Space createSpaceView(final String id){
+        Space space = new Space(getActivity());
+        space.setTag(id);
+        space.setOnClickListener(onClickListener(id));
+        space.setOnLongClickListener(onLongClickListener(id));
+        return space;
     }
 
     private TextView createTextView(final String id, String text) {
