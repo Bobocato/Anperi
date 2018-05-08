@@ -1,0 +1,35 @@
+﻿<Window x:Class="JJA.Anperi.Host.Popup"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:JJA.Anperi.Host"
+        mc:Ignorable="d"
+        Title="Popup" Height="300" Width="300" ResizeMode="NoResize">
+	<Window.Resources>
+		<BooleanToVisibilityConverter x:Key="BoolToVis" />
+	</Window.Resources>
+	<Grid>
+		<Grid Height="56" Margin="10,0,10,0" VerticalAlignment="Bottom">
+			<Button Content="Ok" HorizontalAlignment="Left" Margin="10,0,0,10" Width="110" Click="ButOkay_Click" Height="36" VerticalAlignment="Bottom"/>
+			<Button Content="Cancel" Margin="0,0,10,10" HorizontalAlignment="Right" Width="110" Height="36" VerticalAlignment="Bottom" Click="ButCancel_Click" Grid.Column="1"/>
+		</Grid>
+		<Grid Height="200" Margin="10,10,10,0" VerticalAlignment="Top">
+			<Border BorderBrush="Black" BorderThickness="2"></Border>
+			<TextBlock Text="{Binding PopupTitle}" TextAlignment="Center" FontWeight="Bold" HorizontalAlignment="Left" Margin="10,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="252"/>
+			<Grid Visibility="{Binding PopupMessage, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}" HorizontalAlignment="Left" Height="159" Margin="10,31,0,0" VerticalAlignment="Top" Width="252">
+				<TextBox x:Name="MessageBox" HorizontalAlignment="Left" Height="23" Margin="10,67,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="232"/>
+			</Grid>
+			<Grid Visibility="{Binding PopupOptions, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}" HorizontalAlignment="Left" Height="159" Margin="10,31,0,0" VerticalAlignment="Top" Width="252">
+
+			</Grid>
+			<Grid Visibility="{Binding PopupPair, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}" HorizontalAlignment="Left" Height="159" Margin="10,31,0,0" VerticalAlignment="Top" Width="252">
+				<TextBox x:Name="PairCode" HorizontalAlignment="Left" Height="23" Margin="10,66,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="232"/>
+			</Grid>
+			<Grid Visibility="{Binding PopupRename, Converter={StaticResource BoolToVis}, FallbackValue=Visible}" HorizontalAlignment="Left" Height="159" Margin="10,31,0,0" VerticalAlignment="Top" Width="252">
+				<TextBox x:Name="NewName" HorizontalAlignment="Left" Height="23" Margin="10,66,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="232"/>
+			</Grid>
+		</Grid>
+
+	</Grid>
+</Window>

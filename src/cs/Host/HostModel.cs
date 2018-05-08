@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 using WebSocketSharp;
@@ -30,14 +31,23 @@ namespace JJA.Anperi.Host
         private string _info2 = "";
         private string _info3 = "";
         private string _connectedTo = "";
-        private string _filePath = "token.txt";
+        private string _tokenPath = "token.txt";
+        private string _favoritePath = "favorite.txt";
         private string _name = "";
         private bool _butConnectVisible = true;
         private bool _butDisconnectVisible = false;
 
-        //private string _wsAddress = "ws://localhost:5000/api/ws";
-        private string _wsAddress = "wss://anperi.jannes-peters.com/api/ws";
+        private bool _popupMessage = false;
+        private bool _popupRename = false;
+        private bool _popupPair = false;
+        private bool _popupOptions = false;
+
+        private string _popupTitle = "";
+
+        private string _wsAddress = "ws://localhost:5000/api/ws";
+        //private string _wsAddress = "wss://anperi.jannes-peters.com/api/ws";
         private string _token = "";
+        private int _favorite = -1;
         private WebSocket _ws;
         private List<HostJsonApiObjectFactory.ApiPeripheral> _periList;
         private readonly Queue<string> _messages;
@@ -52,9 +62,13 @@ namespace JJA.Anperi.Host
             _periList = new List<HostJsonApiObjectFactory.ApiPeripheral>();
             _ipcClients = new List<IIpcClient>();
             _messages = new Queue<string>();
-            if (File.Exists(_filePath))
+            if (File.Exists(_tokenPath))
             {
-                _token = File.ReadLines(_filePath).First();
+                _token = File.ReadLines(_tokenPath).First();
+            }
+            if (File.Exists(_favoritePath))
+            {
+                _favorite = Int32.Parse(File.ReadLines(_tokenPath).First());
             }
             InitializeWebSocket();
             InitializeIpcServer();
@@ -129,6 +143,89 @@ namespace JJA.Anperi.Host
                 OnPropertyChanged(nameof(ButDisconnect));
             }
         }
+
+        #region Popup
+
+        public string PopupTitle
+        {
+            get { return _popupTitle; }
+            set
+            {
+                _popupTitle = value;
+                switch (value)
+                {
+                    case "rename":
+                        PopupPair = false;
+                        PopupMessage = false;
+                        PopupOptions = false;
+                        PopupRename = true;
+                        break;
+                    case "options":
+                        PopupPair = false;
+                        PopupMessage = false;
+                        PopupOptions = true;
+                        PopupRename = false;
+                        break;
+                    case "message":
+                        PopupPair = false;
+                        PopupMessage = true;
+                        PopupOptions = false;
+                        PopupRename = false;
+                        break;
+                    case "pair":
+                        PopupPair = true;
+                        PopupMessage = false;
+                        PopupOptions = false;
+                        PopupRename = false;
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
+                OnPropertyChanged();
+            }
+        }
+
+        public bool PopupMessage
+        {
+            get { return _popupMessage; }
+            set
+            {
+                _popupMessage = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool PopupOptions
+        {
+            get { return _popupOptions; }
+            set
+            {
+                _popupOptions = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool PopupPair
+        {
+            get { return _popupPair; }
+            set
+            {
+                _popupPair = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool PopupRename
+        {
+            get { return _popupRename; }
+            set
+            {
+                _popupRename = value;
+                OnPropertyChanged();
+            }
+        }
+
+        #endregion
 
         #endregion
 
@@ -385,6 +482,20 @@ namespace JJA.Anperi.Host
                         Trace.TraceWarning("Something is wrong with the send peripherals!");
                     }
 
+                    if (_favorite != -1)
+                    {
+                        foreach (var x in Peripherals)
+                        {
+                            if (x.id == _favorite)
+                            {
+                                if (x.online)
+                                {
+                                    Connect(x);
+                                }
+                            }
+                        }
+                    }
+
                     break;
                 case HostRequestCode.connect_to_peripheral:
                 case HostRequestCode.disconnect_from_peripheral:
@@ -458,7 +569,7 @@ namespace JJA.Anperi.Host
                         {
                             _token = "";
                             QueueMessage("Login failed!");
-                            var writer = new StreamWriter(_filePath, false);
+                            var writer = new StreamWriter(_tokenPath, false);
                             writer.WriteLine("");
                             writer.Close();
                         }
@@ -476,7 +587,7 @@ namespace JJA.Anperi.Host
                     json.data.TryGetValue("name", out dynamic name);
                     _name = name;
 
-                    var tokenStream = new StreamWriter(_filePath, false);
+                    var tokenStream = new StreamWriter(_tokenPath, false);
                     tokenStream.WriteLine(_token);
                     tokenStream.Close();
 
@@ -559,8 +670,23 @@ namespace JJA.Anperi.Host
         {
             if (!(item is HostJsonApiObjectFactory.ApiPeripheral)) return;
             var id = ((HostJsonApiObjectFactory.ApiPeripheral)item).id;
+            if (id == _connectedPeripheral)
+            {
+                Disconnect();
+            }
             var json = HostJsonApiObjectFactory.CreateUnpairFromPeripheralRequest(id);
             SendToWebsocket(json.Serialize());
+        }
+
+        public void Rename(int id, string name)
+        {
+            foreach (var x in Peripherals)
+            {
+                if (x.id == id)
+                {
+                    x.name = name;
+                }
+            }
         }
 
         public void SendMessage(string message)
@@ -636,6 +762,15 @@ namespace JJA.Anperi.Host
                     }
                 }
             });
+        }
+
+        public void Favorite(object item)
+        {
+            var peripheral = (HostJsonApiObjectFactory.ApiPeripheral) item;
+            _favorite = peripheral.id;
+            var writer = new StreamWriter(_favoritePath, false);
+            writer.WriteLine("" + _favorite);
+            writer.Close();
         }
 
         public void Close()

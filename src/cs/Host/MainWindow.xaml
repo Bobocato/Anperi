@@ -27,9 +27,22 @@
 								</Style.Triggers>
 							</Style>
 						</Label.Style>
+						<Label.ContextMenu>
+							<ContextMenu>
+								<MenuItem Header="Rename" Click="ButRename_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}"/>
+								<MenuItem Header="Favorite" Click="ButFavorite_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}"/>
+								<MenuItem Header="Unpair" Click="ButUnpair_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}" />
+								<MenuItem Header="Connect" Click="ButConnect_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}"/>
+							</ContextMenu>
+						</Label.ContextMenu>
 					</Label>
 				</DataTemplate>
 			</ListBox.ItemTemplate>
+			<ListBox.ItemContainerStyle>
+				<Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+					<EventSetter Event="MouseDoubleClick" Handler="ButConnect_Click"/>
+				</Style>
+			</ListBox.ItemContainerStyle>
 		</ListBox>
 		<TextBox x:Name="CodeBox" Margin="187,51,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" Width="84" Height="25" VerticalAlignment="Top" RenderTransformOrigin="2.936,2.34" />
 		<Button Content="Pair" HorizontalAlignment="Left" Margin="290,51,0,0" VerticalAlignment="Top" Width="75" Height="25" Click="ButPair_Click"/>
@@ -37,8 +50,6 @@
 		<Button Content="Send Message" HorizontalAlignment="Left" Margin="402,212,0,0" VerticalAlignment="Top" Width="83" Height="25" Click="ButSendMessage_Click"/>
 		<TextBlock HorizontalAlignment="Left" Margin="187,10,0,0" TextWrapping="Wrap" Text="{Binding ConnectedTo, StringFormat='Connected to: {0}', UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Height="16" Width="178"/>
 		<Button Visibility="{Binding ButDisconnect, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}" Content="Disconnect" Margin="0,276,335,0" VerticalAlignment="Top" Height="25" Click="ButDisconnect_Click" HorizontalAlignment="Right" Width="75"/>
-		<Button Visibility="{Binding ButConnect, Converter={StaticResource BoolToVis}, FallbackValue=Visible}" Content="Connect" Margin="0,276,335,0" Click="ButConnect_Click" HorizontalAlignment="Right" Width="75" Height="25" VerticalAlignment="Top"/>
-		<Button Content="Unpair" Margin="0,276,432,0" VerticalAlignment="Top" Height="25" Click="ButUnpair_Click" HorizontalAlignment="Right" Width="75"/>
 		<TextBlock Text="{Binding Info3, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" HorizontalAlignment="Left" Margin="187,245,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="330" Height="17"/>
 		<TextBlock Text="{Binding Info2, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" HorizontalAlignment="Left" Margin="187,267,0,0" TextWrapping="Wrap" VerticalAlignment="Top" RenderTransformOrigin="2.301,0.272" Width="330"/>
 

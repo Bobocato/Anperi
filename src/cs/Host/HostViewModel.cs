@@ -20,6 +20,16 @@ namespace JJA.Anperi.Host
             _model = new HostModel();
             _model.PropertyChanged += OnModelPropertyChanged;
             _peripherals = new ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral>();
+            var test = new HostJsonApiObjectFactory.ApiPeripheral();
+            test.id = 7;
+            test.name = "Test1";
+            test.online = true;
+            _peripherals.Add(test);
+            var test2 = new HostJsonApiObjectFactory.ApiPeripheral();
+            test2.id = 7;
+            test2.name = "Test2";
+            test2.online = false;
+            _peripherals.Add(test2);
         }
         
         public bool ButConnect
@@ -82,6 +92,36 @@ namespace JJA.Anperi.Host
             }
         }
 
+        public string PopupTitle
+        {
+            get {return _model.PopupTitle; }
+            set
+            {
+                _model.PopupTitle = value;
+                OnPropertyChanged(nameof(PopupTitle));
+            }
+        }
+
+        public bool PopupMessage
+        {
+            get { return _model.PopupMessage; }
+        }
+
+        public bool PopupOptions
+        {
+            get { return _model.PopupOptions; }
+        }
+
+        public bool PopupPair
+        {
+            get { return _model.PopupPair; }
+        }
+
+        public bool PopupRename
+        {
+            get { return _model.PopupRename; }
+        }
+
         public ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral> Peripherals => _peripherals;
 
         public void Close()
@@ -97,6 +137,16 @@ namespace JJA.Anperi.Host
         public void Unpair(object item)
         {
             _model.Unpair(item);
+        }
+
+        public void Favorite(object item)
+        {
+            _model.Favorite(item);
+        }
+
+        public void Rename(int id, string name)
+        {
+            _model.Rename(id, name);
         }
 
         public void Connect(object item)

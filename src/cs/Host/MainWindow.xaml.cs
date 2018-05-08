@@ -1,5 +1,7 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Windows;
+using JJA.Anperi.Internal.Api.Host;
 
 namespace JJA.Anperi.Host
 {
@@ -9,6 +11,7 @@ namespace JJA.Anperi.Host
 
         public MainWindow()
         {
+            //TODO: rework UI
             _viewModel = new HostViewModel(Dispatcher);
             DataContext = _viewModel;
             InitializeComponent();
@@ -16,7 +19,12 @@ namespace JJA.Anperi.Host
 
         private void ButPair_Click(object sender, RoutedEventArgs e)
         {
-            _viewModel.Pair(CodeBox.Text);
+            _viewModel.PopupTitle = "pair";
+            var popup = new Popup();
+            popup.DataContext = this.DataContext;
+
+            popup.Show();
+            //_viewModel.Pair(CodeBox.Text);
         }
 
         private void MainWindow_OnClosing(object sender, CancelEventArgs e)
@@ -34,6 +42,22 @@ namespace JJA.Anperi.Host
             _viewModel.Connect(PeriBox.SelectedItem);
         }
 
+        private void ButFavorite_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.Favorite(PeriBox.SelectedItem);
+        }
+
+        private void ButRename_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.PopupTitle = "rename";
+            var popup = new Popup();
+            popup.DataContext = this.DataContext;
+            var item = (HostJsonApiObjectFactory.ApiPeripheral) PeriBox.SelectedItem;
+            popup.PeriId = item.id;
+
+            popup.Show();
+        }
+
         private void ButDisconnect_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.Disconnect();
@@ -41,7 +65,12 @@ namespace JJA.Anperi.Host
 
         private void ButSendMessage_Click(object sender, RoutedEventArgs e)
         {
-            _viewModel.SendMessage(MessageBox.Text);
+            _viewModel.PopupTitle = "message";
+            var popup = new Popup();
+            popup.DataContext = this.DataContext;
+
+            popup.Show();
+            //_viewModel.SendMessage(MessageBox.Text);
         }
 
 
