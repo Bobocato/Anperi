@@ -30,21 +30,11 @@ namespace JJA.Anperi.Host
             test2.name = "Test2";
             test2.online = false;
             _peripherals.Add(test2);
-        }
-        
-        public bool ButConnect
-        {
-            get { return _model.ButConnect; }
-            set
-            {
-                _model.ButConnect = value;
-                OnPropertyChanged(nameof(ButConnect));
-            }
-        }
+        }       
 
         public bool ButDisconnect
         {
-            get { return _model.ButDisconnect; }
+            get => _model.ButDisconnect;
             set
             {
                 _model.ButDisconnect = value;
@@ -54,7 +44,7 @@ namespace JJA.Anperi.Host
 
         public string Info1
         {
-            get { return _model.Info1;}
+            get => _model.Info1;
             set
             {
                 _model.Info1 = value;
@@ -64,7 +54,7 @@ namespace JJA.Anperi.Host
 
         public string Info2
         {
-            get { return _model.Info2; }
+            get => _model.Info2;
             set
             {
                 _model.Info2 = value;
@@ -74,7 +64,7 @@ namespace JJA.Anperi.Host
 
         public string Info3
         {
-            get{ return _model.Info3; }
+            get => _model.Info3;
             set
             {
                 _model.Info3 = value;
@@ -84,7 +74,7 @@ namespace JJA.Anperi.Host
 
         public string ConnectedTo
         {
-            get { return _model.ConnectedTo; }
+            get => _model.ConnectedTo;
             set
             {
                 _model.ConnectedTo = value;
@@ -94,7 +84,7 @@ namespace JJA.Anperi.Host
 
         public string PopupTitle
         {
-            get {return _model.PopupTitle; }
+            get => _model.PopupTitle;
             set
             {
                 _model.PopupTitle = value;
@@ -102,25 +92,9 @@ namespace JJA.Anperi.Host
             }
         }
 
-        public bool PopupMessage
-        {
-            get { return _model.PopupMessage; }
-        }
+        public bool PopupInput => _model.PopupInput;
 
-        public bool PopupOptions
-        {
-            get { return _model.PopupOptions; }
-        }
-
-        public bool PopupPair
-        {
-            get { return _model.PopupPair; }
-        }
-
-        public bool PopupRename
-        {
-            get { return _model.PopupRename; }
-        }
+        public bool PopupOptions => _model.PopupOptions;
 
         public ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral> Peripherals => _peripherals;
 

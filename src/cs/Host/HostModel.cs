@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 using WebSocketSharp;
@@ -34,12 +33,9 @@ namespace JJA.Anperi.Host
         private string _tokenPath = "token.txt";
         private string _favoritePath = "favorite.txt";
         private string _name = "";
-        private bool _butConnectVisible = true;
         private bool _butDisconnectVisible = false;
 
-        private bool _popupMessage = false;
-        private bool _popupRename = false;
-        private bool _popupPair = false;
+        private bool _popupInput = false;
         private bool _popupOptions = false;
 
         private string _popupTitle = "";
@@ -78,7 +74,7 @@ namespace JJA.Anperi.Host
 
         public string Info1
         {
-            get { return _info1; }
+            get => _info1;
             set
             {
                 _info1 = value;
@@ -87,7 +83,7 @@ namespace JJA.Anperi.Host
         }
         public string Info2
         {
-            get { return _info2; }
+            get => _info2;
             set
             {
                 _info2 = value;
@@ -96,7 +92,7 @@ namespace JJA.Anperi.Host
         }
         public string Info3
         {
-            get { return _info3; }
+            get => _info3;
             set
             {
                 _info3 = value;
@@ -105,10 +101,11 @@ namespace JJA.Anperi.Host
         }
         public string ConnectedTo
         {
-            get { return _connectedTo; }
+            get => _connectedTo;
             set
             {
                 _connectedTo = value;
+                ButDisconnect = value != "";
                 _curIpcClient?.SendAsync(new IpcMessage(_connectedTo == "" ? IpcMessageCode.PeripheralDisconnected : IpcMessageCode.PeripheralConnected));
                 OnPropertyChanged(nameof(ConnectedTo));
             }
@@ -116,7 +113,7 @@ namespace JJA.Anperi.Host
 
         public List<HostJsonApiObjectFactory.ApiPeripheral> Peripherals
         {
-            get { return _periList; }
+            get => _periList;
             set
             {
                 var tmp = from x in value orderby x.online descending select x;
@@ -125,18 +122,9 @@ namespace JJA.Anperi.Host
             }
         }
 
-        public bool ButConnect
-        {
-            get { return _butConnectVisible; }
-            set
-            {
-                _butConnectVisible = value;
-                OnPropertyChanged(nameof(ButConnect));
-            }
-        }
         public bool ButDisconnect
         {
-            get { return _butDisconnectVisible; }
+            get => _butDisconnectVisible;
             set
             {
                 _butDisconnectVisible = value;
@@ -148,35 +136,21 @@ namespace JJA.Anperi.Host
 
         public string PopupTitle
         {
-            get { return _popupTitle; }
+            get => _popupTitle;
             set
             {
                 _popupTitle = value;
                 switch (value)
                 {
                     case "rename":
-                        PopupPair = false;
-                        PopupMessage = false;
-                        PopupOptions = false;
-                        PopupRename = true;
+                    case "message":
+                    case "pair":
+                        _popupOptions = false;
+                        _popupInput = true;
                         break;
                     case "options":
-                        PopupPair = false;
-                        PopupMessage = false;
-                        PopupOptions = true;
-                        PopupRename = false;
-                        break;
-                    case "message":
-                        PopupPair = false;
-                        PopupMessage = true;
-                        PopupOptions = false;
-                        PopupRename = false;
-                        break;
-                    case "pair":
-                        PopupPair = true;
-                        PopupMessage = false;
-                        PopupOptions = false;
-                        PopupRename = false;
+                        _popupOptions = true;
+                        _popupInput = false;
                         break;
                     default:
                         throw new NotImplementedException();
@@ -185,42 +159,22 @@ namespace JJA.Anperi.Host
             }
         }
 
-        public bool PopupMessage
+        public bool PopupInput
         {
-            get { return _popupMessage; }
+            get => _popupInput;
             set
             {
-                _popupMessage = value;
+                _popupInput = value;
                 OnPropertyChanged();
             }
         }
 
         public bool PopupOptions
         {
-            get { return _popupOptions; }
+            get => _popupOptions;
             set
             {
                 _popupOptions = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public bool PopupPair
-        {
-            get { return _popupPair; }
-            set
-            {
-                _popupPair = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public bool PopupRename
-        {
-            get { return _popupRename; }
-            set
-            {
-                _popupRename = value;
                 OnPropertyChanged();
             }
         }
@@ -520,16 +474,12 @@ namespace JJA.Anperi.Host
                                 {
                                     QueueMessage("Couldn't find the connected device in peripheral list!");
                                 }
-                                ButConnect = false;
-                                ButDisconnect = true;
                             }
                             else
                             {
                                 ConnectedTo =
                                     "";
                                 _connectedPeripheral = -1;
-                                ButConnect = true;
-                                ButDisconnect = false;
                             }
                         }
                         else
@@ -614,8 +564,6 @@ namespace JJA.Anperi.Host
                     break;
                 case SharedJsonMessageCode.partner_disconnected:
                     ConnectedTo = "";
-                    ButDisconnect = false;
-                    ButConnect = true;
                     break;
             }
         }

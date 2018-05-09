@@ -1,16 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace JJA.Anperi.Host
 {
@@ -28,32 +17,32 @@ namespace JJA.Anperi.Host
 
         private void ButOkay_Click(object sender, RoutedEventArgs e)
         {
-            var viewModel = (HostViewModel) this.DataContext;
+            var viewModel = (HostViewModel)DataContext;
             var windowType = viewModel.PopupTitle;
 
             switch (windowType)
             {
                 case "pair":
-                    viewModel.Pair(PairCode.Text);
+                    viewModel.Pair(InputBox.Text);
                     break;
                 case "options":
                     //TODO: implement this
                     break;
                 case "rename":
-                    viewModel.Rename(PeriId, NewName.Text);
+                    viewModel.Rename(PeriId, InputBox.Text);
                     break;
                 case "message":
-                    viewModel.SendMessage(MessageBox.Text);
+                    viewModel.SendMessage(InputBox.Text);
                     break;
                 default:
                     throw new NotImplementedException();
             }
-            this.Close();
+            Close();
         }
 
         private void ButCancel_Click(object sender, RoutedEventArgs e)
         {
-            this.Close();
+            Close();
         }
     }
 }

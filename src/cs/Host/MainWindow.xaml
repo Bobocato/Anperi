@@ -6,15 +6,15 @@
         xmlns:local="clr-namespace:JJA.Anperi.Host"
         mc:Ignorable="d"
         Title="Anperi" Height="350" Width="525"
-        MinHeight="275" MinWidth="400"
+        MinHeight="350" MinWidth="525"
         Closing="MainWindow_OnClosing"
         d:DataContext="{d:DesignInstance local:HostViewModel}">
 	<Window.Resources>
 		<BooleanToVisibilityConverter x:Key="BoolToVis" />
 	</Window.Resources>
 	<Grid>
-		<TextBlock x:Name="InfoBlock" Margin="187,0,0,10" TextWrapping="Wrap" Text="{Binding Path = Info1, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Height="16" VerticalAlignment="Bottom"/>
-		<ListBox x:Name="PeriBox" Margin="10,10,0,52" ItemsSource="{Binding Path=Peripherals}" HorizontalAlignment="Left" Width="172">
+		<TextBlock x:Name="InfoBlock" Margin="187,288,0,0" TextWrapping="Wrap" Text="{Binding Path = Info1, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Height="16" VerticalAlignment="Top"/>
+		<ListBox x:Name="PeriBox" Margin="10,10,0,10" ItemsSource="{Binding Path=Peripherals}" HorizontalAlignment="Left" Width="172">
 			<ListBox.ItemTemplate>
 				<DataTemplate>
 					<Label Content="{Binding Path=name}">
@@ -44,14 +44,16 @@
 				</Style>
 			</ListBox.ItemContainerStyle>
 		</ListBox>
-		<TextBox x:Name="CodeBox" Margin="187,51,0,0" TextWrapping="Wrap" HorizontalAlignment="Left" Width="84" Height="25" VerticalAlignment="Top" RenderTransformOrigin="2.936,2.34" />
-		<Button Content="Pair" HorizontalAlignment="Left" Margin="290,51,0,0" VerticalAlignment="Top" Width="75" Height="25" Click="ButPair_Click"/>
-		<TextBox x:Name="MessageBox" HorizontalAlignment="Left" Height="23" Margin="187,212,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="170"/>
-		<Button Content="Send Message" HorizontalAlignment="Left" Margin="402,212,0,0" VerticalAlignment="Top" Width="83" Height="25" Click="ButSendMessage_Click"/>
 		<TextBlock HorizontalAlignment="Left" Margin="187,10,0,0" TextWrapping="Wrap" Text="{Binding ConnectedTo, StringFormat='Connected to: {0}', UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Height="16" Width="178"/>
-		<Button Visibility="{Binding ButDisconnect, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}" Content="Disconnect" Margin="0,276,335,0" VerticalAlignment="Top" Height="25" Click="ButDisconnect_Click" HorizontalAlignment="Right" Width="75"/>
-		<TextBlock Text="{Binding Info3, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" HorizontalAlignment="Left" Margin="187,245,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="330" Height="17"/>
-		<TextBlock Text="{Binding Info2, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" HorizontalAlignment="Left" Margin="187,267,0,0" TextWrapping="Wrap" VerticalAlignment="Top" RenderTransformOrigin="2.301,0.272" Width="330"/>
+		<Button Visibility="{Binding ButDisconnect, Converter={StaticResource BoolToVis}, FallbackValue=Visible}" Content="Disconnect" Margin="395,10,10,0" VerticalAlignment="Top" Height="25" Click="ButDisconnect_Click" HorizontalAlignment="Stretch" Width="Auto"/>
+		<TextBlock Text="{Binding Info3, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Margin="187,245,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="17"/>
+		<TextBlock Text="{Binding Info2, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Margin="187,267,0,0" TextWrapping="Wrap" VerticalAlignment="Top" RenderTransformOrigin="2.301,0.272"/>
+		<Grid Margin="187,44,10,0" Height="196" VerticalAlignment="Top">
+			<Border BorderBrush="Black" BorderThickness="2"></Border>
+			<Button Content="Pair" Click="ButPair_Click" Margin="10,10,10,0" Height="25" VerticalAlignment="Top"/>
+			<Button Content="Send Message" Click="ButSendMessage_Click" Margin="10,160,10,0" Height="25" VerticalAlignment="Top"/>
+			<Button Content="Options" Click="ButOptions_Click" Margin="10,85,10,0" Height="25" VerticalAlignment="Top"/>
+		</Grid>
 
 
 	</Grid>

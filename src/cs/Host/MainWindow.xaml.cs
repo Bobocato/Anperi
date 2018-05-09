@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Windows;
 using JJA.Anperi.Internal.Api.Host;
 
@@ -24,7 +23,6 @@ namespace JJA.Anperi.Host
             popup.DataContext = this.DataContext;
 
             popup.Show();
-            //_viewModel.Pair(CodeBox.Text);
         }
 
         private void MainWindow_OnClosing(object sender, CancelEventArgs e)
@@ -70,9 +68,15 @@ namespace JJA.Anperi.Host
             popup.DataContext = this.DataContext;
 
             popup.Show();
-            //_viewModel.SendMessage(MessageBox.Text);
         }
 
+        private void ButOptions_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.PopupTitle = "options";
+            var popup = new Popup();
+            popup.DataContext = this.DataContext;
 
+            popup.Show();
+        }
     }
 }
