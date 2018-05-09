@@ -20,8 +20,9 @@
 			<Grid Visibility="{Binding PopupInput, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}" HorizontalAlignment="Left" Height="159" Margin="10,31,0,0" VerticalAlignment="Top" Width="252">
 				<TextBox x:Name="InputBox" HorizontalAlignment="Left" Height="23" Margin="10,67,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="232"/>
 			</Grid>
-			<Grid Visibility="{Binding PopupOptions, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}" HorizontalAlignment="Left" Height="159" Margin="10,31,0,0" VerticalAlignment="Top" Width="252">
-
+			<Grid Visibility="{Binding PopupOptions, Converter={StaticResource BoolToVis}, FallbackValue=Visible}" HorizontalAlignment="Left" Height="159" Margin="10,31,0,0" VerticalAlignment="Top" Width="252">
+				<CheckBox IsChecked="{Binding Tray, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, FallbackValue=True}" Content="Reduce to Tray" HorizontalAlignment="Left" Height="18" Margin="10,10,0,0" VerticalAlignment="Top" Width="138"/>
+				<CheckBox IsChecked="{Binding Autostart, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, FallbackValue=True}" Content="Autostart" HorizontalAlignment="Left" Height="18" Margin="10,33,0,0" VerticalAlignment="Top" Width="138"/>
 			</Grid>
 		</Grid>
 

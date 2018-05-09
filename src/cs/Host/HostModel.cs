@@ -40,6 +40,8 @@ namespace JJA.Anperi.Host
 
         private string _popupTitle = "";
 
+        private bool _tray = false;
+        private bool _autostart = false;
         private string _wsAddress = "ws://localhost:5000/api/ws";
         //private string _wsAddress = "wss://anperi.jannes-peters.com/api/ws";
         private string _token = "";
@@ -71,6 +73,27 @@ namespace JJA.Anperi.Host
         }
 
         #region Properties
+
+        public bool Tray
+        {
+            get => _tray;
+            set
+            {
+                _tray = value;
+                OnPropertyChanged();
+                //TODO: maybe implement here
+            }
+        }
+
+        public bool Autostart
+        {
+            get => _autostart;
+            set
+            {
+                _autostart = value;
+                OnPropertyChanged();
+            }
+        }
 
         public string Info1
         {

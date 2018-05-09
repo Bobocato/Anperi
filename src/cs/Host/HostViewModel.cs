@@ -42,6 +42,26 @@ namespace JJA.Anperi.Host
             }
         }
 
+        public bool Tray
+        {
+            get => _model.Tray;
+            set
+            {
+                _model.Tray = value;
+                OnPropertyChanged(nameof(Tray));
+            }
+        }
+
+        public bool Autostart
+        {
+            get => _model.Autostart;
+            set
+            {
+                _model.Autostart = value;
+                OnPropertyChanged(nameof(Autostart));
+            }
+        }
+
         public string Info1
         {
             get => _model.Info1;
