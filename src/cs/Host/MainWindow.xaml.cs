@@ -18,11 +18,7 @@ namespace JJA.Anperi.Host
 
         private void ButPair_Click(object sender, RoutedEventArgs e)
         {
-            _viewModel.PopupTitle = "pair";
-            var popup = new Popup();
-            popup.DataContext = this.DataContext;
-
-            popup.Show();
+            SpawnPopup("pair");
         }
 
         private void MainWindow_OnClosing(object sender, CancelEventArgs e)
@@ -47,13 +43,7 @@ namespace JJA.Anperi.Host
 
         private void ButRename_Click(object sender, RoutedEventArgs e)
         {
-            _viewModel.PopupTitle = "rename";
-            var popup = new Popup();
-            popup.DataContext = this.DataContext;
-            var item = (HostJsonApiObjectFactory.ApiPeripheral) PeriBox.SelectedItem;
-            popup.PeriId = item.id;
-
-            popup.Show();
+            SpawnPopup("rename");
         }
 
         private void ButDisconnect_Click(object sender, RoutedEventArgs e)
@@ -63,20 +53,23 @@ namespace JJA.Anperi.Host
 
         private void ButSendMessage_Click(object sender, RoutedEventArgs e)
         {
-            _viewModel.PopupTitle = "message";
-            var popup = new Popup();
-            popup.DataContext = this.DataContext;
-
-            popup.Show();
+            SpawnPopup("message");
         }
 
         private void ButOptions_Click(object sender, RoutedEventArgs e)
         {
-            _viewModel.PopupTitle = "options";
+            SpawnPopup("options");
+        }
+
+        private void SpawnPopup(string windowType)
+        {
+            _viewModel.PopupTitle = windowType;
             var popup = new Popup();
             popup.DataContext = this.DataContext;
-
-            popup.Show();
+            popup.WindowStartupLocation = WindowStartupLocation.Manual;
+            popup.Left = this.Left + (this.Width / 2);
+            popup.Top = this.Top + (this.Height - popup.Height) / 2;
+            popup.ShowDialog();
         }
     }
 }
