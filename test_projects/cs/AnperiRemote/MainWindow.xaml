@@ -3,10 +3,40 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:AnperiRemote"
+        xmlns:vm="clr-namespace:AnperiRemote.ViewModel"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="676.336">
-    <Grid>
-        
-    </Grid>
+        d:DataContext="{d:DesignInstance Type=vm:MainWindowDesignerViewModel, IsDesignTimeCreatable=True}"
+        Title="AnperiRemote" SizeToContent="WidthAndHeight">
+    <Window.DataContext>
+        <vm:MainWindowViewModel/>
+    </Window.DataContext>
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolTiVisCnvt" />
+    </Window.Resources>
+    <StackPanel>
+        <GroupBox Header="Controls to enable:" Margin="3" Padding="3">
+            <StackPanel>
+                <CheckBox Name="CbShutdownEnabled" Content="Button Shutdown" VerticalAlignment="Center" IsChecked="{Binding Path=SettingsModel.ShutdownControlEnabled}" />
+                <Grid VerticalAlignment="Center">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <CheckBox Grid.Column="0" Name="CbVolumeEnabled" Content="Slider Volume" VerticalAlignment="Center" IsChecked="{Binding Path=SettingsModel.VolumeControlEnabled}"/>
+                    <Label Grid.Row="1" Grid.Column="0" Visibility="{Binding ElementName=CbVolumeEnabled, Path=IsChecked, Converter={StaticResource BoolTiVisCnvt}}" Content="Current:" VerticalAlignment="Center" />
+                    <Slider Grid.Row="1" Name="SliderVolume" Visibility="{Binding ElementName=CbVolumeEnabled, Path=IsChecked, Converter={StaticResource BoolTiVisCnvt}}" Grid.Column="1" Width="120" Height="Auto" VerticalAlignment="Center" Margin="3,0"/>
+                </Grid>
+            </StackPanel>
+        </GroupBox>
+        <GroupBox Header="Settings:" Margin="3" Padding="3">
+            <StackPanel Orientation="Vertical">
+                <CheckBox Content="Autostart on logon" IsChecked="{Binding Path=SettingsModel.AutostartEnabled, Mode=TwoWay}"/>
+            </StackPanel>
+        </GroupBox>
+    </StackPanel>
 </Window>

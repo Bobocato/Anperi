@@ -37,5 +37,10 @@ namespace AnperiRemote.Utility
         {
             get { return Path.GetFileName(FullAssemblyPath); }
         }
+
+        public static string AssemblyNameWithoutExtension
+        {
+            get { return Path.GetFileNameWithoutExtension(FullAssemblyPath); }
+        }
     }
 }
