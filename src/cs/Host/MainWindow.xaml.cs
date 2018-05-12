@@ -10,7 +10,6 @@ namespace JJA.Anperi.Host
 
         public MainWindow()
         {
-            //TODO: rework UI
             _viewModel = new HostViewModel(Dispatcher);
             DataContext = _viewModel;
             InitializeComponent();

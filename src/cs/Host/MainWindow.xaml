@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:JJA.Anperi.Host"
         mc:Ignorable="d"
-        Title="Anperi" Height="350" Width="525"
-        MinHeight="350" MinWidth="525"
+        Title="Anperi" Height="350" Width="600"
+        ResizeMode="NoResize"
         Closing="MainWindow_OnClosing"
         d:DataContext="{d:DesignInstance local:HostViewModel}">
 	<Window.Resources>

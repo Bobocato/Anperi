@@ -30,7 +30,6 @@ namespace JJA.Anperi.Host
         private string _info2 = "";
         private string _info3 = "";
         private string _connectedTo = "";
-        private string _tokenPath = "token.txt";
         private string _favoritePath = "favorite.txt";
         private string _name = "";
         private bool _butDisconnectVisible = false;
@@ -40,10 +39,8 @@ namespace JJA.Anperi.Host
 
         private string _popupTitle = "";
 
-        private bool _tray = false;
-        private bool _autostart = false;
-        private string _wsAddress = "ws://localhost:5000/api/ws";
-        //private string _wsAddress = "wss://anperi.jannes-peters.com/api/ws";
+        //private string _wsAddress = "ws://localhost:5000/api/ws";
+        private string _wsAddress = "wss://anperi.jannes-peters.com/api/ws";
         private string _token = "";
         private int _favorite = -1;
         private WebSocket _ws;
@@ -55,45 +52,21 @@ namespace JJA.Anperi.Host
         private readonly List<IIpcClient> _ipcClients;
         private IIpcClient _curIpcClient;
 
-        public HostModel()
+        public HostModel(string token)
         {
+            Token = token;
             _periList = new List<HostJsonApiObjectFactory.ApiPeripheral>();
             _ipcClients = new List<IIpcClient>();
             _messages = new Queue<string>();
-            if (File.Exists(_tokenPath))
-            {
-                _token = File.ReadLines(_tokenPath).First();
-            }
             if (File.Exists(_favoritePath))
             {
-                _favorite = Int32.Parse(File.ReadLines(_tokenPath).First());
+                _favorite = Int32.Parse(File.ReadLines(_favoritePath).First());
             }
             InitializeWebSocket();
             InitializeIpcServer();
         }
 
         #region Properties
-
-        public bool Tray
-        {
-            get => _tray;
-            set
-            {
-                _tray = value;
-                OnPropertyChanged();
-                //TODO: maybe implement here
-            }
-        }
-
-        public bool Autostart
-        {
-            get => _autostart;
-            set
-            {
-                _autostart = value;
-                OnPropertyChanged();
-            }
-        }
 
         public string Info1
         {
@@ -142,6 +115,16 @@ namespace JJA.Anperi.Host
                 var tmp = from x in value orderby x.online descending select x;
                 _periList = tmp.ToList();
                 OnPropertyChanged(nameof(Peripherals));
+            }
+        }
+
+        public string Token
+        {
+            get => _token;
+            set
+            {
+                _token = value;
+                OnPropertyChanged();
             }
         }
 
@@ -324,7 +307,7 @@ namespace JJA.Anperi.Host
                             Info1 =
                                 "Current WebSocket-Address is: " + _wsAddress;
                         }
-                        if (_token.Equals(""))
+                        if (Token.Equals(""))
                         {
                             var name = Environment.MachineName;
                             var json =
@@ -337,7 +320,7 @@ namespace JJA.Anperi.Host
                         {
                             var json =
                                 SharedJsonApiObjectFactory.CreateLoginRequest(
-                                    _token, SharedJsonDeviceType.host);
+                                    Token, SharedJsonDeviceType.host);
                             string msg = json.Serialize();
                             _ws.Send(msg);
                         }
@@ -540,11 +523,8 @@ namespace JJA.Anperi.Host
                         }
                         else
                         {
-                            _token = "";
+                            Token = "";
                             QueueMessage("Login failed!");
-                            var writer = new StreamWriter(_tokenPath, false);
-                            writer.WriteLine("");
-                            writer.Close();
                         }
                     }
                     else
@@ -556,13 +536,9 @@ namespace JJA.Anperi.Host
                     break;
                 case SharedJsonRequestCode.register:
                     json.data.TryGetValue("token", out dynamic token);
-                    _token = token;
+                    Token = token;
                     json.data.TryGetValue("name", out dynamic name);
                     _name = name;
-
-                    var tokenStream = new StreamWriter(_tokenPath, false);
-                    tokenStream.WriteLine(_token);
-                    tokenStream.Close();
 
                     SendPeripheralRequest();
 

@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Text;
 using System.Windows.Threading;
 using JJA.Anperi.Internal.Api.Host;
 
@@ -12,24 +13,16 @@ namespace JJA.Anperi.Host
         private readonly Dispatcher _dispatcher;
         public event PropertyChangedEventHandler PropertyChanged;
         private readonly HostModel _model;
+        private readonly HostConfigModel _configModel;
         private ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral> _peripherals;
 
         public HostViewModel(Dispatcher dispatcher)
         {
             _dispatcher = dispatcher;
-            _model = new HostModel();
+            _configModel = new HostConfigModel();
+            _configModel.PropertyChanged += OnModelPropertyChanged;
+            _model = new HostModel(_configModel.DataModel.Token);
             _model.PropertyChanged += OnModelPropertyChanged;
-            _peripherals = new ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral>();
-            var test = new HostJsonApiObjectFactory.ApiPeripheral();
-            test.id = 7;
-            test.name = "Test1";
-            test.online = true;
-            _peripherals.Add(test);
-            var test2 = new HostJsonApiObjectFactory.ApiPeripheral();
-            test2.id = 7;
-            test2.name = "Test2";
-            test2.online = false;
-            _peripherals.Add(test2);
         }       
 
         public bool ButDisconnect
@@ -44,20 +37,20 @@ namespace JJA.Anperi.Host
 
         public bool Tray
         {
-            get => _model.Tray;
+            get => _configModel.DataModel.Tray;
             set
             {
-                _model.Tray = value;
+                _configModel.DataModel.Tray = value;
                 OnPropertyChanged(nameof(Tray));
             }
         }
 
         public bool Autostart
         {
-            get => _model.Autostart;
+            get => _configModel.DataModel.Autostart;
             set
             {
-                _model.Autostart = value;
+                _configModel.DataModel.Autostart = value;
                 OnPropertyChanged(nameof(Autostart));
             }
         }
@@ -120,7 +113,15 @@ namespace JJA.Anperi.Host
 
         public void Close()
         {
-            _model.Close();
+            if (Tray)
+            {
+                _configModel.ToTray();
+            }
+            else
+            {
+                _configModel.Save();
+                _model.Close();
+            }
         }
 
         public void Pair(string pairCode)
@@ -161,20 +162,24 @@ namespace JJA.Anperi.Host
         private void OnModelPropertyChanged(object sender,
             PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(HostModel.Peripherals))
+            switch (e.PropertyName)
             {
-                _dispatcher.Invoke(() =>
-                {
-                    _peripherals.Clear();
-                    _model.Peripherals.ForEach((a) =>
+                case nameof(HostModel.Peripherals):
+                    _dispatcher.Invoke(() =>
                     {
-                        _peripherals.Add(a);
+                        _peripherals.Clear();
+                        _model.Peripherals.ForEach((a) =>
+                        {
+                            _peripherals.Add(a);
+                        });
                     });
-                });
-            }
-            else
-            {
-                OnPropertyChanged(e.PropertyName);
+                    break;
+                case nameof(HostModel.Token):
+                    _configModel.DataModel.Token = _model.Token;
+                    break;
+                default:
+                    OnPropertyChanged(e.PropertyName);
+                    break;
             }
         }
 
