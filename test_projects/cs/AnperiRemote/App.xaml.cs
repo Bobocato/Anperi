@@ -20,7 +20,7 @@ namespace AnperiRemote
         protected override void OnStartup(StartupEventArgs e)
         {
             DispatcherUnhandledException += App_DispatcherUnhandledException;
-            bool _ = SettingsModel.Instance.AutostartEnabled;
+            SettingsModel _ = SettingsModel.Instance;
             this.ShutdownMode = ShutdownMode.OnExplicitShutdown;
             try
             {
@@ -40,7 +40,7 @@ namespace AnperiRemote
             {
                 switch (arg)
                 {
-                    case "-tray":
+                    case "-trayStart":
                         createUi = false;
                         break;
                     default:

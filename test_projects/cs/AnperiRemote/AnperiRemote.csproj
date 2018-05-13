@@ -8,11 +8,12 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>AnperiRemote</RootNamespace>
     <AssemblyName>AnperiRemote</AssemblyName>
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -34,6 +35,27 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="JJA.Anperi.Ipc.Client, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\JJA.Anperi.Ipc.Client.1.0.0\lib\netstandard2.0\JJA.Anperi.Ipc.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="JJA.Anperi.Ipc.Client.NamedPipe, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\JJA.Anperi.Ipc.Client.NamedPipe.1.0.0\lib\netstandard2.0\JJA.Anperi.Ipc.Client.NamedPipe.dll</HintPath>
+    </Reference>
+    <Reference Include="JJA.Anperi.Ipc.Common.NamedPipe, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\JJA.Anperi.Ipc.Common.NamedPipe.1.0.0\lib\netstandard2.0\JJA.Anperi.Ipc.Common.NamedPipe.dll</HintPath>
+    </Reference>
+    <Reference Include="JJA.Anperi.Ipc.Dto, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\JJA.Anperi.Ipc.Dto.1.0.0\lib\netstandard2.0\JJA.Anperi.Ipc.Dto.dll</HintPath>
+    </Reference>
+    <Reference Include="JJA.Anperi.Lib, Version=1.0.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\JJA.Anperi.Lib.1.0.3\lib\netstandard2.0\JJA.Anperi.Lib.dll</HintPath>
+    </Reference>
+    <Reference Include="JJA.Anperi.Utility, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\JJA.Anperi.Utility.1.0.0\lib\netstandard2.0\JJA.Anperi.Utility.dll</HintPath>
+    </Reference>
+    <Reference Include="NAudio, Version=1.8.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\NAudio.1.8.4\lib\net35\NAudio.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -60,13 +82,17 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="DAL\SettingsFile.cs" />
+    <Compile Include="Model\AnperiModel.cs" />
+    <Compile Include="Model\EventArgs.cs" />
     <Compile Include="Model\SettingsModel.cs" />
+    <Compile Include="Model\VolumeModel.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Utility\TrayHelper.cs" />
     <Compile Include="Utility\Util.cs" />
     <Compile Include="Utility\WpfUtil.cs" />
     <Compile Include="ViewModel\MainWindowDesignerViewModel.cs" />
     <Compile Include="ViewModel\MainWindowViewModel.cs" />
+    <Compile Include="ViewModel\SettingsDesignerViewModel.cs" />
     <Compile Include="ViewModel\SettingsViewModel.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

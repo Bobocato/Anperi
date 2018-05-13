@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
+using System.Windows.Input;
 using Microsoft.Win32;
 using Application = System.Windows.Application;
 using ContextMenu = System.Windows.Controls.ContextMenu;
@@ -231,6 +232,30 @@ namespace AnperiRemote.Utility
                 return true;
             }
             return _isFirstInstance;
+        }
+
+        public class RelayCommand : ICommand
+        {
+            private readonly Action<object> _action;
+            private readonly bool _canExecute;
+
+            public RelayCommand(Action<object> action, bool canExecute = true)
+            {
+                _action = action;
+                _canExecute = canExecute;
+            }
+
+            public bool CanExecute(object parameter)
+            {
+                return _canExecute;
+            }
+
+            public void Execute(object parameter)
+            {
+                if (_canExecute) _action(parameter);
+            }
+
+            public event EventHandler CanExecuteChanged;
         }
 
         private static void OnSecondInstanceStarted()
