@@ -102,6 +102,11 @@ namespace JJA.Anperi.Host
             {
                 _connectedTo = value;
                 ButDisconnect = value != "";
+                if (_connectedTo.Equals(""))
+                {
+                    _connectedPeripheral = -1;
+
+                }
                 _curIpcClient?.SendAsync(new IpcMessage(_connectedTo == "" ? IpcMessageCode.PeripheralDisconnected : IpcMessageCode.PeripheralConnected));
                 OnPropertyChanged(nameof(ConnectedTo));
             }
@@ -231,7 +236,7 @@ namespace JJA.Anperi.Host
                             case IpcMessageCode.ClaimControl:
                                 if (_curIpcClient != null)
                                 {
-                                    _curIpcClient.SendAsync(new IpcMessage(IpcMessageCode.ControlLost));
+                                    _curIpcClient?.SendAsync(new IpcMessage(IpcMessageCode.ControlLost));
                                     _curIpcClient = null;
                                 }
                                 _curIpcClient = (IIpcClient) o;
@@ -251,6 +256,12 @@ namespace JJA.Anperi.Host
                             case IpcMessageCode.Error:
                             default:
                                 throw new NotImplementedException($"Didnt implement: {messageType}");
+                        }
+
+                        if (_curIpcClient == null)
+                        {
+                            client.SendAsync(
+                                new IpcMessage(IpcMessageCode.NotClaimed));
                         }
                     };
                     client.StartReceive();
@@ -362,6 +373,8 @@ namespace JJA.Anperi.Host
                                     QueueMessage("Unknown device code!");
                                 }
                                 break;
+                            default:
+                                throw new NotImplementedException();
                         }
                     };
 
@@ -483,9 +496,7 @@ namespace JJA.Anperi.Host
                             }
                             else
                             {
-                                ConnectedTo =
-                                    "";
-                                _connectedPeripheral = -1;
+                                ConnectedTo = "";
                             }
                         }
                         else
@@ -567,6 +578,7 @@ namespace JJA.Anperi.Host
 
                     Info2 = "Your name is: " + _name;
                     break;
+                case SharedJsonRequestCode.set_own_name:
                 default:
                     throw new NotImplementedException(
                         $"Didnt implement: {code.ToString()}");
@@ -587,6 +599,8 @@ namespace JJA.Anperi.Host
                 case SharedJsonMessageCode.partner_disconnected:
                     ConnectedTo = "";
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(code), code, null);
             }
         }
 
