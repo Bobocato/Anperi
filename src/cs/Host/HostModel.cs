@@ -363,6 +363,9 @@ namespace JJA.Anperi.Host
                                 else if (Enum.TryParse(json.message_code, out SharedJsonMessageCode sharedMessage))
                                 {
                                     HandleSharedMessageCode(sharedMessage, json);
+                                }else if (Enum.TryParse(json.message_code, out HostMessage hostMessage))
+                                {
+
                                 }
                                 else
                                 {
@@ -408,6 +411,28 @@ namespace JJA.Anperi.Host
         }
 
         #region response handling
+
+        private void HandleHostMessageCode(HostMessage code, JsonApiObject json)
+        {
+            switch (code)
+            {
+                case HostMessage.paired_peripheral_logged_on:
+                case HostMessage.paired_peripheral_logged_off:
+                    if (json.data.TryGetValue("id", out int id))
+                    {
+                        foreach (var x in Peripherals)
+                        {
+                            if (x.id == id)
+                            {
+                                x.online = code == HostMessage.paired_peripheral_logged_on;
+                            }
+                        }
+                    }
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
 
         private void HandleHostRequestCode(HostRequestCode code,
     JsonApiObject json)
