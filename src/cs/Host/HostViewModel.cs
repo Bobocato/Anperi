@@ -21,7 +21,7 @@ namespace JJA.Anperi.Host
             _dispatcher = dispatcher;
             _configModel = new HostConfigModel();
             _configModel.PropertyChanged += OnModelPropertyChanged;
-            _model = new HostModel(_configModel.DataModel.Token);
+            _model = new HostModel(_configModel.DataModel.Token, _configModel.DataModel.Favorite);
             _model.PropertyChanged += OnModelPropertyChanged;
         }       
 
