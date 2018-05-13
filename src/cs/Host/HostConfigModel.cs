@@ -53,11 +53,6 @@ namespace JJA.Anperi.Host
             }
         }
 
-        public void ToTray()
-        {
-            //TODO: reduce to tray here
-        }
-
         public byte[] Protect(byte[] data)
         {
             //TODO: Salt = random Byte[], saved in config

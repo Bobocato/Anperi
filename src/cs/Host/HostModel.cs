@@ -502,6 +502,29 @@ namespace JJA.Anperi.Host
                     }
 
                     break;
+                case HostRequestCode.change_peripheral_name:
+                    if (json.data.TryGetValue("success",
+                        out dynamic renameSuccess))
+                    {
+                        if (renameSuccess)
+                        {
+                            SendPeripheralRequest();
+                        }
+                        else
+                        {
+                            QueueMessage(
+                                "Something went wrong in operation " +
+                                json.message_code + " !");
+                        }
+                    }
+                    else
+                    {
+                        Trace.TraceWarning(
+                            "success missed in rename response");
+                    }
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(code), code, null);
             }
         }
 
@@ -627,13 +650,10 @@ namespace JJA.Anperi.Host
 
         public void Rename(int id, string name)
         {
-            foreach (var x in Peripherals)
-            {
-                if (x.id == id)
-                {
-                    x.name = name;
-                }
-            }
+            var json =
+                HostJsonApiObjectFactory.CreateChangeNameRequest(id,
+                    name);
+            SendMessage(json.Serialize());
         }
 
         public void SendMessage(string message)

@@ -113,15 +113,8 @@ namespace JJA.Anperi.Host
 
         public void Close()
         {
-            if (Tray)
-            {
-                _configModel.ToTray();
-            }
-            else
-            {
-                _configModel.Save();
-                _model.Close();
-            }
+            _configModel.Save();
+            _model.Close();
         }
 
         public void Pair(string pairCode)
