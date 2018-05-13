@@ -101,7 +101,6 @@ namespace JJA.Anperi.Host
                 if (_connectedTo.Equals(""))
                 {
                     _connectedPeripheral = -1;
-
                 }
                 _curIpcClient?.SendAsync(new IpcMessage(_connectedTo == "" ? IpcMessageCode.PeripheralDisconnected : IpcMessageCode.PeripheralConnected));
                 OnPropertyChanged(nameof(ConnectedTo));
@@ -365,7 +364,7 @@ namespace JJA.Anperi.Host
                                     HandleSharedMessageCode(sharedMessage, json);
                                 }else if (Enum.TryParse(json.message_code, out HostMessage hostMessage))
                                 {
-
+                                    HandleHostMessageCode(hostMessage, json);
                                 }
                                 else
                                 {
@@ -425,6 +424,10 @@ namespace JJA.Anperi.Host
                             if (x.id == id)
                             {
                                 x.online = code == HostMessage.paired_peripheral_logged_on;
+                                if (x.id == _connectedPeripheral)
+                                {
+                                    ConnectedTo = "";
+                                }
                             }
                         }
                     }
