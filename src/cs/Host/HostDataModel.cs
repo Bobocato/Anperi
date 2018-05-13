@@ -17,6 +17,7 @@ namespace JJA.Anperi.Host
         private bool _tray = false;
         private bool _autostart = false;
         private string _token = "";
+        private int _favorite = -1;
 
         public bool Tray
         {
@@ -25,6 +26,16 @@ namespace JJA.Anperi.Host
             {
                 if (_tray == value) return;
                 _tray = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int Favorite
+        {
+            get => _favorite;
+            set
+            {
+                _favorite = value;
                 OnPropertyChanged();
             }
         }
@@ -54,9 +65,11 @@ namespace JJA.Anperi.Host
         [field: NonSerialized]
         public event PropertyChangedEventHandler PropertyChanged;
 
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        protected virtual void OnPropertyChanged(
+            [CallerMemberName] string propertyName = null)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            PropertyChanged?.Invoke(this,
+                new PropertyChangedEventArgs(propertyName));
         }
     }
 }

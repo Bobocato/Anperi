@@ -129,7 +129,7 @@ namespace JJA.Anperi.Host
 
         public void Favorite(object item)
         {
-            _model.Favorite(item);
+            _model.Favorite = ((HostJsonApiObjectFactory.ApiPeripheral) item).id;
         }
 
         public void Rename(int id, string name)
@@ -169,6 +169,9 @@ namespace JJA.Anperi.Host
                     break;
                 case nameof(HostModel.Token):
                     _configModel.DataModel.Token = _model.Token;
+                    break;
+                case nameof(HostModel.Favorite):
+                    _configModel.DataModel.Favorite = _model.Favorite;
                     break;
                 default:
                     OnPropertyChanged(e.PropertyName);

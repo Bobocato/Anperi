@@ -30,7 +30,6 @@ namespace JJA.Anperi.Host
         private string _info2 = "";
         private string _info3 = "";
         private string _connectedTo = "";
-        private string _favoritePath = "favorite.txt";
         private string _name = "";
         private bool _butDisconnectVisible = false;
 
@@ -52,16 +51,13 @@ namespace JJA.Anperi.Host
         private readonly List<IIpcClient> _ipcClients;
         private IIpcClient _curIpcClient;
 
-        public HostModel(string token)
+        public HostModel(string token, int favorite)
         {
             Token = token;
+            _favorite = favorite;
             _periList = new List<HostJsonApiObjectFactory.ApiPeripheral>();
             _ipcClients = new List<IIpcClient>();
             _messages = new Queue<string>();
-            if (File.Exists(_favoritePath))
-            {
-                _favorite = Int32.Parse(File.ReadLines(_favoritePath).First());
-            }
             InitializeWebSocket();
             InitializeIpcServer();
         }
@@ -109,6 +105,16 @@ namespace JJA.Anperi.Host
                 }
                 _curIpcClient?.SendAsync(new IpcMessage(_connectedTo == "" ? IpcMessageCode.PeripheralDisconnected : IpcMessageCode.PeripheralConnected));
                 OnPropertyChanged(nameof(ConnectedTo));
+            }
+        }
+
+        public int Favorite
+        {
+            get => _favorite;
+            set
+            {
+                _favorite = value;
+                OnPropertyChanged();
             }
         }
 
@@ -743,15 +749,6 @@ namespace JJA.Anperi.Host
                     }
                 }
             });
-        }
-
-        public void Favorite(object item)
-        {
-            var peripheral = (HostJsonApiObjectFactory.ApiPeripheral) item;
-            _favorite = peripheral.id;
-            var writer = new StreamWriter(_favoritePath, false);
-            writer.WriteLine("" + _favorite);
-            writer.Close();
         }
 
         public void Close()
