@@ -44,8 +44,10 @@ namespace JJA.Anperi.Ipc.Client.NamedPipe
                     _streamOut.ConnectAsync(2000, _cts.Token)
                 ).ConfigureAwait(false);
 
-                StreamString.WriteString(_streamIn, _token);
-                StreamString.WriteString(_streamOut, _token);
+                await Task.WhenAll(
+                    StreamString.WriteStringAsync(_streamIn, _token, ct),
+                    StreamString.WriteStringAsync(_streamOut, _token, ct)
+                ).ConfigureAwait(false);
                 
                 _ss = new StreamString(_streamIn, _streamOut);
                 string res = await _ss.ReadStringAsync(_cts.Token).ConfigureAwait(false);
