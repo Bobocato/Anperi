@@ -362,16 +362,16 @@ namespace JJA.Anperi.Server
                         {
                             _partner = conn;
                             conn.PartnerConnect(this);
-                            await _socket.SendJson(HostJsonApiObjectFactory.CreateConnectToPeripheralResponse(true));
+                            await _socket.SendJson(HostJsonApiObjectFactory.CreateConnectToPeripheralResponse(true, id));
                         }
                         else
                         {
-                            await _socket.SendJson(HostJsonApiObjectFactory.CreateConnectToPeripheralResponse(false));
+                            await _socket.SendJson(HostJsonApiObjectFactory.CreateConnectToPeripheralResponse(false, -1));
                         }
                     }
                     else
                     {
-                        await _socket.SendJson(HostJsonApiObjectFactory.CreateConnectToPeripheralResponse(false));
+                        await _socket.SendJson(HostJsonApiObjectFactory.CreateConnectToPeripheralResponse(false, -1));
                     }
                     break;
                 case HostRequestCode.disconnect_from_peripheral:
