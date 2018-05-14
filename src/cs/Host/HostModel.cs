@@ -102,7 +102,8 @@ namespace JJA.Anperi.Host
                 {
                     _connectedPeripheral = -1;
                 }
-                _curIpcClient?.SendAsync(new IpcMessage(_connectedTo == "" ? IpcMessageCode.PeripheralDisconnected : IpcMessageCode.PeripheralConnected));
+
+                _ipcClients.AsParallel().ForAll(c => c.SendAsync(new IpcMessage(_connectedTo == "" ? IpcMessageCode.PeripheralDisconnected : IpcMessageCode.PeripheralConnected)));                
                 OnPropertyChanged(nameof(ConnectedTo));
             }
         }
@@ -262,14 +263,14 @@ namespace JJA.Anperi.Host
                             default:
                                 throw new NotImplementedException($"Didnt implement: {messageType}");
                         }
-
-                        if (_curIpcClient == null)
-                        {
-                            client.SendAsync(
-                                new IpcMessage(IpcMessageCode.NotClaimed));
-                        }
                     };
                     client.StartReceive();
+
+                    if (_curIpcClient == null)
+                    {
+                        client.SendAsync(
+                            new IpcMessage(IpcMessageCode.NotClaimed));
+                    }
 
                     if (_connectedPeripheral != -1)
                     {
