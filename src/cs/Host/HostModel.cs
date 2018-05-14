@@ -38,8 +38,8 @@ namespace JJA.Anperi.Host
 
         private string _popupTitle = "";
 
-        //private string _wsAddress = "ws://localhost:49801/api/ws";
-        private string _wsAddress = "wss://anperi.jannes-peters.com/api/ws";
+        private string _wsAddress = "ws://localhost:5000/api/ws";
+        //private string _wsAddress = "wss://anperi.jannes-peters.com/api/ws";
         private string _token = "";
         private int _favorite = -1;
         private WebSocket _ws;
@@ -727,7 +727,7 @@ namespace JJA.Anperi.Host
             var json =
                 HostJsonApiObjectFactory.CreateChangeNameRequest(id,
                     name);
-            SendMessage(json.Serialize());
+            SendToWebsocket(json.Serialize());
         }
 
         public void SendMessage(string message)

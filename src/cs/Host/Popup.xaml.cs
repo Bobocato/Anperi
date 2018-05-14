@@ -18,9 +18,8 @@ namespace JJA.Anperi.Host
         private void ButOkay_Click(object sender, RoutedEventArgs e)
         {
             var viewModel = (HostViewModel)DataContext;
-            var windowType = viewModel.PopupTitle;
 
-            switch (windowType)
+            switch (viewModel.PopupTitle)
             {
                 case "pair":
                     viewModel.Pair(InputBox.Text);
