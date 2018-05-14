@@ -27,7 +27,7 @@
 						<Label.Style>
 							<Style TargetType="Label">
 								<Style.Triggers>
-									<DataTrigger Binding="{Binding Path=online}" Value="True">
+									<DataTrigger Binding="{Binding Path=online, UpdateSourceTrigger=PropertyChanged}" Value="True">
 										<Setter Property="FontWeight" Value="Bold"/>
 									</DataTrigger>
 								</Style.Triggers>

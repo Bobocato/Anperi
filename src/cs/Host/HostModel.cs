@@ -421,14 +421,13 @@ namespace JJA.Anperi.Host
                     {
                         foreach (var x in Peripherals)
                         {
-                            if (x.id == id)
+                            if (x.id != id) continue;
+                            x.online = code == HostMessage.paired_peripheral_logged_on;
+                            if (x.id == _connectedPeripheral)
                             {
-                                x.online = code == HostMessage.paired_peripheral_logged_on;
-                                if (x.id == _connectedPeripheral)
-                                {
-                                    ConnectedTo = "";
-                                }
+                                ConnectedTo = "";
                             }
+                            OnPropertyChanged(nameof(Peripherals));
                         }
                     }
                     break;
@@ -555,12 +554,13 @@ namespace JJA.Anperi.Host
                         {
                             if (json.data.TryGetValue("id", out int id))
                             {
-                                foreach (var x in _periList)
+                                foreach (var x in Peripherals)
                                 {
                                     if (x.id != id) continue;
                                     if (json.data.TryGetValue("name", out string name))
                                     {
                                         x.name = name;
+                                        OnPropertyChanged(nameof(Peripherals));
                                     }
                                     else
                                     {
