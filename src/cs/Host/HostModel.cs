@@ -38,8 +38,8 @@ namespace JJA.Anperi.Host
 
         private string _popupTitle = "";
 
-        private string _wsAddress = "ws://localhost:49801/api/ws";
-        //private string _wsAddress = "wss://anperi.jannes-peters.com/api/ws";
+        //private string _wsAddress = "ws://localhost:49801/api/ws";
+        private string _wsAddress = "wss://anperi.jannes-peters.com/api/ws";
         private string _token = "";
         private int _favorite = -1;
         private WebSocket _ws;
@@ -553,7 +553,27 @@ namespace JJA.Anperi.Host
                     {
                         if (renameSuccess)
                         {
-                            SendPeripheralRequest();
+                            if (json.data.TryGetValue("id", out int id))
+                            {
+                                foreach (var x in _periList)
+                                {
+                                    if (x.id != id) continue;
+                                    if (json.data.TryGetValue("name", out string name))
+                                    {
+                                        x.name = name;
+                                    }
+                                    else
+                                    {
+                                        Trace.TraceWarning(
+                                            "name missed in rename response");
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                Trace.TraceWarning(
+                                    "id missed in rename response");
+                            }
                         }
                         else
                         {

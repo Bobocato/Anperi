@@ -43,7 +43,7 @@
 				</Style>
 			</ListBox.ItemContainerStyle>
 		</ListBox>
-		<TextBlock HorizontalAlignment="Left" Margin="187,10,0,0" TextWrapping="Wrap" Text="{Binding ConnectedTo, StringFormat='Connected to: {0}', UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Height="16" Width="178"/>
+		<TextBlock HorizontalAlignment="Left" Margin="187,14,0,0" TextWrapping="Wrap" Text="{Binding ConnectedTo, StringFormat='Connected to: {0}', UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Height="16" Width="178"/>
 		<Button Visibility="{Binding ButDisconnect, Converter={StaticResource BoolToVis}, FallbackValue=Visible}" Content="Disconnect" Margin="395,10,10,0" VerticalAlignment="Top" Height="25" Click="ButDisconnect_Click" HorizontalAlignment="Stretch" Width="Auto"/>
 		<TextBlock Text="{Binding Info3, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Margin="187,245,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="17"/>
 		<TextBlock Text="{Binding Info2, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Margin="187,267,0,0" TextWrapping="Wrap" VerticalAlignment="Top" RenderTransformOrigin="2.301,0.272"/>
