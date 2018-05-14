@@ -38,8 +38,8 @@ namespace JJA.Anperi.Host
 
         private string _popupTitle = "";
 
-        //private string _wsAddress = "ws://localhost:5000/api/ws";
-        private string _wsAddress = "wss://anperi.jannes-peters.com/api/ws";
+        private string _wsAddress = "ws://localhost:49801/api/ws";
+        //private string _wsAddress = "wss://anperi.jannes-peters.com/api/ws";
         private string _token = "";
         private int _favorite = -1;
         private WebSocket _ws;
@@ -401,7 +401,7 @@ namespace JJA.Anperi.Host
 
                     _ws.OnError += (sender, e) =>
                     {
-                        Console.WriteLine("Error in WebSocket connection: " + e);
+                        Console.WriteLine("Error in WebSocket connection: " + e.Exception);
                     };
 
                     _ws.Connect();
@@ -698,6 +698,11 @@ namespace JJA.Anperi.Host
 
         public void Rename(int id, string name)
         {
+            if (id == -1)
+            {
+                Console.WriteLine("Can't send to id -1!");
+                return;
+            }
             var json =
                 HostJsonApiObjectFactory.CreateChangeNameRequest(id,
                     name);

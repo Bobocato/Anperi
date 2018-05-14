@@ -11,6 +11,12 @@
         d:DataContext="{d:DesignInstance local:HostViewModel}">
 	<Window.Resources>
 		<BooleanToVisibilityConverter x:Key="BoolToVis" />
+		<ContextMenu x:Key="MyMenu">
+			<MenuItem Header="Rename" Click="ButRename_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}"/>
+			<MenuItem Header="Favorite" Click="ButFavorite_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}"/>
+			<MenuItem Header="Unpair" Click="ButUnpair_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}" />
+			<MenuItem Header="Connect" Click="ButConnect_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}"/>
+		</ContextMenu>
 	</Window.Resources>
 	<Grid>
 		<TextBlock x:Name="InfoBlock" Margin="187,288,0,0" TextWrapping="Wrap" Text="{Binding Path = Info1, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Height="16" VerticalAlignment="Top"/>
@@ -27,20 +33,13 @@
 								</Style.Triggers>
 							</Style>
 						</Label.Style>
-						<Label.ContextMenu>
-							<ContextMenu>
-								<MenuItem Header="Rename" Click="ButRename_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}"/>
-								<MenuItem Header="Favorite" Click="ButFavorite_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}"/>
-								<MenuItem Header="Unpair" Click="ButUnpair_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}" />
-								<MenuItem Header="Connect" Click="ButConnect_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}"/>
-							</ContextMenu>
-						</Label.ContextMenu>
 					</Label>
 				</DataTemplate>
 			</ListBox.ItemTemplate>
 			<ListBox.ItemContainerStyle>
 				<Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource {x:Type ListBoxItem}}">
 					<EventSetter Event="MouseDoubleClick" Handler="ButConnect_Click"/>
+					<Setter Property="ContextMenu" Value="{StaticResource MyMenu}"></Setter>
 				</Style>
 			</ListBox.ItemContainerStyle>
 		</ListBox>
@@ -54,7 +53,5 @@
 			<Button Content="Send Message" Click="ButSendMessage_Click" Margin="10,160,10,0" Height="25" VerticalAlignment="Top"/>
 			<Button Content="Options" Click="ButOptions_Click" Margin="10,85,10,0" Height="25" VerticalAlignment="Top"/>
 		</Grid>
-
-
 	</Grid>
 </Window>

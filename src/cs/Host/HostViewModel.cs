@@ -14,11 +14,12 @@ namespace JJA.Anperi.Host
         public event PropertyChangedEventHandler PropertyChanged;
         private readonly HostModel _model;
         private readonly HostConfigModel _configModel;
-        private ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral> _peripherals;
+        private readonly ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral> _peripherals;
 
         public HostViewModel(Dispatcher dispatcher)
         {
             _dispatcher = dispatcher;
+            _peripherals = new ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral>();
             _configModel = new HostConfigModel();
             _configModel.PropertyChanged += OnModelPropertyChanged;
             _model = new HostModel(_configModel.DataModel.Token, _configModel.DataModel.Favorite);
@@ -166,6 +167,7 @@ namespace JJA.Anperi.Host
                             _peripherals.Add(a);
                         });
                     });
+                    OnPropertyChanged(nameof(Peripherals));
                     break;
                 case nameof(HostModel.Token):
                     _configModel.DataModel.Token = _model.Token;

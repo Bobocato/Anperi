@@ -64,6 +64,11 @@ namespace JJA.Anperi.Host
         {
             _viewModel.PopupTitle = windowType;
             var popup = new Popup();
+            if (windowType == "rename")
+            {
+                var item = (HostJsonApiObjectFactory.ApiPeripheral)PeriBox.SelectedItem;
+                popup.PeriId = item.id;
+            }
             popup.DataContext = this.DataContext;
             popup.WindowStartupLocation = WindowStartupLocation.Manual;
             popup.Left = this.Left + (this.Width / 2);
