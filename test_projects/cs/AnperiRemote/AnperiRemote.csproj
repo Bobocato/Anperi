@@ -87,6 +87,8 @@
     <Compile Include="Model\SettingsModel.cs" />
     <Compile Include="Model\VolumeModel.cs" />
     <Compile Include="Properties\Annotations.cs" />
+    <Compile Include="Utility\PInvokeImports.cs" />
+    <Compile Include="Utility\ShutdownHelper.cs" />
     <Compile Include="Utility\TrayHelper.cs" />
     <Compile Include="Utility\Util.cs" />
     <Compile Include="Utility\WpfUtil.cs" />
