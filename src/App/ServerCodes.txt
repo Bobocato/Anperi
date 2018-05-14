@@ -24,10 +24,10 @@ while(ul.childElementCount > 0){
   "message_type": "request",
   "message_code": "pair",
   "data": {
-    "code": "335642"
+    "code": "325549"
   }
 }
-//Get Pairebels:
+//Get Peripherals:
 {
   "context": "server",
   "message_type": "request",
@@ -138,6 +138,6 @@ while(ul.childElementCount > 0){
   "data": {
     "id": "Button",
     "param_name": "text",
-    "param_value": "Nicht mehr Submit"
+    "param_value": "Hallo OMEGALUL"
   }
 }
