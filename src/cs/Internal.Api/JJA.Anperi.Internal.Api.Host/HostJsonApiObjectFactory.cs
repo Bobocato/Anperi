@@ -69,11 +69,12 @@ namespace JJA.Anperi.Internal.Api.Host
             };
             return CreateContextServer(JsonApiMessageTypes.request, HostRequestCode.connect_to_peripheral, data);
         }
-        public static JsonApiObject CreateConnectToPeripheralResponse(bool success)
+        public static JsonApiObject CreateConnectToPeripheralResponse(bool success, int periId)
         {
             Dictionary<string, dynamic> data = new Dictionary<string, dynamic>
             {
-                {"success", success}
+                {"success", success},
+                {"id", periId}
             };
             return CreateContextServer(JsonApiMessageTypes.response, HostRequestCode.connect_to_peripheral, data);
         }

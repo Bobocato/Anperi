@@ -9,6 +9,6 @@
         public float row_weight { get; set; } = 1.0f;
         public float column_weight { get; set; } = 1.0f;
         public abstract string type { get; }
-        public int id { get; set; }
+        public string id { get; set; }
     }
 }

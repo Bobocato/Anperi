@@ -362,16 +362,16 @@ namespace JJA.Anperi.Server
                         {
                             _partner = conn;
                             conn.PartnerConnect(this);
-                            await _socket.SendJson(HostJsonApiObjectFactory.CreateConnectToPeripheralResponse(true));
+                            await _socket.SendJson(HostJsonApiObjectFactory.CreateConnectToPeripheralResponse(true, id));
                         }
                         else
                         {
-                            await _socket.SendJson(HostJsonApiObjectFactory.CreateConnectToPeripheralResponse(false));
+                            await _socket.SendJson(HostJsonApiObjectFactory.CreateConnectToPeripheralResponse(false, -1));
                         }
                     }
                     else
                     {
-                        await _socket.SendJson(HostJsonApiObjectFactory.CreateConnectToPeripheralResponse(false));
+                        await _socket.SendJson(HostJsonApiObjectFactory.CreateConnectToPeripheralResponse(false, -1));
                     }
                     break;
                 case HostRequestCode.disconnect_from_peripheral:
@@ -382,17 +382,18 @@ namespace JJA.Anperi.Server
                 case HostRequestCode.change_peripheral_name:
                     if (message.data.TryGetValue("name", out string newName) && message.data.TryGetValue("id", out int periId))
                     {
-                        Peripheral p = _db.Peripherals.Find(periId);
-                        if (p != null)
+                        HostPeripheral hp = _db.HostPeripherals.SingleOrDefault(e => e.HostId == _device.Id && e.PeripheralId == periId);
+                        if (hp == null)
                         {
-                            p.Name = newName;
-                            _db.SaveChanges();
                             await _socket.SendJson(
-                                SharedJsonApiObjectFactory.CreateChangeOwnNameResponse(true, newName));
+                                HostJsonApiObjectFactory.CreateChangeNameResponse(false, null, periId));
+                            return;
                         }
-                        else await _socket.SendJson(
-                            SharedJsonApiObjectFactory.CreateChangeOwnNameResponse(false, null));
-
+                        Peripheral p = hp.Peripheral;
+                        p.Name = newName;
+                        _db.SaveChanges();
+                        await _socket.SendJson(
+                            SharedJsonApiObjectFactory.CreateChangeOwnNameResponse(true, newName));
                     }
                     else
                     {

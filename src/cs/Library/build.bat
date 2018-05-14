@@ -1,1 +1,0 @@
-nuget pack JJA.Anperi.Lib.csproj -Symbols -OutputDirectory ..\nugetOut -IncludeReferencedProjects

@@ -1,0 +1,56 @@
+﻿<Window x:Class="AnperiRemote.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:AnperiRemote.ViewModel"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=vm:MainWindowDesignerViewModel, IsDesignTimeCreatable=True}"
+        Title="AnperiRemote" SizeToContent="WidthAndHeight" ResizeMode="CanMinimize">
+    <Window.DataContext>
+        <vm:MainWindowViewModel/>
+    </Window.DataContext>
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolTiVisCnvt" />
+    </Window.Resources>
+    <StackPanel>
+        <GroupBox Header="Controls to enable:" Margin="3" Padding="3">
+            <StackPanel>
+                <CheckBox Name="CbShutdownEnabled" Content="Button Shutdown" VerticalAlignment="Center" IsChecked="{Binding Path=SettingsViewModel.Model.ShutdownControlEnabled}" />
+                <Grid VerticalAlignment="Center">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <CheckBox Grid.Column="0" Name="CbVolumeEnabled" Content="Slider Volume" VerticalAlignment="Center" IsChecked="{Binding Path=SettingsViewModel.Model.VolumeControlEnabled}"/>
+                    <TextBlock Grid.Row="1" Grid.Column="0" Visibility="{Binding ElementName=CbVolumeEnabled, Path=IsChecked, Converter={StaticResource BoolTiVisCnvt}}" Text="{Binding Path=VolumeText, StringFormat=Current: {0}}" VerticalAlignment="Center" />
+                    <Slider Grid.Row="1" Name="SliderVolume" Visibility="{Binding ElementName=CbVolumeEnabled, Path=IsChecked, Converter={StaticResource BoolTiVisCnvt}}" Value="{Binding Path=Volume}" Grid.Column="2" Width="120" Height="Auto" VerticalAlignment="Center" Margin="3,0" Maximum="100" SmallChange="1" LargeChange="5"/>
+                </Grid>
+            </StackPanel>
+        </GroupBox>
+        <GroupBox Header="Settings:" Margin="3" Padding="3">
+            <StackPanel Orientation="Vertical">
+                <CheckBox Content="Autostart on logon" IsChecked="{Binding Path=SettingsViewModel.Model.AutostartEnabled, Mode=TwoWay}" Command="{Binding SettingsViewModel.AutostartChangedCommand}" CommandParameter="{Binding IsChecked, RelativeSource={RelativeSource Self}}"/>
+            </StackPanel>
+        </GroupBox>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Rectangle Grid.Column="1" Fill="{Binding Path=IpcStatusBrush}" Width="20" Height="20" VerticalAlignment="Top" Margin="0,5,5,0"/>
+            <Expander Padding="3" Grid.ColumnSpan="2" Grid.Column="0" Header="Anperi Ipc Status" IsExpanded="False">
+                <StackPanel>
+                    <Label Content="{Binding Path=AnperiConnectionStatus}" />
+                    <Label Content="{Binding Path=HasPeripheral}" />
+                    <Label Content="{Binding Path=HasControl}" />
+                </StackPanel>
+            </Expander>
+        </Grid>
+    </StackPanel>
+</Window>

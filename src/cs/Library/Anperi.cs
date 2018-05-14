@@ -29,8 +29,9 @@ namespace JJA.Anperi.Lib
             _ipcClient.ConnectAsync();
         }
 
-        public bool IsConnected => _ipcClient.IsOpen;
-        public bool HasControl { get; private set; }
+        public bool IsConnected => _ipcClient?.IsOpen ?? false;
+        public bool HasControl { get; private set; } = false;
+        public bool IsPeripheralConnected { get; private set; } = false;
 
         public async Task ClaimControl()
         {
@@ -56,6 +57,20 @@ namespace JJA.Anperi.Lib
             await _ipcClient.SendAsync(new IpcMessage {MessageCode = IpcMessageCode.SetPeripheralLayout, Data = new Dictionary<string, dynamic>{{"grid", layout}}}).ConfigureAwait(false);
         }
 
+        public async Task UpdateElementParam(string elementId, string paramName, dynamic value)
+        {
+            if (!HasControl) throw new InvalidOperationException("We aren't in control of the device.");
+            await _ipcClient.SendAsync(new IpcMessage(IpcMessageCode.SetPeripheralElementParam)
+            {
+                Data = new Dictionary<string, dynamic>
+                {
+                    {"param_name", paramName},
+                    {"param_value", value},
+                    {"id", elementId}
+                }
+            });
+        }
+
         private async void _ipcClient_Error(object sender, System.IO.ErrorEventArgs e)
         {
             Util.TraceException("IIpcClient encountered error", e.GetException());
@@ -79,7 +94,7 @@ namespace JJA.Anperi.Lib
                 await Task.Delay(1000);
                 Trace.TraceInformation("Reconnecting now ...");
                 if (!_ipcClient.IsOpen) await _ipcClient.ConnectAsync();
-            });
+            }).ConfigureAwait(false);
         }
 
         private void _ipcClient_MessageReceived(object sender, IpcMessageEventArgs e)
@@ -102,9 +117,11 @@ namespace JJA.Anperi.Lib
                     OnMessage(new EventFiredAnperiMessage(e.Message.Data));
                     break;
                 case IpcMessageCode.PeripheralDisconnected:
+                    IsPeripheralConnected = false;
                     OnPeripheralDisconnected();
                     break;
                 case IpcMessageCode.PeripheralConnected:
+                    IsPeripheralConnected = true;
                     OnPeripheralConnected();
                     break;
                 case IpcMessageCode.ControlLost:

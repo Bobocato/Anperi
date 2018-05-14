@@ -34,9 +34,9 @@ namespace JJA.Anperi.Lib.Message
             }
         }
 
-        public int ElementId
+        public string ElementId
         {
-            get => base.Data.TryGetValue("id", out int val) ? val : default(int);
+            get => base.Data.TryGetValue("id", out string val) ? val : default(string);
             set => base.Data["id"] = value;
         }
 

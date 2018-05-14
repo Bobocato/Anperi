@@ -10,6 +10,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.SeekBar;
@@ -54,6 +56,11 @@ public class CreateFragment extends Fragment {
         }
     }
 
+    public void onResume() {
+        isStarted = true;
+        super.onResume();
+    }
+
     //Reset isStarted on stop...
     public void onStop() {
         super.onStop();
@@ -66,7 +73,7 @@ public class CreateFragment extends Fragment {
         if (isStarted) createLayout(json);
     }
 
-    public void createLayout(JSONObject json) {
+    private void createLayout(JSONObject json) {
         try {
             Log.v(TAG, "createLayout was called");
             removeLayout();
@@ -85,10 +92,11 @@ public class CreateFragment extends Fragment {
     //Check for isStarted and call changeElement
     public void setElement(JSONObject json) {
         currentElement = json;
+        //changeElement(json);
         if (isStarted) changeElement(json);
     }
 
-    public void changeElement(JSONObject json) {
+    private void changeElement(JSONObject json) {
         try {
             //Get View
             View view = this.getView().findViewWithTag(json.getString("id"));
@@ -191,7 +199,7 @@ public class CreateFragment extends Fragment {
                         }
                         break;
                     default:
-                        MyWebSocket.sendError("Not familiar with this parameter" + json.getString("param_name"));
+                        MyWebSocket.sendError("Not familiar with this parameter " + json.getString("param_name"));
                 }
             }
         } catch (JSONException e) {
@@ -252,6 +260,7 @@ public class CreateFragment extends Fragment {
                         (float) currentElement.getDouble("column_span"));
                 String text, hint, id;
                 int min, max, progress, step_size;
+                Boolean checked;
                 switch (currentElement.getString("type")) {
                     case "grid":
                         android.support.v7.widget.GridLayout subGrid = createGrid(currentElement.getJSONArray("elements"));
@@ -268,6 +277,24 @@ public class CreateFragment extends Fragment {
                         Space space = createSpaceView(id);
                         space.setLayoutParams(params);
                         grid.addView(space);
+                        break;
+                    case "checkbox":
+                        try {
+                            id = currentElement.getString("id");
+                        } catch (Exception e) {
+                            MyWebSocket.sendError("No ID given to spacer...");
+                            break;
+                        }
+                        try{
+                            checked = currentElement.getBoolean("checked");
+                        } catch (Exception e){
+                            MyWebSocket.sendError("No checked value set (Used false)");
+                            checked = false;
+                        }
+                        CheckBox checkBox = createCheckBox(id);
+                        checkBox.setLayoutParams(params);
+                        checkBox.setChecked(checked);
+                        grid.addView(checkBox);
                         break;
                     case "label":
                         try {
@@ -367,6 +394,24 @@ public class CreateFragment extends Fragment {
         space.setOnClickListener(onClickListener(id));
         space.setOnLongClickListener(onLongClickListener(id));
         return space;
+    }
+
+    private CheckBox createCheckBox(final String id){
+        CheckBox checkBox = new CheckBox(getActivity());
+        checkBox.setTag(id);
+        checkBox.setOnClickListener(onClickListener(id));
+        checkBox.setOnLongClickListener(onLongClickListener(id));
+        checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                try {
+                    dataClick("checkbox", id, new JSONObject().put("checked",b));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        return checkBox;
     }
 
     private TextView createTextView(final String id, String text) {

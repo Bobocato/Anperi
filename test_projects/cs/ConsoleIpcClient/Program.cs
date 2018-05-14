@@ -24,7 +24,7 @@ namespace ConsoleIpcClient
                 client.Closed += Client_Closed;
                 client.Error += Client_Error;
                 client.MessageReceived += Client_MessageReceived;
-                client.Connect();
+                client.ConnectAsync();
                 bool stop = false;
                 while (!stop)
                 {
