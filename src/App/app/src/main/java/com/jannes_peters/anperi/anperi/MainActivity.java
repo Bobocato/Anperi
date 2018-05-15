@@ -1,5 +1,6 @@
 package com.jannes_peters.anperi.anperi;
 
+import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
@@ -33,6 +34,9 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "jja.anperi";
     private final boolean debug = false;
+
+    private boolean isRunning = false;
+
     private String serverUrl = "";
 
     private int version;
@@ -48,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        isRunning = true;
         //Get Version
         try {
             PackageInfo pInfo = this.getPackageManager().getPackageInfo(getPackageName(), 0);
@@ -59,46 +64,49 @@ public class MainActivity extends AppCompatActivity {
         //Get Screenmetrics
         metrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
-        //showLoad();
         //Check for savedStates and get the Status
         StatusObject.getInstance();
         if (savedInstanceState != null) {
             Log.v(TAG, "The SavedInstance was not null");
             if (savedInstanceState.getBoolean("isCustomLayout")) {
                 Log.v(TAG, "Reload with custom layout");
-                try {
+                addWsListeners();
+                Log.v(TAG, "The saved Layout is: " + savedInstanceState.getString("layoutString"));
+                CreateFragment crf = (CreateFragment) getFragmentManager().findFragmentByTag("createFrag");
+                if (crf == null) {
+                    //The fragment isn't added until now.. Add one
                     showLoad();
-                    CreateFragment createFrag = (CreateFragment) getFragmentManager().findFragmentByTag("createFrag");
-                    Log.v(TAG, "The saved Layout is: " + savedInstanceState.getString("layoutString"));
-                    createFrag.setLayout(new JSONObject(savedInstanceState.getString("layoutString")));
+                    StatusObject.layoutString = savedInstanceState.getString("layoutString");
                     showCreate();
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                } else {
+                    //The fragment is already here
+                    StatusObject.layoutString = savedInstanceState.getString("layoutString");
+                    showCreate();
                 }
+
             } else if (savedInstanceState.getBoolean("isLoggedIn")) {
                 //Logged in but no Layout set... -> Show the Key
                 Log.v(TAG, "Reload the pairing Code");
+                addWsListeners();
                 KeyFragment keyFrag = (KeyFragment) getFragmentManager().findFragmentByTag("keyFrag");
                 keyFrag.setCode(savedInstanceState.getString("pairingCode"));
-                getPairingCodeWS();
+                showKey();
             } else if (savedInstanceState.getBoolean("isRegistered")) {
                 //Registered but not logged in... -> Login
                 Log.v(TAG, "Reload and login");
+                addWsListeners();
                 SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.preference_file_name), MODE_PRIVATE);
                 String key = sharedPref.getString("token", null);
                 if (key != null) loginWS(key);
             } else if (savedInstanceState.getBoolean("isConnected")) {
                 //Only connected not Registered -> Register
                 Log.v(TAG, "Reload and Register");
+                addWsListeners();
                 registerWS();
             } else {
                 //Not even a connection to the Server -> Connect
                 Log.v(TAG, "Reload of the MainActivity without without a connection... ");
-                LoadingFragment loadFrag = (LoadingFragment) getFragmentManager().findFragmentByTag("loadFrag");
-                getFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, loadFrag, "loadFrag")
-                        .commit();
-
+                showLoad();
                 startUp();
             }
         } else {
@@ -110,17 +118,54 @@ public class MainActivity extends AppCompatActivity {
             showLoad();
             startUp();
         }
+
     }
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
-        super.onSaveInstanceState(savedInstanceState);
+        Log.v(TAG, "onSavedInstance was called");
         savedInstanceState.putBoolean("isRegistered", StatusObject.isRegistered);
         savedInstanceState.putBoolean("isLoggedIn", StatusObject.isLoggedIn);
         savedInstanceState.putBoolean("isConnected", StatusObject.isConnected);
         savedInstanceState.putCharSequence("pairingCode", StatusObject.pairingCode);
         savedInstanceState.putBoolean("isCustomLayout", StatusObject.isCustomLayout);
         savedInstanceState.putCharSequence("layoutString", StatusObject.layoutString);
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
+    @Override
+    public void onStart() {
+        Log.v(TAG, "MainActivity onStart called");
+        isRunning = true;
+        super.onStart();
+    }
+
+    @Override
+    public void onResume() {
+        Log.v(TAG, "MainActivity onResume was called");
+        isRunning = true;
+        super.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        Log.v(TAG, "MainActivity onPause() called");
+        isRunning = false;
+        super.onPause();
+    }
+
+    @Override
+    public void onStop() {
+        Log.v(TAG, "MainActivity onStop() called");
+        isRunning = false;
+        super.onStop();
+    }
+
+    @Override
+    public void onDestroy() {
+        Log.v(TAG, "MainActivity onDestroy() called");
+        isRunning = false;
+        super.onDestroy();
     }
 
     private void connected() {
@@ -164,43 +209,51 @@ public class MainActivity extends AppCompatActivity {
         webSocketListenerList.add(new WebSocketAdapter() {
             @Override
             public void onConnectError(WebSocket websocket, WebSocketException cause) {
-                StatusObject.isConnected = false;
-                Log.v(TAG, "ERROR with the connection: " + websocket.toString());
-                Log.v(TAG, cause.toString());
-                MyWebSocket.reconnect();
+                if (isRunning) {
+                    StatusObject.isConnected = false;
+                    Log.v(TAG, "ERROR with the connection: " + websocket.toString());
+                    Log.v(TAG, cause.toString());
+                    MyWebSocket.reconnect();
+                }
+
             }
         });
         webSocketListenerList.add(new WebSocketAdapter() {
             @Override
             public void onDisconnected(WebSocket websocket, WebSocketFrame serverCloseFrame, WebSocketFrame clientCloseFrame, boolean closedByServer) {
-                StatusObject.isConnected = false;
-                Log.v(TAG, "Connection closed " + websocket.toString());
-                MyWebSocket.reconnect();
+                if (isRunning) {
+                    StatusObject.isConnected = false;
+                    Log.v(TAG, "Connection closed " + websocket.toString());
+                    MyWebSocket.reconnect();
+                }
+
             }
         });
         webSocketListenerList.add(new WebSocketAdapter() {
             @Override
             public void onTextMessage(WebSocket websocket, final String message) {
-                Log.v(TAG, "Message received: " + message);
-                JsonApiObject apiobj = new JsonApiObject(context);
-                try {
-                    apiobj.jsonToObj(new JSONObject(message));
-                    reactOnAction(apiobj.processAction(), apiobj);
-                } catch (JSONException e) {
-                    Log.v(TAG, "Exeption in JsonApiObjekt " + e.toString());
-                    e.printStackTrace();
-                }
-                //For the testingfragment
-                if (debug) {
+                if (isRunning) {
+                    Log.v(TAG, "Message received: " + message);
+                    JsonApiObject apiobj = new JsonApiObject(context);
                     try {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                testFragment.messageText.setText(testFragment.messageText.getText() + "\n" + message);
-                            }
-                        });
-                    } catch (Exception e) {
-                        Log.v(TAG, e.toString());
+                        apiobj.jsonToObj(new JSONObject(message));
+                        reactOnAction(apiobj.processAction(), apiobj);
+                    } catch (JSONException e) {
+                        Log.v(TAG, "Exeption in JsonApiObjekt " + e.toString());
+                        e.printStackTrace();
+                    }
+                    //For the testingfragment
+                    if (debug) {
+                        try {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    testFragment.messageText.setText(testFragment.messageText.getText() + "\n" + message);
+                                }
+                            });
+                        } catch (Exception e) {
+                            Log.v(TAG, e.toString());
+                        }
                     }
                 }
             }
@@ -208,12 +261,30 @@ public class MainActivity extends AppCompatActivity {
         webSocketListenerList.add(new WebSocketAdapter() {
             @Override
             public void onConnected(WebSocket websocket, Map<String, List<String>> headers) {
-                Log.v(TAG, "Connection established " + headers.toString());
-                StatusObject.isConnected = true;
-                connected();
+                if(isRunning){
+                    Log.v(TAG, "Connection established " + headers.toString());
+                    StatusObject.isConnected = true;
+                    connected();
+                }
             }
         });
-        ws.addListeners(webSocketListenerList);
+        try {
+            MyWebSocket.getInstance().addListeners(webSocketListenerList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (WebSocketException e) {
+            e.printStackTrace();
+        }
+        //ws.addListeners(webSocketListenerList);
+    }
+
+    private void showToast(final String text, final int length) {
+        this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(getApplicationContext(), text, length).show();
+            }
+        });
     }
 
     private void reactOnAction(final JsonApiObject.Action action, final JsonApiObject apiObject) {
@@ -225,9 +296,9 @@ public class MainActivity extends AppCompatActivity {
                     switch (action) {
                         case success:
                             if (apiObject.messageData != null) {
-                                Toast.makeText(getApplicationContext(), action.toString() + ": " + apiObject.messageData.toString(), Toast.LENGTH_SHORT).show();
+                                showToast(action.toString() + ": " + apiObject.messageData.toString(), Toast.LENGTH_SHORT);
                             } else {
-                                Toast.makeText(getApplicationContext(), action.toString() + ": " + apiObject.messageCode, Toast.LENGTH_SHORT).show();
+                                showToast(action.toString() + ": " + apiObject.messageCode, Toast.LENGTH_SHORT);
                             }
                             switch (apiObject.messageContext) {
                                 case "server":
@@ -268,14 +339,60 @@ public class MainActivity extends AppCompatActivity {
                                             }
                                             break;
                                         case "set_layout":
-                                            showLoad();
-                                            StatusObject.isCustomLayout = true;
-                                            StatusObject.layoutString = apiObject.messageData.toString();
-                                            createFragment.setLayout(apiObject.messageData);
-                                            showCreate();
+                                            if (StatusObject.isCustomLayout) {
+                                                StatusObject.layoutString = apiObject.messageData.toString();
+                                                //createFragment.setLayout(apiObject.messageData);
+                                                showCreate();
+                                            } else {
+                                                //showLoad();
+                                                StatusObject.isCustomLayout = true;
+                                                StatusObject.layoutString = apiObject.messageData.toString();
+                                                //createFragment.setLayout(apiObject.messageData);
+                                                showCreate();
+                                            }
                                             break;
                                         case "set_element_param":
-                                            createFragment.setElement(apiObject.messageData);
+                                            if (StatusObject.isCustomLayout) {
+                                                createFragment.setElement(apiObject.messageData);
+                                                /*
+                                                CreateFragment crf = (CreateFragment) getFragmentManager().findFragmentByTag("createFrag");
+                                                if (crf == null) {
+                                                    //There is no Fragment...
+                                                    createFragment = new CreateFragment();
+                                                    createFragment.setElement(apiObject.messageData);
+                                                    showFragment("createFrag", createFragment);
+                                                } else {
+                                                    //The fragment is already here
+                                                    createFragment = crf;
+                                                    createFragment.setElement(apiObject.messageData);
+                                                    showFragment("createFrag", createFragment);
+                                                }
+                                                */
+                                                /*
+                                                CreateFragment crf = (CreateFragment) getFragmentManager().findFragmentByTag("createFrag");
+                                                if (crf == null) {
+                                                    createFragment.setElement(apiObject.messageData);
+                                                } else if (crf.isVisible()) {
+                                                    crf.setElement(apiObject.messageData);
+                                                    //crf.setElement(apiObject.messageData);
+                                                } else {
+                                                    try {
+                                                        createFragment = new CreateFragment();
+                                                        createFragment.setLayout(new JSONObject(StatusObject.layoutString));
+                                                        createFragment.setElement(apiObject.messageData);
+                                                        getFragmentManager().beginTransaction()
+                                                                .setCustomAnimations(R.animator.enter_from_left, R.animator.exit_to_right)
+                                                                .replace(R.id.fragment_container, createFragment, "createFrag")
+                                                                .commit();
+                                                        getFragmentManager().executePendingTransactions();
+                                                    } catch (JSONException e) {
+                                                        e.printStackTrace();
+                                                    }
+                                                }
+                                                */
+                                            } else {
+                                                MyWebSocket.sendError("Create a customlayout before setting other parameters of it");
+                                            }
                                             break;
                                     }
                                     break;
@@ -291,6 +408,8 @@ public class MainActivity extends AppCompatActivity {
                                             }
                                             if (createFragment != null)
                                                 getFragmentManager().beginTransaction().remove(createFragment).commit();
+                                            StatusObject.layoutString = "";
+                                            StatusObject.isCustomLayout = false;
                                             getPairingCodeWS();
                                             break;
                                     }
@@ -298,7 +417,7 @@ public class MainActivity extends AppCompatActivity {
                             }
                             break;
                         case debug:
-                            Toast.makeText(getApplicationContext(), action.toString() + ": " + apiObject.messageData.toString(), Toast.LENGTH_LONG).show();
+                            showToast(action.toString() + ": " + apiObject.messageData.toString(), Toast.LENGTH_LONG);
                             break;
                         case error:
                             switch (apiObject.messageContext) {
@@ -317,6 +436,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             });
+
         } catch (Exception e) {
             Log.v(TAG, e.toString());
         }
@@ -402,6 +522,8 @@ public class MainActivity extends AppCompatActivity {
         if (key != null) {
             if (getFragmentManager().findFragmentByTag("keyFrag") != null) {
                 keyFragment = (KeyFragment) getFragmentManager().findFragmentByTag("keyFrag");
+            } else if (keyFragment == null) {
+                keyFragment = new KeyFragment();
             }
             getFragmentManager().beginTransaction()
                     .setCustomAnimations(R.animator.enter_from_left, R.animator.exit_to_right)
@@ -413,6 +535,8 @@ public class MainActivity extends AppCompatActivity {
     private void showLoad() {
         if (getFragmentManager().findFragmentByTag("loadFrag") != null) {
             loadingFragment = (LoadingFragment) getFragmentManager().findFragmentByTag("loadFrag");
+        } else if (loadingFragment == null) {
+            loadingFragment = new LoadingFragment();
         }
         getFragmentManager().beginTransaction()
                 .setCustomAnimations(R.animator.enter_from_left, R.animator.exit_to_right)
@@ -432,11 +556,30 @@ public class MainActivity extends AppCompatActivity {
 
     private void showCreate() {
         if (getFragmentManager().findFragmentByTag("createFrag") != null) {
-            createFragment = (CreateFragment) getFragmentManager().findFragmentByTag("createFrag");
+            try {
+                createFragment = (CreateFragment) getFragmentManager().findFragmentByTag("createFrag");
+                createFragment.setLayout(new JSONObject(StatusObject.layoutString));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } else if (createFragment == null) {
+            try {
+                createFragment = new CreateFragment();
+                createFragment.setLayout(new JSONObject(StatusObject.layoutString));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
         getFragmentManager().beginTransaction()
                 .setCustomAnimations(R.animator.enter_from_left, R.animator.exit_to_right)
                 .replace(R.id.fragment_container, createFragment, "createFrag")
+                .commit();
+    }
+
+    private void showFragment(String tag, Fragment fragment) {
+        getFragmentManager().beginTransaction()
+                .setCustomAnimations(R.animator.enter_from_left, R.animator.exit_to_right)
+                .replace(R.id.fragment_container, fragment, tag)
                 .commit();
     }
 

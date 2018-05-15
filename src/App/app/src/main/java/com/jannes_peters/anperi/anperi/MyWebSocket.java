@@ -49,7 +49,8 @@ public class MyWebSocket {
                     reconnect();
                 } catch (IOException e) {
                     e.printStackTrace();
-                }            }
+                }
+            }
         }, 2000);
     }
 
@@ -89,5 +90,4 @@ public class MyWebSocket {
             e.printStackTrace();
         }
     }
-
 }
