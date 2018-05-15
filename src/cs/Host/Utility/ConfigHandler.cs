@@ -13,23 +13,23 @@ namespace JJA.Anperi.Host.Utility
 {
     static class ConfigHandler
     {
-        private static string _configPath = "settings.data";
-        private static string _saltPath = "salt.data";
+        private const string ConfigPath = "settings.data";
+        private const string SaltPath = "salt.data";
         private static byte[] _salt;
 
         public static HostDataModel Load()
         {
-            bool fileExists = File.Exists(_configPath);
+            bool fileExists = File.Exists(ConfigPath);
             if (!fileExists) return new HostDataModel();
 
             HostDataModel model = null;
 
-            if (File.Exists(_saltPath))
+            if (File.Exists(SaltPath))
             {
-                _salt = File.ReadAllBytes(_saltPath);
+                _salt = File.ReadAllBytes(SaltPath);
                 try
                 {
-                    byte[] file = File.ReadAllBytes(_configPath);
+                    byte[] file = File.ReadAllBytes(ConfigPath);
                     file = Unprotect(file);
                     using (var ms = new MemoryStream(file))
                     {
@@ -45,13 +45,13 @@ namespace JJA.Anperi.Host.Utility
             return model ?? new HostDataModel();
         }
 
-        public static byte[] Protect(byte[] data)
+        private static byte[] Protect(byte[] data)
         {
             //TODO: Salt = random Byte[], saved in config
             return ProtectedData.Protect(data, _salt, DataProtectionScope.LocalMachine);
         }
 
-        public static byte[] Unprotect(byte[] data)
+        private static byte[] Unprotect(byte[] data)
         {
             //TODO: look protect
             return ProtectedData.Unprotect(data, _salt, DataProtectionScope.LocalMachine);
@@ -70,7 +70,7 @@ namespace JJA.Anperi.Host.Utility
                     data = ms.ToArray();
                 }
                 data = Protect(data);
-                File.WriteAllBytes(_configPath, data);
+                File.WriteAllBytes(ConfigPath, data);
             }
             catch (Exception e)
             {
@@ -84,7 +84,7 @@ namespace JJA.Anperi.Host.Utility
             var rnd = new Random();
             rnd.NextBytes(salt);
             _salt = salt;
-            File.WriteAllBytes(_saltPath, _salt);
+            File.WriteAllBytes(SaltPath, _salt);
         }
     }
 }

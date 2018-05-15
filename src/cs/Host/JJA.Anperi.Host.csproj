@@ -66,7 +66,6 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Utility\ConfigHandler.cs" />
-    <Compile Include="HostConfigModel.cs" />
     <Compile Include="HostDataModel.cs" />
     <Compile Include="Popup.xaml.cs">
       <DependentUpon>Popup.xaml</DependentUpon>
