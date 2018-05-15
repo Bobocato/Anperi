@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -31,6 +32,7 @@ namespace JJA.Anperi.Server
                 services.AddDbContext<AnperiDbContext>(o => o.UseInMemoryDatabase("JJA.Anperi.Server.InMemoryDb"));
             }
             else services.AddDbContext<AnperiDbContext>(o => o.UseMySQL(Configuration.GetConnectionString("MySqlConnectionString")));
+            services.AddSingleton<IHostedService, AnperiDbCleanup>();
             //services.AddSingleton<AnperiWebSocketMiddleware, AnperiWebSocketMiddleware>();
 
         }

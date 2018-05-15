@@ -15,6 +15,7 @@ namespace JJA.Anperi.Server.Model
 
             modelBuilder.Entity<ActivePairingCode>().HasIndex(nameof(ActivePairingCode.Code)).IsUnique();
             modelBuilder.Entity<ActivePairingCode>().HasIndex(nameof(ActivePairingCode.PeripheralId)).IsUnique();
+            modelBuilder.Entity<ActivePairingCode>().Property(pc => pc.Created).HasDefaultValueSql("NOW()");
 
             modelBuilder.Entity<Host>().ToTable("Host");
             modelBuilder.Entity<RegisteredDevice>().ToTable("RegisteredDevice");
@@ -85,5 +86,6 @@ namespace JJA.Anperi.Server.Model
         public string Code { get; set; }
         [Required]
         public int PeripheralId { get; set; }
+        public DateTime Created { get; set; }
     }
 }
