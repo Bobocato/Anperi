@@ -324,7 +324,7 @@ namespace JJA.Anperi.Host
                             Info1 =
                                 "Current WebSocket-Address is: " + _wsAddress;
                         }
-                        if (Token.Equals(""))
+                        if (string.IsNullOrEmpty(Token))
                         {
                             var name = Environment.MachineName;
                             var json =
