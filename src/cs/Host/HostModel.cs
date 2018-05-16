@@ -282,7 +282,7 @@ namespace JJA.Anperi.Host
                 {
                     var client = args.Client;
                     _ipcClients.Remove(client);
-                    if (_curIpcClient.Equals(client))
+                    if (client.Equals(_curIpcClient))
                     {
                         _curIpcClient = null;
                     }
