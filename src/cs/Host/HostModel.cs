@@ -430,6 +430,13 @@ namespace JJA.Anperi.Host
                             }
                             OnPropertyChanged(nameof(Peripherals));
                         }
+
+                        if (code == HostMessage.paired_peripheral_logged_on && _connectedPeripheral == -1 && id == Favorite)
+                        {
+                            var connectRequest = HostJsonApiObjectFactory
+                                .CreateConnectToPeripheralRequest(id);
+                            SendToWebsocket(connectRequest.Serialize());
+                        }
                     }
                     break;
                 default:
