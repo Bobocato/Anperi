@@ -53,10 +53,7 @@ namespace JJA.Anperi.Host
 
         public HostModel(string token, int favorite)
         {
-            if (token != null)
-            {
-                Token = token;
-            }            
+            Token = token;          
             _favorite = favorite;
             _periList = new List<HostJsonApiObjectFactory.ApiPeripheral>();
             _ipcClients = new List<IIpcClient>();
@@ -285,7 +282,7 @@ namespace JJA.Anperi.Host
                 {
                     var client = args.Client;
                     _ipcClients.Remove(client);
-                    if (_curIpcClient.Equals(client))
+                    if (client.Equals(_curIpcClient))
                     {
                         _curIpcClient = null;
                     }
@@ -322,7 +319,7 @@ namespace JJA.Anperi.Host
                 {
                     _ws.OnOpen += (sender, e) =>
                     {
-                        if (Token.Equals(""))
+                        if (string.IsNullOrEmpty(Token))
                         {
                             var name = Environment.MachineName;
                             var json =
