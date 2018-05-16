@@ -38,8 +38,8 @@ namespace JJA.Anperi.Host
 
         private string _popupTitle = "";
 
-        //private string _wsAddress = "ws://localhost:5000/api/ws";
-        private string _wsAddress = "wss://anperi.jannes-peters.com/api/ws";
+        private string _wsAddress = "ws://localhost:5000/api/ws";
+        //private string _wsAddress = "wss://anperi.jannes-peters.com/api/ws";
         private string _token = "";
         private int _favorite = -1;
         private WebSocket _ws;
@@ -53,7 +53,7 @@ namespace JJA.Anperi.Host
 
         public HostModel(string token, int favorite)
         {
-            Token = token;
+            Token = token;          
             _favorite = favorite;
             _periList = new List<HostJsonApiObjectFactory.ApiPeripheral>();
             _ipcClients = new List<IIpcClient>();
@@ -319,11 +319,6 @@ namespace JJA.Anperi.Host
                 {
                     _ws.OnOpen += (sender, e) =>
                     {
-                        if (_ws.IsAlive)
-                        {
-                            Info1 =
-                                "Current WebSocket-Address is: " + _wsAddress;
-                        }
                         if (string.IsNullOrEmpty(Token))
                         {
                             var name = Environment.MachineName;
@@ -615,6 +610,7 @@ namespace JJA.Anperi.Host
                                 out dynamic loginName);
                             _name = loginName;
                             SendPeripheralRequest();
+                            Info1 = "Current WebSocket-Address is: " + _wsAddress;
                             Info2 = "Your name is: " + _name;
                         }
                         else
@@ -637,7 +633,7 @@ namespace JJA.Anperi.Host
                     _name = name;
 
                     SendPeripheralRequest();
-
+                    Info1 = "Current WebSocket-Address is: " + _wsAddress;
                     Info2 = "Your name is: " + _name;
                     break;
                 case SharedJsonRequestCode.set_own_name:

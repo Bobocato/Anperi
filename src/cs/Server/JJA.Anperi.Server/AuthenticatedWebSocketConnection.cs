@@ -393,7 +393,7 @@ namespace JJA.Anperi.Server
                         p.Name = newName;
                         _db.SaveChanges();
                         await _socket.SendJson(
-                            SharedJsonApiObjectFactory.CreateChangeOwnNameResponse(true, newName));
+                            HostJsonApiObjectFactory.CreateChangeNameResponse(true, newName, periId));
                     }
                     else
                     {

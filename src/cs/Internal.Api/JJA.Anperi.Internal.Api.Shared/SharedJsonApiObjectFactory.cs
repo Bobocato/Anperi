@@ -91,7 +91,7 @@ namespace JJA.Anperi.Internal.Api.Shared
             {
                 {"name", name}
             };
-            return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.request, SharedJsonRequestCode.register.ToString(), data);
+            return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.request, SharedJsonRequestCode.set_own_name.ToString(), data);
         }
         public static JsonApiObject CreateChangeOwnNameResponse(bool success, string name)
         {
@@ -101,7 +101,7 @@ namespace JJA.Anperi.Internal.Api.Shared
                 {"success", success},
                 {"name", name}
             };
-            return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.response, SharedJsonRequestCode.register.ToString(), data);
+            return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.response, SharedJsonRequestCode.set_own_name.ToString(), data);
         }
     }
 }
