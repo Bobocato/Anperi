@@ -29,9 +29,6 @@ public class CreateFragment extends Fragment {
     private FrameLayout create_container;
     private Boolean isStarted = false;
 
-    //TODO After orientation change the "set_element_param" cant be used...
-    //Maybe there are two instances of this Fragment???
-
     public CreateFragment() {
     }
 
@@ -219,8 +216,10 @@ public class CreateFragment extends Fragment {
             if (currentID.equals(id)) {
                 return currentObj;
             } else if (type.equals("sub-grid") || type.equals("grid")) {
-                //TODO: handle multiple sub-grids per grid
-                return getJsonObjectFromID(id, currentObj.getJSONArray("elements"));
+                JSONObject object = getJsonObjectFromID(id, currentObj.getJSONArray("elements"));
+                if (object != null) {
+                    return object;
+                }
             }
         }
         return null;
@@ -279,9 +278,9 @@ public class CreateFragment extends Fragment {
                             MyWebSocket.sendError("No ID given to spacer...");
                             break;
                         }
-                        try{
+                        try {
                             checked = currentElement.getBoolean("checked");
-                        } catch (Exception e){
+                        } catch (Exception e) {
                             MyWebSocket.sendError("No checked value set (Used false)");
                             checked = false;
                         }
@@ -382,7 +381,7 @@ public class CreateFragment extends Fragment {
         return param;
     }
 
-    private Space createSpaceView(final String id){
+    private Space createSpaceView(final String id) {
         Space space = new Space(getActivity());
         space.setTag(id);
         space.setOnClickListener(onClickListener(id));
@@ -390,7 +389,7 @@ public class CreateFragment extends Fragment {
         return space;
     }
 
-    private CheckBox createCheckBox(final String id){
+    private CheckBox createCheckBox(final String id) {
         CheckBox checkBox = new CheckBox(getActivity());
         checkBox.setTag(id);
         checkBox.setOnClickListener(onClickListener(id));
@@ -399,7 +398,7 @@ public class CreateFragment extends Fragment {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                 try {
-                    dataClick("checkbox", id, new JSONObject().put("checked",b));
+                    dataClick("checkbox", id, new JSONObject().put("checked", b));
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -485,7 +484,7 @@ public class CreateFragment extends Fragment {
     }
 
     //Listener Functions
-    private View.OnClickListener onClickListener(final String id){
+    private View.OnClickListener onClickListener(final String id) {
         return new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -494,7 +493,7 @@ public class CreateFragment extends Fragment {
         };
     }
 
-    private View.OnLongClickListener onLongClickListener(final String id){
+    private View.OnLongClickListener onLongClickListener(final String id) {
         return new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
@@ -522,7 +521,7 @@ public class CreateFragment extends Fragment {
                         e.printStackTrace();
                     }
 
-                     try {
+                    try {
                         if (currentProgress >= step_size) {
                             currentProgress = 1;
                             JSONObject data = new JSONObject().put("progress", i + min);

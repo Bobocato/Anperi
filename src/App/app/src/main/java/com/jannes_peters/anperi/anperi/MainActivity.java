@@ -261,7 +261,7 @@ public class MainActivity extends AppCompatActivity {
         webSocketListenerList.add(new WebSocketAdapter() {
             @Override
             public void onConnected(WebSocket websocket, Map<String, List<String>> headers) {
-                if(isRunning){
+                if (isRunning) {
                     Log.v(TAG, "Connection established " + headers.toString());
                     StatusObject.isConnected = true;
                     connected();
@@ -341,55 +341,17 @@ public class MainActivity extends AppCompatActivity {
                                         case "set_layout":
                                             if (StatusObject.isCustomLayout) {
                                                 StatusObject.layoutString = apiObject.messageData.toString();
-                                                //createFragment.setLayout(apiObject.messageData);
                                                 showCreate();
                                             } else {
-                                                //showLoad();
+                                                showLoad();
                                                 StatusObject.isCustomLayout = true;
                                                 StatusObject.layoutString = apiObject.messageData.toString();
-                                                //createFragment.setLayout(apiObject.messageData);
                                                 showCreate();
                                             }
                                             break;
                                         case "set_element_param":
                                             if (StatusObject.isCustomLayout) {
                                                 createFragment.setElement(apiObject.messageData);
-                                                /*
-                                                CreateFragment crf = (CreateFragment) getFragmentManager().findFragmentByTag("createFrag");
-                                                if (crf == null) {
-                                                    //There is no Fragment...
-                                                    createFragment = new CreateFragment();
-                                                    createFragment.setElement(apiObject.messageData);
-                                                    showFragment("createFrag", createFragment);
-                                                } else {
-                                                    //The fragment is already here
-                                                    createFragment = crf;
-                                                    createFragment.setElement(apiObject.messageData);
-                                                    showFragment("createFrag", createFragment);
-                                                }
-                                                */
-                                                /*
-                                                CreateFragment crf = (CreateFragment) getFragmentManager().findFragmentByTag("createFrag");
-                                                if (crf == null) {
-                                                    createFragment.setElement(apiObject.messageData);
-                                                } else if (crf.isVisible()) {
-                                                    crf.setElement(apiObject.messageData);
-                                                    //crf.setElement(apiObject.messageData);
-                                                } else {
-                                                    try {
-                                                        createFragment = new CreateFragment();
-                                                        createFragment.setLayout(new JSONObject(StatusObject.layoutString));
-                                                        createFragment.setElement(apiObject.messageData);
-                                                        getFragmentManager().beginTransaction()
-                                                                .setCustomAnimations(R.animator.enter_from_left, R.animator.exit_to_right)
-                                                                .replace(R.id.fragment_container, createFragment, "createFrag")
-                                                                .commit();
-                                                        getFragmentManager().executePendingTransactions();
-                                                    } catch (JSONException e) {
-                                                        e.printStackTrace();
-                                                    }
-                                                }
-                                                */
                                             } else {
                                                 MyWebSocket.sendError("Create a customlayout before setting other parameters of it");
                                             }
@@ -457,6 +419,11 @@ public class MainActivity extends AppCompatActivity {
         final EditText input = new EditText(this);
         //input.setHint("ws://10.0.2.2:5000/api/ws");
         input.setHint("wss://anperi.jannes-peters.com/api/ws");
+        final SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.preference_file_name), MODE_PRIVATE);
+        String adress = sharedPref.getString("serveradress", null);
+        if (adress != null) {
+            input.setText(adress);
+        }
         input.setInputType(InputType.TYPE_TEXT_VARIATION_URI | InputType.TYPE_CLASS_TEXT);
         builder.setView(input);
         builder.setCancelable(false);
@@ -468,6 +435,7 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     serverUrl = input.getHint().toString();
                 }
+                sharedPref.edit().putString("serveradress", serverUrl).apply();
                 //Set server and start websocket
                 MyWebSocket.setServer(serverUrl);
                 try {
