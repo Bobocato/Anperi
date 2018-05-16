@@ -452,6 +452,18 @@ namespace JJA.Anperi.Host
                         if (pairSuccess)
                         {
                             SendPeripheralRequest();
+                            /*if (code == HostRequestCode.pair && json.data.TryGetValue("id", out int id))
+                            {
+                                foreach (var x in Peripherals)
+                                {
+                                    if (x.id == id && x.online)
+                                    {
+                                        var connectRequest = HostJsonApiObjectFactory
+                                            .CreateConnectToPeripheralRequest(id);
+                                        SendToWebsocket(connectRequest.Serialize());
+                                    }
+                                }
+                            }*/
                         }
                         else
                         {
