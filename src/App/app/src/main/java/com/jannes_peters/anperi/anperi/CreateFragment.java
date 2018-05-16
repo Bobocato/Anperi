@@ -218,8 +218,9 @@ public class CreateFragment extends Fragment {
             String currentID = currentObj.getString("id");
             if (currentID.equals(id)) {
                 return currentObj;
-            } else if (type.equals("grid")) {
-                getJsonObjectFromID(id, currentObj.getJSONArray("grid"));
+            } else if (type.equals("sub-grid") || type.equals("grid")) {
+                //TODO: handle multiple sub-grids per grid
+                return getJsonObjectFromID(id, currentObj.getJSONArray("elements"));
             }
         }
         return null;
@@ -227,18 +228,11 @@ public class CreateFragment extends Fragment {
 
     //Changes the JSONArray as needed and returns it. Returns null if no element was found
     private JSONArray changeJsonObjectfromID(String id, JSONArray objects, JSONObject newData) throws JSONException {
-        for (int i = 0; i < objects.length(); i++) {
-            JSONObject currentObj = objects.getJSONObject(i);
-            String type = currentObj.getString("type");
-            String currentID = currentObj.getString("id");
-            if (currentID.equals(id)) {
-                currentObj.put(newData.getString("param_name"), newData.get("param_value"));
-                return objects;
-            } else if (type.equals("grid")) {
-                getJsonObjectFromID(id, currentObj.getJSONArray("grid"));
-            }
+        JSONObject obj = getJsonObjectFromID(id, objects);
+        if (obj != null) {
+            obj.put(newData.getString("param_name"), newData.get("param_value"));
         }
-        return null;
+        return objects;
     }
 
     //Function for the creation of the Grid will be called recursively when grids are nested
@@ -262,7 +256,7 @@ public class CreateFragment extends Fragment {
                 int min, max, progress, step_size;
                 Boolean checked;
                 switch (currentElement.getString("type")) {
-                    case "grid":
+                    case "sub-grid":
                         android.support.v7.widget.GridLayout subGrid = createGrid(currentElement.getJSONArray("elements"));
                         subGrid.setLayoutParams(params);
                         grid.addView(subGrid);
