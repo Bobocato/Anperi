@@ -18,7 +18,7 @@ namespace AnperiRemote
     public partial class App : Application
     {
         protected override void OnStartup(StartupEventArgs e)
-        {
+       {
             DispatcherUnhandledException += App_DispatcherUnhandledException;
             SettingsModel _ = SettingsModel.Instance;
             this.ShutdownMode = ShutdownMode.OnExplicitShutdown;

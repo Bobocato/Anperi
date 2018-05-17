@@ -60,7 +60,7 @@ namespace AnperiRemote.Model
                         }, TaskContinuationOptions.OnlyOnFaulted);
                         OnPropertyChanged();
                     }
-                    catch (System.Runtime.InteropServices.COMException e)
+                    catch (System.Runtime.InteropServices.COMException)
                     {
                         Trace.TraceError("Error setting volume.");
                     }
