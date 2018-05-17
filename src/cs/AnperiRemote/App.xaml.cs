@@ -9,6 +9,7 @@ using System.Windows;
 using AnperiRemote.DAL;
 using AnperiRemote.Model;
 using AnperiRemote.Utility;
+using JJA.Anperi.WpfUtility;
 
 namespace AnperiRemote
 {

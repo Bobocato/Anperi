@@ -90,7 +90,6 @@
     <Compile Include="Utility\PInvokeImports.cs" />
     <Compile Include="Utility\ShutdownHelper.cs" />
     <Compile Include="Utility\TrayHelper.cs" />
-    <Compile Include="Utility\WpfUtil.cs" />
     <Compile Include="ViewModel\MainWindowDesignerViewModel.cs" />
     <Compile Include="ViewModel\MainWindowViewModel.cs" />
     <Compile Include="ViewModel\SettingsDesignerViewModel.cs" />
@@ -137,6 +136,12 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\tray.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WpfUtility\JJA.Anperi.WpfUtility.csproj">
+      <Project>{269e94bf-441d-4042-8082-f68d16ae375c}</Project>
+      <Name>JJA.Anperi.WpfUtility</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

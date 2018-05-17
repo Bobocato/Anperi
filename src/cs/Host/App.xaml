@@ -1,8 +1,7 @@
 ﻿<Application x:Class="JJA.Anperi.Host.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:JJA.Anperi.Host"
-             StartupUri="MainWindow.xaml">
+             xmlns:local="clr-namespace:JJA.Anperi.Host">
     <Application.Resources>
          
     </Application.Resources>
