@@ -31,21 +31,35 @@ namespace JJA.Anperi.Host
             }
 
             bool createUi = true;
+            bool trayActive = true;
             foreach (string arg in e.Args)
             {
-                switch (arg)
+                switch (arg.ToLowerInvariant())
                 {
                     case "-tray":
                         createUi = false;
+                        break;
+                    case "-notray":
+                        trayActive = false;
+                        this.ShutdownMode = ShutdownMode.OnMainWindowClose;
                         break;
                     default:
                         Trace.TraceWarning("Got invalid commandline argument. Ignoring '{0}'", arg);
                         break;
                 }
             }
-            TrayHelper.Instance.DoubleClick += TrayIcon_DoubleClick;
-            TrayHelper.Instance.ItemExitClick += TrayIcon_ItemExitClick;
-            TrayHelper.Instance.IconVisible = true;
+            if (!createUi && !trayActive)
+            {
+                MessageBox.Show("Can't use -tray and -notray together.", "Anperi configuration Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Shutdown(1);
+                return;
+            }
+            if (trayActive)
+            {
+                TrayHelper.Instance.DoubleClick += TrayIcon_DoubleClick;
+                TrayHelper.Instance.ItemExitClick += TrayIcon_ItemExitClick;
+                TrayHelper.Instance.IconVisible = true;
+            }
             if (createUi) this.ShowCreateMainWindow<MainWindow>();
 
             base.OnStartup(e);
