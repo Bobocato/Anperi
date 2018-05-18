@@ -14,10 +14,13 @@ namespace JJA.Anperi.Lib
 {
     public class Anperi : IDisposable
     {
+        public int ApiVersion => 1;
+
         public event EventHandler<AnperiMessageEventArgs> Message;
         public event EventHandler Connected;
+        public event EventHandler Disconnected;
+        public event EventHandler<InvalidPeripheralVersionEventArgs> IncompatibleDeviceConnected;
 
-        public event EventHandler Disconnected; 
         private readonly IIpcClient _ipcClient;
         private readonly SemaphoreSlim _semConnecting = new SemaphoreSlim(1, 1);
 
@@ -126,7 +129,9 @@ namespace JJA.Anperi.Lib
                     OnMessage(new ErrorAnperiMessage(e.Message.Data));
                     break;
                 case IpcMessageCode.GetPeripheralInfo:
-                    OnMessage(new PeripheralInfoAnperiMessage(e.Message.Data));
+                    PeripheralInfoAnperiMessage pim = new PeripheralInfoAnperiMessage(e.Message.Data);
+                    if (pim.Version < ApiVersion) OnIncompatibleDeviceConnected(pim.Version, ApiVersion);
+                    OnMessage(pim);
                     break;
                 case IpcMessageCode.PeripheralEventFired:
                     OnMessage(new EventFiredAnperiMessage(e.Message.Data));
@@ -206,6 +211,11 @@ namespace JJA.Anperi.Lib
             PeripheralDisconnected?.Invoke(this, EventArgs.Empty);
         }
         public event EventHandler PeripheralDisconnected;
+
+        protected virtual void OnIncompatibleDeviceConnected(int peripheralVersion, int libVersion)
+        {
+            IncompatibleDeviceConnected?.Invoke(this, new InvalidPeripheralVersionEventArgs(peripheralVersion, libVersion));
+        }
 
         public void Dispose()
         {
