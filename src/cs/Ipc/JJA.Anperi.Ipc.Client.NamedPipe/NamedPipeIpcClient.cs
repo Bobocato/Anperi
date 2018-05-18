@@ -65,7 +65,6 @@ namespace JJA.Anperi.Ipc.Client.NamedPipe
             catch (Exception ex)
             {
                 _isAuthenticated = false;
-                Util.TraceException("Error connecting to NamedPipe", ex);
                 OnError(ex);
             }
         }
@@ -81,7 +80,7 @@ namespace JJA.Anperi.Ipc.Client.NamedPipe
                     if (s == null) throw new Exception("Got null string from server.");
                     try
                     {
-                        msg = JsonConvert.DeserializeObject<IpcMessage>(s);
+                        msg = JsonConvert.DeserializeObject<IpcMessage>(s, new DictionaryDeserializer());
                     }
                     catch (JsonException ex)
                     {

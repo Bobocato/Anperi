@@ -15,8 +15,8 @@ namespace JJA.Anperi.Lib
     {
         public event EventHandler<AnperiMessageEventArgs> Message;
         public event EventHandler Connected;
-        public event EventHandler Disconnected; 
 
+        public event EventHandler Disconnected; 
         private readonly IIpcClient _ipcClient;
 
         public Anperi()

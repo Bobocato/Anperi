@@ -3,10 +3,15 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
+    <Version>1.0.1.0</Version>
   </PropertyGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="dotnet pack $(ProjectFileName) -c $(ConfigurationName) --no-build --include-source --no-restore -o &quot;$(SolutionDir)nugetOut&quot;" />
   </Target>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+  </ItemGroup>
 
 </Project>

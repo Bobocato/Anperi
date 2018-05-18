@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:JJA.Anperi.Host"
         mc:Ignorable="d"
         Title="Anperi" Height="350" Width="600"
-        ResizeMode="NoResize"
+        ResizeMode="CanMinimize"
         Closing="MainWindow_OnClosing"
         d:DataContext="{d:DesignInstance local:HostViewModel}">
 	<Window.Resources>

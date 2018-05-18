@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using AnperiRemote.Annotations;
+using AnperiRemote.Utility;
 using JJA.Anperi.Lib;
 using JJA.Anperi.Lib.Elements;
 using JJA.Anperi.Lib.Message;
@@ -22,6 +23,7 @@ namespace AnperiRemote.Model
         private readonly Anperi _anperi;
         private readonly object _syncRootLayout = new object();
         private RootGrid _currentLayout;
+        private readonly SettingsModel _settings;
 
         private enum Elements : int
         {
@@ -44,6 +46,13 @@ namespace AnperiRemote.Model
             _anperi.HostNotClaimed += _anperi_HostNotClaimed;
             _anperi.PeripheralConnected += _anperi_PeripheralConnected;
             _anperi.PeripheralDisconnected += _anperi_PeripheralDisconnected;
+            _settings = SettingsModel.Instance;
+            _settings.PropertyChanged += _settings_PropertyChanged;
+        }
+
+        private void _settings_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            SetLayout((SettingsModel) sender).ContinueWith(t => { Util.TraceException("Error setting layout", t?.Exception?.InnerException); }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
         public event EventHandler<AnperiVolumeEventArgs> VolumeChanged;
@@ -60,7 +69,7 @@ namespace AnperiRemote.Model
                 {
                     Grid row = new Grid { column = 0, row = currRow++ };
                     row.elements.Add(new Label { id = "labelVolume", column = 0, row = 0, text = "Volume:" });
-                    row.elements.Add(new Slider { id = _elementIds[Elements.SliderVolume], column = 1, row = 1, min = 0, max = 100, step_size = 2, progress = 0});
+                    row.elements.Add(new Slider { id = _elementIds[Elements.SliderVolume], column = 1, row = 1, min = 0, max = 100, step_size = 2, progress = VolumeModel.Instance.Volume});
                     _currentLayout.elements.Add(row);
                 }
             }
@@ -162,6 +171,7 @@ namespace AnperiRemote.Model
             OnPropertyChanged(nameof(IsConnected));
             OnPropertyChanged(nameof(IsPeripheralConnected));
             OnPropertyChanged(nameof(HasControl));
+            SetLayout(_settings).ContinueWith(t => { Util.TraceException("Error setting layout", t?.Exception?.InnerException); }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
         public bool IsConnected => _anperi?.IsConnected ?? false;

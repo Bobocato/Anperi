@@ -40,6 +40,13 @@ namespace JJA.Anperi.Lib.Message
             set => base.Data["id"] = value;
         }
 
-        public Dictionary<string, dynamic> EventData => base.Data.TryGetValue("data", out Dictionary<string, dynamic> val) ? val : null;
+        public Dictionary<string, dynamic> EventData
+        {
+            get
+            {
+                base.Data.TryGetValue("data", out Dictionary<string, dynamic> val);
+                return val;
+            }
+        }
     }
 }

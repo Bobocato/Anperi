@@ -29,9 +29,6 @@ public class CreateFragment extends Fragment {
     private FrameLayout create_container;
     private Boolean isStarted = false;
 
-    //TODO After orientation change the "set_element_param" cant be used...
-    //Maybe there are two instances of this Fragment???
-
     public CreateFragment() {
     }
 
@@ -218,8 +215,11 @@ public class CreateFragment extends Fragment {
             String currentID = currentObj.getString("id");
             if (currentID.equals(id)) {
                 return currentObj;
-            } else if (type.equals("grid")) {
-                getJsonObjectFromID(id, currentObj.getJSONArray("grid"));
+            } else if (type.equals("sub-grid") || type.equals("grid")) {
+                JSONObject object = getJsonObjectFromID(id, currentObj.getJSONArray("elements"));
+                if (object != null) {
+                    return object;
+                }
             }
         }
         return null;
@@ -227,18 +227,11 @@ public class CreateFragment extends Fragment {
 
     //Changes the JSONArray as needed and returns it. Returns null if no element was found
     private JSONArray changeJsonObjectfromID(String id, JSONArray objects, JSONObject newData) throws JSONException {
-        for (int i = 0; i < objects.length(); i++) {
-            JSONObject currentObj = objects.getJSONObject(i);
-            String type = currentObj.getString("type");
-            String currentID = currentObj.getString("id");
-            if (currentID.equals(id)) {
-                currentObj.put(newData.getString("param_name"), newData.get("param_value"));
-                return objects;
-            } else if (type.equals("grid")) {
-                getJsonObjectFromID(id, currentObj.getJSONArray("grid"));
-            }
+        JSONObject obj = getJsonObjectFromID(id, objects);
+        if (obj != null) {
+            obj.put(newData.getString("param_name"), newData.get("param_value"));
         }
-        return null;
+        return objects;
     }
 
     //Function for the creation of the Grid will be called recursively when grids are nested
@@ -262,7 +255,7 @@ public class CreateFragment extends Fragment {
                 int min, max, progress, step_size;
                 Boolean checked;
                 switch (currentElement.getString("type")) {
-                    case "grid":
+                    case "sub-grid":
                         android.support.v7.widget.GridLayout subGrid = createGrid(currentElement.getJSONArray("elements"));
                         subGrid.setLayoutParams(params);
                         grid.addView(subGrid);
@@ -285,9 +278,9 @@ public class CreateFragment extends Fragment {
                             MyWebSocket.sendError("No ID given to spacer...");
                             break;
                         }
-                        try{
+                        try {
                             checked = currentElement.getBoolean("checked");
-                        } catch (Exception e){
+                        } catch (Exception e) {
                             MyWebSocket.sendError("No checked value set (Used false)");
                             checked = false;
                         }
@@ -388,7 +381,7 @@ public class CreateFragment extends Fragment {
         return param;
     }
 
-    private Space createSpaceView(final String id){
+    private Space createSpaceView(final String id) {
         Space space = new Space(getActivity());
         space.setTag(id);
         space.setOnClickListener(onClickListener(id));
@@ -396,7 +389,7 @@ public class CreateFragment extends Fragment {
         return space;
     }
 
-    private CheckBox createCheckBox(final String id){
+    private CheckBox createCheckBox(final String id) {
         CheckBox checkBox = new CheckBox(getActivity());
         checkBox.setTag(id);
         checkBox.setOnClickListener(onClickListener(id));
@@ -405,7 +398,7 @@ public class CreateFragment extends Fragment {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                 try {
-                    dataClick("checkbox", id, new JSONObject().put("checked",b));
+                    dataClick("checkbox", id, new JSONObject().put("checked", b));
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -491,7 +484,7 @@ public class CreateFragment extends Fragment {
     }
 
     //Listener Functions
-    private View.OnClickListener onClickListener(final String id){
+    private View.OnClickListener onClickListener(final String id) {
         return new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -500,7 +493,7 @@ public class CreateFragment extends Fragment {
         };
     }
 
-    private View.OnLongClickListener onLongClickListener(final String id){
+    private View.OnLongClickListener onLongClickListener(final String id) {
         return new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
@@ -528,7 +521,7 @@ public class CreateFragment extends Fragment {
                         e.printStackTrace();
                     }
 
-                     try {
+                    try {
                         if (currentProgress >= step_size) {
                             currentProgress = 1;
                             JSONObject data = new JSONObject().put("progress", i + min);

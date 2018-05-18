@@ -1,26 +1,18 @@
 ﻿using System;
-using System.CodeDom;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Security;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Forms;
 using System.Windows.Input;
+using JJA.Anperi.Utility;
 using Microsoft.Win32;
 using Application = System.Windows.Application;
-using ContextMenu = System.Windows.Controls.ContextMenu;
-using MenuItem = System.Windows.Controls.MenuItem;
 
-namespace AnperiRemote.Utility
+namespace JJA.Anperi.WpfUtility
 {
-    static class WpfUtil
+    public static class WpfUtil
     {
         private static string RegistryAutostartKey => @"Software\Microsoft\Windows\CurrentVersion\Run";
 
@@ -202,6 +194,16 @@ namespace AnperiRemote.Utility
                 currentWindow.Activate();
                 return currentWindow;
             }
+        }
+
+        /// <summary>
+        /// Shows the main window or creates it with the given Type.
+        /// </summary>
+        /// <typeparam name="TWindow">The type for window to use. Throws an exception if the current Window exists and doesnt have correct type.</typeparam>
+        /// <returns></returns>
+        public static TWindow ShowCreateMainWindow<TWindow>(this Application app) where TWindow : Window
+        {
+            return app.ShowCreateMainWindow<TWindow>(out bool _);
         }
 
         /// <summary>

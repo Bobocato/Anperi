@@ -9,6 +9,7 @@ using System.Windows;
 using AnperiRemote.DAL;
 using AnperiRemote.Model;
 using AnperiRemote.Utility;
+using JJA.Anperi.WpfUtility;
 
 namespace AnperiRemote
 {
@@ -18,7 +19,7 @@ namespace AnperiRemote
     public partial class App : Application
     {
         protected override void OnStartup(StartupEventArgs e)
-        {
+       {
             DispatcherUnhandledException += App_DispatcherUnhandledException;
             SettingsModel _ = SettingsModel.Instance;
             this.ShutdownMode = ShutdownMode.OnExplicitShutdown;
