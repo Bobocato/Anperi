@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Navigation;
 using AnperiRemote.Model;
 using AnperiRemote.Utility;
+using JJA.Anperi.WpfUtility;
 
 namespace AnperiRemote.ViewModel
 {

@@ -41,8 +41,8 @@
     <Reference Include="JJA.Anperi.Ipc.Client.NamedPipe, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\JJA.Anperi.Ipc.Client.NamedPipe.1.0.1\lib\netstandard2.0\JJA.Anperi.Ipc.Client.NamedPipe.dll</HintPath>
     </Reference>
-    <Reference Include="JJA.Anperi.Ipc.Common.NamedPipe, Version=1.0.0.2, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\JJA.Anperi.Ipc.Common.NamedPipe.1.0.0.2\lib\netstandard2.0\JJA.Anperi.Ipc.Common.NamedPipe.dll</HintPath>
+    <Reference Include="JJA.Anperi.Ipc.Common.NamedPipe, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\JJA.Anperi.Ipc.Common.NamedPipe.1.0.1\lib\netstandard2.0\JJA.Anperi.Ipc.Common.NamedPipe.dll</HintPath>
     </Reference>
     <Reference Include="JJA.Anperi.Ipc.Dto, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\JJA.Anperi.Ipc.Dto.1.0.0\lib\netstandard2.0\JJA.Anperi.Ipc.Dto.dll</HintPath>

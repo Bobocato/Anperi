@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using AnperiRemote.Model;
 using AnperiRemote.Utility;
+using JJA.Anperi.WpfUtility;
 
 namespace AnperiRemote.ViewModel
 {
