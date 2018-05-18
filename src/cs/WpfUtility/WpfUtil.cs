@@ -231,7 +231,7 @@ namespace JJA.Anperi.WpfUtility
             {
                 /* ignored because we got it and it doesn't protect any data 
                  * (aside the data of the previous program (from which the UI thread apparently already died)*/
-                return true;
+                _isFirstInstance = true;
             }
             return _isFirstInstance;
         }

@@ -7,7 +7,7 @@
     <Company>JJA</Company>
     <Product>Anperi</Product>
     <Description>The Lib to consume to write a client application that is using Anperi to display controls on a peripheral.</Description>
-    <Version>1.0.4.2</Version>
+    <Version>1.0.4.6</Version>
     <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
   </PropertyGroup>
 

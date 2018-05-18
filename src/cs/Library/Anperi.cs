@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using JJA.Anperi.Ipc.Client;
 using JJA.Anperi.Ipc.Client.NamedPipe;
@@ -11,13 +12,14 @@ using JJA.Anperi.Utility;
 
 namespace JJA.Anperi.Lib
 {
-    public class Anperi
+    public class Anperi : IDisposable
     {
         public event EventHandler<AnperiMessageEventArgs> Message;
         public event EventHandler Connected;
 
         public event EventHandler Disconnected; 
         private readonly IIpcClient _ipcClient;
+        private readonly SemaphoreSlim _semConnecting = new SemaphoreSlim(1, 1);
 
         public Anperi()
         {
@@ -26,7 +28,7 @@ namespace JJA.Anperi.Lib
             _ipcClient.MessageReceived += _ipcClient_MessageReceived;
             _ipcClient.Closed += _ipcClient_Closed;
             _ipcClient.Error += _ipcClient_Error;
-            _ipcClient.ConnectAsync();
+            ReconnectIn(TimeSpan.Zero);
         }
 
         public bool IsConnected => _ipcClient?.IsOpen ?? false;
@@ -37,6 +39,7 @@ namespace JJA.Anperi.Lib
         {
             await _ipcClient.SendAsync(new IpcMessage(IpcMessageCode.ClaimControl)).ConfigureAwait(false);
             HasControl = true;
+            await RequestPeripheralInfo();
         }
 
         public async Task FreeControl()
@@ -71,30 +74,42 @@ namespace JJA.Anperi.Lib
             });
         }
 
-        private async void _ipcClient_Error(object sender, System.IO.ErrorEventArgs e)
+        private void _ipcClient_Error(object sender, System.IO.ErrorEventArgs e)
         {
             Util.TraceException("IIpcClient encountered error", e.GetException());
             OnDisconnected();
-            await Task.Run(async () =>
-            {
-                Trace.TraceInformation("Reconnecting in 1 second ...");
-                await Task.Delay(1000);
-                Trace.TraceInformation("Reconnecting now ...");
-                if (!_ipcClient.IsOpen) await _ipcClient.ConnectAsync().ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            ReconnectIn(TimeSpan.FromSeconds(1));
         }
 
-        private async void _ipcClient_Closed(object sender, EventArgs e)
+        private void _ipcClient_Closed(object sender, EventArgs e)
         {
             Trace.TraceWarning("IIpcClient closed.");
             OnDisconnected();
-            await Task.Run(async () =>
+            ReconnectIn(TimeSpan.FromSeconds(1));
+        }
+
+        private async void ReconnectIn(TimeSpan delay)
+        {
+            if (!await _semConnecting.WaitAsync(0)) return;
+            try
             {
-                Trace.TraceInformation("Reconnecting in 1 second ...");
-                await Task.Delay(1000);
+                Trace.TraceInformation("Reconnecting in {0} seconds ...", ((int)delay.TotalSeconds).ToString());
+                await Task.Delay(delay);
                 Trace.TraceInformation("Reconnecting now ...");
-                if (!_ipcClient.IsOpen) await _ipcClient.ConnectAsync();
-            }).ConfigureAwait(false);
+            }
+            finally
+            {
+                _semConnecting.Release();
+            }
+            try
+            {
+                await _ipcClient.ConnectAsync().ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                //ignored
+                //will be handled in _ipcClient_Error
+            }
         }
 
         private void _ipcClient_MessageReceived(object sender, IpcMessageEventArgs e)
@@ -191,5 +206,11 @@ namespace JJA.Anperi.Lib
             PeripheralDisconnected?.Invoke(this, EventArgs.Empty);
         }
         public event EventHandler PeripheralDisconnected;
+
+        public void Dispose()
+        {
+            _ipcClient?.Dispose();
+            _semConnecting?.Dispose();
+        }
     }
 }
