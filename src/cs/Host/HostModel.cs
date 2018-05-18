@@ -482,7 +482,7 @@ namespace JJA.Anperi.Host
                         {
 
                             SendPeripheralRequest();
-                            if (code == HostRequestCode.pair && json.data.TryGetValue("id", out int id))
+                            if (code == HostRequestCode.pair && json.data.TryGetValue("id", out int id) && _connectedPeripheral == -1)
                             {
                                 _connectToPeripheral = id;
                             }
