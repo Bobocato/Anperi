@@ -33,11 +33,12 @@ namespace JJA.Anperi.Internal.Api.Host
             };
             return CreateContextServer(JsonApiMessageTypes.request, HostRequestCode.pair, data);
         }
-        public static JsonApiObject CreatePairingResponse(bool success)
+        public static JsonApiObject CreatePairingResponse(bool success, int periId)
         {
             Dictionary<string, dynamic> data = new Dictionary<string, dynamic>
             {
-                {"success", success}
+                {"success", success},
+                {"id", periId}
             };
             return CreateContextServer(JsonApiMessageTypes.response, HostRequestCode.pair, data);
         }
