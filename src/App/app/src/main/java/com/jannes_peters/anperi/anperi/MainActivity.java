@@ -295,11 +295,6 @@ public class MainActivity extends AppCompatActivity {
                 public void run() {
                     switch (action) {
                         case success:
-                            if (apiObject.messageData != null) {
-                                showToast(action.toString() + ": " + apiObject.messageData.toString(), Toast.LENGTH_SHORT);
-                            } else {
-                                showToast(action.toString() + ": " + apiObject.messageCode, Toast.LENGTH_SHORT);
-                            }
                             switch (apiObject.messageContext) {
                                 case "server":
                                     switch (apiObject.messageCode) {
