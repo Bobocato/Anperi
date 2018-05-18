@@ -290,12 +290,12 @@ namespace JJA.Anperi.Server
                         }
                         _db.Remove(pairingCode);
                         _db.SaveChanges();
-                        await _socket.SendJson(HostJsonApiObjectFactory.CreatePairingResponse(true));
                         AuthenticatedWebSocketConnection conn = _anperiManager.GetConnectionForId(deviceToPair.Id);
                         if (conn != null)
                         {
                             OnPairedDeviceLogin(null, new AuthenticatedWebSocketEventArgs(conn));
                         }
+                        await _socket.SendJson(HostJsonApiObjectFactory.CreatePairingResponse(true, deviceToPair.Id));
                     }
                     catch (Exception e)
                     {
