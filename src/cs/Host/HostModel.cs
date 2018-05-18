@@ -38,8 +38,8 @@ namespace JJA.Anperi.Host
 
         private string _popupTitle = "";
 
-        //private string _wsAddress = "ws://localhost:5000/api/ws";
-        private string _wsAddress = "wss://anperi.jannes-peters.com/api/ws";
+        private string _wsAddress = "ws://localhost:63514/api/ws";
+        //private string _wsAddress = "wss://anperi.jannes-peters.com/api/ws";
         private string _token = "";
         private int _favorite = -1;
         private WebSocket _ws;
@@ -47,14 +47,17 @@ namespace JJA.Anperi.Host
         private readonly Queue<string> _messages;
         private bool _closing = false;
         private int _connectedPeripheral = -1;
+        private int _connectToPeripheral = -1;
         private NamedPipeIpcServer _ipcServer;
         private readonly List<IIpcClient> _ipcClients;
         private IIpcClient _curIpcClient;
+        private HostDataModel _dataModel;
 
-        public HostModel(string token, int favorite)
+        public HostModel()
         {
-            Token = token;          
-            _favorite = favorite;
+            _dataModel = ConfigHandler.Load();
+            Token = _dataModel.Token;          
+            _favorite = _dataModel.Favorite;
             _periList = new List<HostJsonApiObjectFactory.ApiPeripheral>();
             _ipcClients = new List<IIpcClient>();
             _messages = new Queue<string>();
@@ -114,7 +117,31 @@ namespace JJA.Anperi.Host
             set
             {
                 _favorite = value;
+                _dataModel.Favorite = _favorite;
+                ConfigHandler.Save(_dataModel);
                 OnPropertyChanged();
+            }
+        }
+
+        public bool Tray
+        {
+            get => _dataModel.Tray;
+            set
+            {
+                _dataModel.Tray = value;
+                ConfigHandler.Save(_dataModel);
+                OnPropertyChanged();
+            }
+        }
+
+        public bool Autostart
+        {
+            get => _dataModel.Autostart;
+            set
+            {
+                _dataModel.Autostart = value;
+                OnPropertyChanged();
+                ConfigHandler.Save(_dataModel);
             }
         }
 
@@ -135,6 +162,8 @@ namespace JJA.Anperi.Host
             set
             {
                 _token = value;
+                _dataModel.Token = _token;
+                ConfigHandler.Save(_dataModel);
                 OnPropertyChanged();
             }
         }
@@ -451,19 +480,12 @@ namespace JJA.Anperi.Host
                     {
                         if (pairSuccess)
                         {
+
                             SendPeripheralRequest();
-                            /*if (code == HostRequestCode.pair && json.data.TryGetValue("id", out int id))
+                            if (code == HostRequestCode.pair && json.data.TryGetValue("id", out int id))
                             {
-                                foreach (var x in Peripherals)
-                                {
-                                    if (x.id == id && x.online)
-                                    {
-                                        var connectRequest = HostJsonApiObjectFactory
-                                            .CreateConnectToPeripheralRequest(id);
-                                        SendToWebsocket(connectRequest.Serialize());
-                                    }
-                                }
-                            }*/
+                                _connectToPeripheral = id;
+                            }
                         }
                         else
                         {
@@ -497,6 +519,19 @@ namespace JJA.Anperi.Host
                             }
                         }
                         OnPropertyChanged(nameof(Peripherals));
+                        if (_connectToPeripheral != -1)
+                        {
+                            foreach (var x in Peripherals)
+                            {
+                                if (x.id == _connectToPeripheral && x.online)
+                                {
+                                    var connectRequest = HostJsonApiObjectFactory
+                                        .CreateConnectToPeripheralRequest(x.id);
+                                    SendToWebsocket(connectRequest.Serialize());
+                                }
+                            }
+                            _connectToPeripheral = -1;
+                        }
                     }
                     else
                     {

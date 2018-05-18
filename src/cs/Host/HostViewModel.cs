@@ -1,8 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Text;
 using System.Windows.Threading;
-using JJA.Anperi.Host.Utility;
 using JJA.Anperi.Internal.Api.Host;
 
 namespace JJA.Anperi.Host
@@ -14,18 +12,13 @@ namespace JJA.Anperi.Host
         private readonly Dispatcher _dispatcher;
         public event PropertyChangedEventHandler PropertyChanged;
         private readonly HostModel _model;
-        //private readonly HostConfigModel _configModel;
         private readonly ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral> _peripherals;
-        private HostDataModel _dataModel;
 
         public HostViewModel(Dispatcher dispatcher)
         {
             _dispatcher = dispatcher;
             _peripherals = new ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral>();
-            _dataModel = ConfigHandler.Load();
-            //_configModel = new HostConfigModel();
-            //_configModel.PropertyChanged += OnModelPropertyChanged;
-            _model = new HostModel(_dataModel.Token, _dataModel.Favorite);
+            _model = new HostModel();
             _model.PropertyChanged += OnModelPropertyChanged;
         }       
 
@@ -41,23 +34,21 @@ namespace JJA.Anperi.Host
 
         public bool Tray
         {
-            get => _dataModel.Tray;
+            get => _model.Tray;
             set
             {
-                _dataModel.Tray = value;
+                _model.Tray = value;
                 OnPropertyChanged(nameof(Tray));
-                ConfigHandler.Save(_dataModel);
             }
         }
 
         public bool Autostart
         {
-            get => _dataModel.Autostart;
+            get => _model.Autostart;
             set
             {
-                _dataModel.Autostart = value;
+                _model.Autostart = value;
                 OnPropertyChanged(nameof(Autostart));
-                ConfigHandler.Save(_dataModel);
             }
         }
 
@@ -172,14 +163,6 @@ namespace JJA.Anperi.Host
                         });
                     });
                     OnPropertyChanged(nameof(Peripherals));
-                    break;
-                case nameof(HostModel.Token):
-                    _dataModel.Token = _model.Token;
-                    ConfigHandler.Save(_dataModel);
-                    break;
-                case nameof(HostModel.Favorite):
-                    _dataModel.Favorite = _model.Favorite;
-                    ConfigHandler.Save(_dataModel);
                     break;
                 default:
                     OnPropertyChanged(e.PropertyName);
