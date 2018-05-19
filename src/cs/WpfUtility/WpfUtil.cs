@@ -161,9 +161,19 @@ namespace JJA.Anperi.WpfUtility
         /// </summary>
         public static void Dispose()
         {
-            _evtNotifiedFromOtherProcess?.Dispose();
-            _mutexCheckIfFirstInstance?.ReleaseMutex();
-            _mutexCheckIfFirstInstance?.Dispose();
+            try
+            {
+                _evtNotifiedFromOtherProcess?.Dispose();
+                if (IsFirstInstance)
+                {
+                    _mutexCheckIfFirstInstance?.ReleaseMutex();
+                }
+                _mutexCheckIfFirstInstance?.Dispose();
+            }
+            catch (Exception ex)
+            {
+                Util.TraceException("Error disposing WpfUtil", ex);
+            }
         }
 
         /// <summary>
