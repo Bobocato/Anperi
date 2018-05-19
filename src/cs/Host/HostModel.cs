@@ -38,8 +38,8 @@ namespace JJA.Anperi.Host
 
         private string _popupTitle = "";
 
-        private string _wsAddress = "ws://localhost:63514/api/ws";
-        //private string _wsAddress = "wss://anperi.jannes-peters.com/api/ws";
+        //private string _wsAddress = "ws://localhost:63514/api/ws";
+        private string _wsAddress = "wss://anperi.jannes-peters.com/api/ws";
         private string _token = "";
         private int _favorite = -1;
         private WebSocket _ws;
@@ -369,7 +369,7 @@ namespace JJA.Anperi.Host
 
                     _ws.OnMessage += (sender, e) =>
                     {
-                        Console.WriteLine(e.Data);
+                        Trace.TraceInformation(e.Data);
                         var json = JsonApiObject.Deserialize(e.Data);
                         var context = json.context;
 
@@ -426,7 +426,7 @@ namespace JJA.Anperi.Host
 
                     _ws.OnError += (sender, e) =>
                     {
-                        Console.WriteLine("Error in WebSocket connection: " + e.Exception);
+                        Util.TraceException("Error in WebSocket connection", e.Exception);
                     };
 
                     _ws.Connect();
@@ -695,9 +695,9 @@ namespace JJA.Anperi.Host
             switch (code)
             {
                 case SharedJsonMessageCode.error:
-                    if (json.data.TryGetValue("message", out dynamic error))
+                    if (json.data.TryGetValue("message", out string error))
                     {
-                        Console.WriteLine(error);
+                        Trace.TraceWarning(error);
                         QueueMessage(error);
                     }
                     break;
@@ -771,7 +771,7 @@ namespace JJA.Anperi.Host
         {
             if (id == -1)
             {
-                Console.WriteLine("Can't send to id -1!");
+                Trace.TraceInformation("Can't send to id -1!");
                 return;
             }
             var json =
