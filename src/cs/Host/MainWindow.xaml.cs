@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Windows;
+using JJA.Anperi.Host.Model;
 using JJA.Anperi.Internal.Api.Host;
 
 namespace JJA.Anperi.Host
@@ -66,8 +67,8 @@ namespace JJA.Anperi.Host
             var popup = new Popup();
             if (windowType == "rename")
             {
-                var item = (HostJsonApiObjectFactory.ApiPeripheral)PeriBox.SelectedItem;
-                popup.PeriId = item.id;
+                var item = (Peripheral)PeriBox.SelectedItem;
+                popup.PeriId = item.Id;
             }
             popup.DataContext = this.DataContext;
             popup.WindowStartupLocation = WindowStartupLocation.Manual;

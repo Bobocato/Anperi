@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Threading;
+using JJA.Anperi.Host.Model;
 using JJA.Anperi.Internal.Api.Host;
 
 namespace JJA.Anperi.Host
@@ -12,24 +13,18 @@ namespace JJA.Anperi.Host
         private readonly Dispatcher _dispatcher;
         public event PropertyChangedEventHandler PropertyChanged;
         private readonly HostModel _model;
-        private readonly ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral> _peripherals;
 
         public HostViewModel(Dispatcher dispatcher)
         {
             _dispatcher = dispatcher;
-            _peripherals = new ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral>();
+            Peripherals = new ObservableCollection<Peripheral>();
             _model = new HostModel();
             _model.PropertyChanged += OnModelPropertyChanged;
         }       
 
-        public bool ButDisconnect
+        public bool ButDisconnectVisible
         {
-            get => _model.ButDisconnect;
-            set
-            {
-                _model.ButDisconnect = value;
-                OnPropertyChanged(nameof(ButDisconnect));
-            }
+            get => _model.ConnectedPeripheral != null;
         }
 
         public bool Tray
@@ -82,15 +77,7 @@ namespace JJA.Anperi.Host
             }
         }
 
-        public string ConnectedTo
-        {
-            get => _model.ConnectedTo;
-            set
-            {
-                _model.ConnectedTo = value;
-                OnPropertyChanged(nameof(ConnectedTo));
-            }
-        }
+        public string ConnectedTo => _model.ConnectedPeripheral?.Name ?? "";
 
         public string PopupTitle
         {
@@ -106,7 +93,7 @@ namespace JJA.Anperi.Host
 
         public bool PopupOptions => _model.PopupOptions;
 
-        public ObservableCollection<HostJsonApiObjectFactory.ApiPeripheral> Peripherals => _peripherals;
+        public ObservableCollection<Peripheral> Peripherals { get; }
 
         public void Close()
         {
@@ -125,7 +112,7 @@ namespace JJA.Anperi.Host
 
         public void Favorite(object item)
         {
-            _model.Favorite = ((HostJsonApiObjectFactory.ApiPeripheral) item).id;
+            _model.Favorite = ((Peripheral) item).Id;
         }
 
         public void Rename(int id, string name)
@@ -156,13 +143,17 @@ namespace JJA.Anperi.Host
                 case nameof(HostModel.Peripherals):
                     _dispatcher.Invoke(() =>
                     {
-                        _peripherals.Clear();
+                        Peripherals.Clear();
                         _model.Peripherals.ForEach((a) =>
                         {
-                            _peripherals.Add(a);
+                            Peripherals.Add(a);
                         });
                     });
                     OnPropertyChanged(nameof(Peripherals));
+                    break;
+                case nameof(HostModel.ConnectedPeripheral):
+                    OnPropertyChanged(nameof(ButDisconnectVisible));
+                    OnPropertyChanged(nameof(ConnectedTo));
                     break;
                 default:
                     OnPropertyChanged(e.PropertyName);

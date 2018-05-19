@@ -7,6 +7,8 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using JJA.Anperi.Host.Annotations;
+using JJA.Anperi.Host.Model;
 using WebSocketSharp;
 using JJA.Anperi.Host.Utility;
 using JJA.Anperi.Internal.Api;
@@ -22,16 +24,14 @@ using Newtonsoft.Json.Linq;
 
 namespace JJA.Anperi.Host
 {
-    class HostModel : INotifyPropertyChanged
+    class HostModel : INotifyPropertyChanged, IDisposable
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
         private string _info1 = "No Current WebSocket connection!";
         private string _info2 = "";
         private string _info3 = "";
-        private string _connectedTo = "";
         private string _name = "";
-        private bool _butDisconnectVisible = false;
 
         private bool _popupInput = false;
         private bool _popupOptions = false;
@@ -43,10 +43,10 @@ namespace JJA.Anperi.Host
         private string _token = "";
         private int _favorite = -1;
         private WebSocket _ws;
-        private List<HostJsonApiObjectFactory.ApiPeripheral> _periList;
+        private List<Peripheral> _periList;
         private readonly Queue<string> _messages;
         private bool _closing = false;
-        private int _connectedPeripheral = -1;
+        private Peripheral _connectedPeripheral = null;
         private int _connectToPeripheral = -1;
         private NamedPipeIpcServer _ipcServer;
         private readonly List<IIpcClient> _ipcClients;
@@ -58,7 +58,7 @@ namespace JJA.Anperi.Host
             _dataModel = ConfigHandler.Load();
             Token = _dataModel.Token;          
             _favorite = _dataModel.Favorite;
-            _periList = new List<HostJsonApiObjectFactory.ApiPeripheral>();
+            _periList = new List<Peripheral>();
             _ipcClients = new List<IIpcClient>();
             _messages = new Queue<string>();
             InitializeWebSocket();
@@ -94,20 +94,24 @@ namespace JJA.Anperi.Host
                 OnPropertyChanged(nameof(Info3));
             }
         }
-        public string ConnectedTo
+        public Peripheral ConnectedPeripheral
         {
-            get => _connectedTo;
+            get => _connectedPeripheral;
             set
             {
-                _connectedTo = value;
-                ButDisconnect = value != "";
-                if (_connectedTo.Equals(""))
+                if (!Equals(value, _connectedPeripheral))
                 {
-                    _connectedPeripheral = -1;
+                    if (_connectedPeripheral != null) _connectedPeripheral.IsConnected = false;
+                    _connectedPeripheral = value;
+                    IpcMessageCode ipcMsg = IpcMessageCode.PeripheralDisconnected;
+                    if (_connectedPeripheral != null)
+                    {
+                        _connectedPeripheral.IsConnected = true;
+                        ipcMsg = IpcMessageCode.PeripheralConnected;
+                    }
+                    OnPropertyChanged();
+                    _ipcClients.AsParallel().ForAll(c => c.SendAsync(new IpcMessage(ipcMsg)));
                 }
-
-                _ipcClients.AsParallel().ForAll(c => c.SendAsync(new IpcMessage(_connectedTo == "" ? IpcMessageCode.PeripheralDisconnected : IpcMessageCode.PeripheralConnected)));                
-                OnPropertyChanged(nameof(ConnectedTo));
             }
         }
 
@@ -116,10 +120,16 @@ namespace JJA.Anperi.Host
             get => _favorite;
             set
             {
-                _favorite = value;
-                _dataModel.Favorite = _favorite;
-                ConfigHandler.Save(_dataModel);
-                OnPropertyChanged();
+                if (_favorite != value)
+                {
+                    _favorite = value;
+                    _dataModel.Favorite = _favorite;
+                    ConfigHandler.Save(_dataModel);
+                    Peripherals.ForEach(p => p.IsFavorite = false);
+                    Peripheral peri = Peripherals.SingleOrDefault(p => p.Id == _favorite);
+                    if (peri != null) peri.IsFavorite = true;
+                    OnPropertyChanged();
+                }
             }
         }
 
@@ -145,12 +155,12 @@ namespace JJA.Anperi.Host
             }
         }
 
-        public List<HostJsonApiObjectFactory.ApiPeripheral> Peripherals
+        public List<Peripheral> Peripherals
         {
             get => _periList;
             set
             {
-                var tmp = from x in value orderby x.online descending select x;
+                var tmp = from x in value orderby x.Online descending select x;
                 _periList = tmp.ToList();
                 OnPropertyChanged(nameof(Peripherals));
             }
@@ -165,16 +175,6 @@ namespace JJA.Anperi.Host
                 _dataModel.Token = _token;
                 ConfigHandler.Save(_dataModel);
                 OnPropertyChanged();
-            }
-        }
-
-        public bool ButDisconnect
-        {
-            get => _butDisconnectVisible;
-            set
-            {
-                _butDisconnectVisible = value;
-                OnPropertyChanged(nameof(ButDisconnect));
             }
         }
 
@@ -301,7 +301,7 @@ namespace JJA.Anperi.Host
                             new IpcMessage(IpcMessageCode.NotClaimed));
                     }
 
-                    if (_connectedPeripheral != -1)
+                    if (ConnectedPeripheral != null)
                     {
                         client.SendAsync(new IpcMessage(IpcMessageCode.PeripheralConnected));
                     }
@@ -344,97 +344,105 @@ namespace JJA.Anperi.Host
         {
             Task.Run(() =>
             {
-                using (_ws = new WebSocket(_wsAddress))
+                _ws = new WebSocket(_wsAddress);
+                _ws.OnOpen += (sender, e) =>
                 {
-                    _ws.OnOpen += (sender, e) =>
+                    if (string.IsNullOrEmpty(Token))
                     {
-                        if (string.IsNullOrEmpty(Token))
-                        {
-                            var name = Environment.MachineName;
-                            var json =
-                                SharedJsonApiObjectFactory
-                                    .CreateRegisterRequest(
-                                        SharedJsonDeviceType.host, name);
-                            _ws.Send(json.Serialize());
-                        }
-                        else
-                        {
-                            var json =
-                                SharedJsonApiObjectFactory.CreateLoginRequest(
-                                    Token, SharedJsonDeviceType.host);
-                            string msg = json.Serialize();
-                            _ws.Send(msg);
-                        }
-                    };
-
-                    _ws.OnMessage += (sender, e) =>
+                        var name = Environment.MachineName;
+                        var json =
+                            SharedJsonApiObjectFactory
+                                .CreateRegisterRequest(
+                                    SharedJsonDeviceType.host, name);
+                        _ws.Send(json.Serialize());
+                    }
+                    else
                     {
-                        Trace.TraceInformation(e.Data);
-                        var json = JsonApiObject.Deserialize(e.Data);
-                        var context = json.context;
+                        var json =
+                            SharedJsonApiObjectFactory.CreateLoginRequest(
+                                Token, SharedJsonDeviceType.host);
+                        string msg = json.Serialize();
+                        _ws.Send(msg);
+                    }
+                };
 
-                        switch (context)
-                        {
-                            case JsonApiContextTypes.server:
-                                if (Enum.TryParse(json.message_code, out SharedJsonRequestCode type))
-                                {
-                                    HandleSharedRequestCode(type, json);
-                                }
-                                else if (Enum.TryParse(json.message_code, out HostRequestCode hostRequest))
-                                {
-                                    HandleHostRequestCode(hostRequest, json);
-                                }
-                                else if (Enum.TryParse(json.message_code, out SharedJsonMessageCode sharedMessage))
-                                {
-                                    HandleSharedMessageCode(sharedMessage, json);
-                                }else if (Enum.TryParse(json.message_code, out HostMessage hostMessage))
-                                {
-                                    HandleHostMessageCode(hostMessage, json);
-                                }
-                                else
-                                {
-                                    QueueMessage("Unknown server code!");
-                                }
-                                break;
-                            case JsonApiContextTypes.device:
-                                if (Enum.TryParse(json.message_code, out DeviceRequestCode deviceCode))
-                                {
-                                    HandleDeviceRequestCode(deviceCode, json);
-                                }
-                                else
-                                {
-                                    QueueMessage("Unknown device code!");
-                                }
-                                break;
-                            default:
-                                throw new NotImplementedException();
-                        }
-                    };
+                _ws.OnMessage += (sender, e) =>
+                {
+                    Trace.TraceInformation(e.Data);
+                    var json = JsonApiObject.Deserialize(e.Data);
+                    var context = json.context;
 
-                    _ws.OnClose += (sender, e) =>
+                    switch (context)
                     {
-                        if (!_closing)
-                        {
-                            Info1 = "No current WebSocket connection";
-                            if (!_ws.IsAlive)
+                        case JsonApiContextTypes.server:
+                            if (Enum.TryParse(json.message_code, out SharedJsonRequestCode type))
                             {
-                                Thread.Sleep(2000);
-                                _ws.Connect();
+                                HandleSharedRequestCode(type, json);
                             }
-                        }
-                    };
+                            else if (Enum.TryParse(json.message_code, out HostRequestCode hostRequest))
+                            {
+                                HandleHostRequestCode(hostRequest, json);
+                            }
+                            else if (Enum.TryParse(json.message_code, out SharedJsonMessageCode sharedMessage))
+                            {
+                                HandleSharedMessageCode(sharedMessage, json);
+                            }else if (Enum.TryParse(json.message_code, out HostMessage hostMessage))
+                            {
+                                HandleHostMessageCode(hostMessage, json);
+                            }
+                            else
+                            {
+                                QueueMessage("Unknown server code!");
+                            }
+                            break;
+                        case JsonApiContextTypes.device:
+                            if (Enum.TryParse(json.message_code, out DeviceRequestCode deviceCode))
+                            {
+                                HandleDeviceRequestCode(deviceCode, json);
+                            }
+                            else
+                            {
+                                QueueMessage("Unknown device code!");
+                            }
+                            break;
+                        default:
+                            throw new NotImplementedException();
+                    }
+                };
 
-                    _ws.OnError += (sender, e) =>
+                _ws.OnClose += (sender, e) =>
+                {
+                    if (!_closing)
                     {
-                        Util.TraceException("Error in WebSocket connection", e.Exception);
-                    };
+                        ResetUi();
+                        Info1 = "No current WebSocket connection";
+                        if (!_ws.IsAlive)
+                        {
+                            Thread.Sleep(2000);
+                            _ws.Connect();
+                        }
+                    }
+                };
 
-                    _ws.Connect();
-                }
+                _ws.OnError += (sender, e) =>
+                {
+                    Util.TraceException("Error in WebSocket connection", e.Exception);
+                    ResetUi();
+                };
+
+                _ws.Connect();
             });
         }
 
         #region response handling
+
+        private void ResetUi()
+        {
+            //TODO @Addy check if I missed something
+            //the ui should reset here to handle a disconnect
+            ConnectedPeripheral = null;
+            Peripherals.Clear();
+        }
 
         private void HandleHostMessageCode(HostMessage code, JsonApiObject json)
         {
@@ -446,16 +454,16 @@ namespace JJA.Anperi.Host
                     {
                         foreach (var x in Peripherals)
                         {
-                            if (x.id != id) continue;
-                            x.online = code == HostMessage.paired_peripheral_logged_on;
-                            if (x.id == _connectedPeripheral)
+                            if (x.Id != id) continue;
+                            x.Online = code == HostMessage.paired_peripheral_logged_on;
+                            if (x.Id == ConnectedPeripheral?.Id)
                             {
-                                ConnectedTo = "";
+                                ConnectedPeripheral = null;
                             }
                             OnPropertyChanged(nameof(Peripherals));
                         }
 
-                        if (code == HostMessage.paired_peripheral_logged_on && _connectedPeripheral == -1 && id == Favorite)
+                        if (code == HostMessage.paired_peripheral_logged_on && ConnectedPeripheral == null && id == Favorite)
                         {
                             var connectRequest = HostJsonApiObjectFactory
                                 .CreateConnectToPeripheralRequest(id);
@@ -482,7 +490,7 @@ namespace JJA.Anperi.Host
                         {
 
                             SendPeripheralRequest();
-                            if (code == HostRequestCode.pair && json.data.TryGetValue("id", out int id) && _connectedPeripheral == -1)
+                            if (code == HostRequestCode.pair && json.data.TryGetValue("id", out int id) && ConnectedPeripheral == null)
                             {
                                 _connectToPeripheral = id;
                             }
@@ -511,7 +519,9 @@ namespace JJA.Anperi.Host
                             JObject jo = x;
                             if (jo.TryGetCastValue("name", out string name) && jo.TryGetCastValue("id", out int id) && jo.TryGetCastValue("online", out bool online))
                             {
-                                Peripherals.Add(new HostJsonApiObjectFactory.ApiPeripheral { id = id, name = name, online = online });
+                                Peripheral p = new Peripheral(id, name, online);
+                                if (p.Id == Favorite) p.IsFavorite = true;
+                                Peripherals.Add(p);
                             }
                             else
                             {
@@ -523,10 +533,10 @@ namespace JJA.Anperi.Host
                         {
                             foreach (var x in Peripherals)
                             {
-                                if (x.id == _connectToPeripheral && x.online)
+                                if (x.Id == _connectToPeripheral && x.Online)
                                 {
                                     var connectRequest = HostJsonApiObjectFactory
-                                        .CreateConnectToPeripheralRequest(x.id);
+                                        .CreateConnectToPeripheralRequest(x.Id);
                                     SendToWebsocket(connectRequest.Serialize());
                                 }
                             }
@@ -542,9 +552,9 @@ namespace JJA.Anperi.Host
                     {
                         foreach (var x in Peripherals)
                         {
-                            if (x.id == _favorite)
+                            if (x.Id == _favorite)
                             {
-                                if (x.online)
+                                if (x.Online)
                                 {
                                     Connect(x);
                                 }
@@ -554,47 +564,31 @@ namespace JJA.Anperi.Host
 
                     break;
                 case HostRequestCode.connect_to_peripheral:
-                case HostRequestCode.disconnect_from_peripheral:
-                    if (json.data.TryGetValue("success",
-                        out dynamic connectSuccess))
+                    if (json.data.TryGetValue("success", out bool connectSuccess))
                     {
-                        if (connectSuccess)
+                        if (connectSuccess && json.data.TryGetValue("id", out int connectId))
                         {
-                            if (json.message_code.Equals(
-                                "connect_to_peripheral"))
+                            ConnectedPeripheral = Peripherals.SingleOrDefault(p => p.Id == connectId);
+                            if (ConnectedPeripheral == null)
                             {
-                                if (json.data.TryGetValue("id", out int id))
-                                {
-                                    _connectedPeripheral = id;
-                                }
-                                var peripheral = Peripherals.SingleOrDefault(x => x.id == id);
-                                if (peripheral != null)
-                                {
-                                    ConnectedTo = peripheral.name;
-                                }
-                                else
-                                {
-                                    QueueMessage("Couldn't find the connected device in peripheral list!");
-                                }
+                                QueueMessage("Couldn't find the connected device in peripheral list!");
                             }
-                            else
-                            {
-                                ConnectedTo = "";
-                            }
-                        }
-                        else
-                        {
-                            QueueMessage(
-                                "Something went wrong in operation " +
-                                json.message_code + " !");
                         }
                     }
                     else
                     {
-                        Trace.TraceWarning(
-                            "success missed in connect/disconnect response");
+                        Trace.TraceWarning("Connect response missed data: {0}", json.data.ToDataString());
                     }
-
+                    break;
+                case HostRequestCode.disconnect_from_peripheral:
+                    if (json.data.TryGetValue("success", out bool disconnectSuccess))
+                    {
+                        if (disconnectSuccess) ConnectedPeripheral = null;
+                    }
+                    else
+                    {
+                        Trace.TraceWarning("Disconnect response missed data: {0}", json.data.ToDataString());
+                    }
                     break;
                 case HostRequestCode.change_peripheral_name:
                     if (json.data.TryGetValue("success",
@@ -606,10 +600,10 @@ namespace JJA.Anperi.Host
                             {
                                 foreach (var x in Peripherals)
                                 {
-                                    if (x.id != id) continue;
+                                    if (x.Id != id) continue;
                                     if (json.data.TryGetValue("name", out string name))
                                     {
-                                        x.name = name;
+                                        x.Name = name;
                                         OnPropertyChanged(nameof(Peripherals));
                                     }
                                     else
@@ -702,7 +696,7 @@ namespace JJA.Anperi.Host
                     }
                     break;
                 case SharedJsonMessageCode.partner_disconnected:
-                    ConnectedTo = "";
+                    ConnectedPeripheral = null;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(code), code, null);
@@ -757,13 +751,12 @@ namespace JJA.Anperi.Host
 
         public void Unpair(object item)
         {
-            if (!(item is HostJsonApiObjectFactory.ApiPeripheral)) return;
-            var id = ((HostJsonApiObjectFactory.ApiPeripheral)item).id;
-            if (id == _connectedPeripheral)
+            if (!(item is Peripheral peripheral)) throw new ArgumentException("The given item wasn't the required type Peripheral", nameof(item));
+            if (peripheral.Id == ConnectedPeripheral?.Id)
             {
                 Disconnect();
             }
-            var json = HostJsonApiObjectFactory.CreateUnpairFromPeripheralRequest(id);
+            var json = HostJsonApiObjectFactory.CreateUnpairFromPeripheralRequest(peripheral.Id);
             SendToWebsocket(json.Serialize());
         }
 
@@ -789,9 +782,8 @@ namespace JJA.Anperi.Host
 
         public void Connect(object item)
         {
-            if (!(item is HostJsonApiObjectFactory.ApiPeripheral)) return;
-            var id = ((HostJsonApiObjectFactory.ApiPeripheral)item).id;
-            var json = HostJsonApiObjectFactory.CreateConnectToPeripheralRequest(id);
+            if (!(item is Peripheral peripheral)) throw new ArgumentException("The given item wasn't the required type Peripheral", nameof(item));
+            var json = HostJsonApiObjectFactory.CreateConnectToPeripheralRequest(peripheral.Id);
             SendToWebsocket(json.Serialize());
         }
 
@@ -869,10 +861,17 @@ namespace JJA.Anperi.Host
             }
         }
 
+        [NotifyPropertyChangedInvocator]
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this,
                 new PropertyChangedEventArgs(propertyName));
+        }
+
+        public void Dispose()
+        {
+            ((IDisposable) _ws)?.Dispose();
+            _ipcServer?.Dispose();
         }
     }
 }

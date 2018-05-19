@@ -21,20 +21,38 @@
 	<Grid>
 		<TextBlock x:Name="InfoBlock" Margin="187,288,0,0" TextWrapping="Wrap" Text="{Binding Path = Info1, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Height="16" VerticalAlignment="Top"/>
 		<ListBox x:Name="PeriBox" Margin="10,10,0,10" ItemsSource="{Binding Path=Peripherals}" HorizontalAlignment="Left" Width="172">
-			<ListBox.ItemTemplate>
-				<DataTemplate>
-					<Label Content="{Binding Path=name}">
-						<Label.Style>
-							<Style TargetType="Label">
-								<Style.Triggers>
-									<DataTrigger Binding="{Binding Path=online, UpdateSourceTrigger=PropertyChanged}" Value="True">
-										<Setter Property="FontWeight" Value="Bold"/>
-									</DataTrigger>
-								</Style.Triggers>
-							</Style>
-						</Label.Style>
-					</Label>
-				</DataTemplate>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <Polygon Points="0 -96, 56, 78, -91 -30, 91 -30, -56 78" Height="12" Width="12" Fill="DarkGoldenrod" Stroke="DarkGoldenrod" StrokeThickness="1" Stretch="Uniform">
+                            <Polygon.Style>
+                                <Style TargetType="Polygon">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Path=IsFavorite, UpdateSourceTrigger=PropertyChanged}" Value="False">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Polygon.Style>
+                        </Polygon>
+                        <Label Content="{Binding Path=Name}">
+                            <Label.Style>
+                                <Style TargetType="Label">
+                                    <Setter Property="Foreground" Value="Black"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Path=Online, UpdateSourceTrigger=PropertyChanged}" Value="False">
+                                            <Setter Property="Foreground" Value="DarkGray"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Path=IsConnected, UpdateSourceTrigger=PropertyChanged}" Value="True">
+                                            <Setter Property="FontWeight" Value="Bold"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Label.Style>
+                        </Label>
+                    </StackPanel>
+                </DataTemplate>
 			</ListBox.ItemTemplate>
 			<ListBox.ItemContainerStyle>
 				<Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource {x:Type ListBoxItem}}">
@@ -44,7 +62,7 @@
 			</ListBox.ItemContainerStyle>
 		</ListBox>
 		<TextBlock HorizontalAlignment="Left" Margin="187,14,0,0" TextWrapping="Wrap" Text="{Binding ConnectedTo, StringFormat='Connected to: {0}', UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Height="16" Width="178"/>
-		<Button Visibility="{Binding ButDisconnect, Converter={StaticResource BoolToVis}, FallbackValue=Visible}" Content="Disconnect" Margin="395,10,10,0" VerticalAlignment="Top" Height="25" Click="ButDisconnect_Click" HorizontalAlignment="Stretch" Width="Auto"/>
+		<Button Visibility="{Binding ButDisconnectVisible, Converter={StaticResource BoolToVis}, FallbackValue=Visible}" Content="Disconnect" Margin="395,10,10,0" VerticalAlignment="Top" Height="25" Click="ButDisconnect_Click" HorizontalAlignment="Stretch" Width="Auto"/>
 		<TextBlock Text="{Binding Info3, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Margin="187,245,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="17"/>
 		<TextBlock Text="{Binding Info2, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Margin="187,267,0,0" TextWrapping="Wrap" VerticalAlignment="Top" RenderTransformOrigin="2.301,0.272"/>
 		<Grid Margin="187,44,10,0" Height="196" VerticalAlignment="Top">
