@@ -25,11 +25,11 @@ namespace JJA.Anperi.Host.Utility
 
             HostDataModel model = null;
 
-            if (File.Exists(SaltPath))
+            if (File.Exists(SaltPath) && File.Exists(ConfigPath))
             {
-                _salt = File.ReadAllBytes(SaltPath);
                 try
                 {
+                    _salt = File.ReadAllBytes(SaltPath);
                     byte[] file = File.ReadAllBytes(ConfigPath);
                     file = Unprotect(file);
                     using (var ms = new MemoryStream(file))
@@ -75,7 +75,7 @@ namespace JJA.Anperi.Host.Utility
             }
             catch (Exception e)
             {
-                Util.TraceException("Error while saving VpnData", e);
+                Util.TraceException("Error while saving data", e);
             }
         }
 
