@@ -22,7 +22,7 @@ using JJA.Anperi.Utility;
 using Newtonsoft.Json.Linq;
 
 
-namespace JJA.Anperi.Host
+namespace JJA.Anperi.Host.Model
 {
     class HostModel : INotifyPropertyChanged, IDisposable
     {

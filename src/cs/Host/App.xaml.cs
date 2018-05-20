@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using JJA.Anperi.Host.Utility;
+using JJA.Anperi.Host.View;
 using JJA.Anperi.Utility;
 using JJA.Anperi.WpfUtility;
 

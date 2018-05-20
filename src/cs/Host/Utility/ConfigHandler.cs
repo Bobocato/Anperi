@@ -6,6 +6,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using JJA.Anperi.Host.Model;
 using JJA.Anperi.Utility;
 using Microsoft.Win32;
 

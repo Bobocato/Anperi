@@ -2,9 +2,8 @@
 using System.ComponentModel;
 using System.Windows.Threading;
 using JJA.Anperi.Host.Model;
-using JJA.Anperi.Internal.Api.Host;
 
-namespace JJA.Anperi.Host
+namespace JJA.Anperi.Host.ViewModel
 {
     //TODO: seperate DLL for the model
     //TODO: probably split model into multiple classes because this will get REALLY messy the moment IPC comes into play

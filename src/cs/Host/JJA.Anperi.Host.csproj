@@ -73,13 +73,13 @@
     <Compile Include="Model\Peripheral.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Utility\ConfigHandler.cs" />
-    <Compile Include="HostDataModel.cs" />
-    <Compile Include="Popup.xaml.cs">
+    <Compile Include="Model\HostDataModel.cs" />
+    <Compile Include="View\Popup.xaml.cs">
       <DependentUpon>Popup.xaml</DependentUpon>
     </Compile>
     <Compile Include="Utility\Extensions.cs" />
     <Compile Include="Utility\TrayHelper.cs" />
-    <Page Include="MainWindow.xaml">
+    <Page Include="View\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -87,13 +87,13 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="HostModel.cs" />
-    <Compile Include="HostViewModel.cs" />
-    <Compile Include="MainWindow.xaml.cs">
+    <Compile Include="Model\HostModel.cs" />
+    <Compile Include="ViewModel\HostViewModel.cs" />
+    <Compile Include="View\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="Popup.xaml">
+    <Page Include="View\Popup.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

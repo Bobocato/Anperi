@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel;
 using System.Windows;
 using JJA.Anperi.Host.Model;
-using JJA.Anperi.Internal.Api.Host;
+using JJA.Anperi.Host.ViewModel;
 
-namespace JJA.Anperi.Host
+namespace JJA.Anperi.Host.View
 {
     public partial class MainWindow
     {
