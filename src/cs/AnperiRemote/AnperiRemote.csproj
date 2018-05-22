@@ -34,6 +34,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Resources\tray.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="JJA.Anperi.Ipc.Client, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\JJA.Anperi.Ipc.Client.1.0.0\lib\netstandard2.0\JJA.Anperi.Ipc.Client.dll</HintPath>

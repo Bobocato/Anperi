@@ -8,20 +8,23 @@
         mc:Ignorable="d"
         Title="Anperi" Height="350" Width="600"
         ResizeMode="CanMinimize"
-        Closing="MainWindow_OnClosing"
         d:DataContext="{d:DesignInstance viewModel:HostViewModel}">
-	<Window.Resources>
-		<BooleanToVisibilityConverter x:Key="BoolToVis" />
-		<ContextMenu x:Key="MyMenu">
-			<MenuItem Header="Rename" Click="ButRename_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}"/>
-			<MenuItem Header="Favorite" Click="ButFavorite_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}"/>
-			<MenuItem Header="Unpair" Click="ButUnpair_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}" />
-			<MenuItem Header="Connect" Click="ButConnect_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}"/>
-		</ContextMenu>
-	</Window.Resources>
-	<Grid>
-		<TextBlock x:Name="InfoBlock" Margin="187,288,0,0" TextWrapping="Wrap" Text="{Binding Path = Info1, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Height="16" VerticalAlignment="Top"/>
-		<ListBox x:Name="PeriBox" Margin="10,10,0,10" ItemsSource="{Binding Path=Peripherals}" HorizontalAlignment="Left" Width="172">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <ContextMenu x:Key="MyMenu">
+            <MenuItem Header="Rename" Click="ButRename_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}"/>
+            <MenuItem Header="Favorite" Click="ButFavorite_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}"/>
+            <MenuItem Header="Unpair" Click="ButUnpair_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}" />
+            <MenuItem Header="Connect" Click="ButConnect_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}"/>
+        </ContextMenu>
+    </Window.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="101*"/>
+            <ColumnDefinition Width="196*"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock x:Name="InfoBlock" Margin="187,288,0,0" TextWrapping="Wrap" Text="{Binding Path = Info1, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Height="16" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
+        <ListBox x:Name="PeriBox" Margin="10,10,0,10" ItemsSource="{Binding Path=Peripherals}" HorizontalAlignment="Left" Width="172">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">
@@ -54,23 +57,23 @@
                         </Label>
                     </StackPanel>
                 </DataTemplate>
-			</ListBox.ItemTemplate>
-			<ListBox.ItemContainerStyle>
-				<Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource {x:Type ListBoxItem}}">
-					<EventSetter Event="MouseDoubleClick" Handler="ButConnect_Click"/>
-					<Setter Property="ContextMenu" Value="{StaticResource MyMenu}"></Setter>
-				</Style>
-			</ListBox.ItemContainerStyle>
-		</ListBox>
-		<TextBlock HorizontalAlignment="Left" Margin="187,14,0,0" TextWrapping="Wrap" Text="{Binding ConnectedTo, StringFormat='Connected to: {0}', UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Height="16" Width="178"/>
-		<Button Visibility="{Binding ButDisconnectVisible, Converter={StaticResource BoolToVis}, FallbackValue=Visible}" Content="Disconnect" Margin="395,10,10,0" VerticalAlignment="Top" Height="25" Click="ButDisconnect_Click" HorizontalAlignment="Stretch" Width="Auto"/>
-		<TextBlock Text="{Binding Info3, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Margin="187,245,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="17"/>
-		<TextBlock Text="{Binding Info2, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Margin="187,267,0,0" TextWrapping="Wrap" VerticalAlignment="Top" RenderTransformOrigin="2.301,0.272"/>
-		<Grid Margin="187,44,10,0" Height="196" VerticalAlignment="Top">
-			<Border BorderBrush="Black" BorderThickness="2"></Border>
-			<Button Content="Pair" Click="ButPair_Click" Margin="10,10,10,0" Height="25" VerticalAlignment="Top"/>
-			<Button Content="Send Message" Click="ButSendMessage_Click" Margin="10,160,10,0" Height="25" VerticalAlignment="Top"/>
-			<Button Content="Options" Click="ButOptions_Click" Margin="10,85,10,0" Height="25" VerticalAlignment="Top"/>
-		</Grid>
-	</Grid>
+            </ListBox.ItemTemplate>
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                    <EventSetter Event="MouseDoubleClick" Handler="ButConnect_Click"/>
+                    <Setter Property="ContextMenu" Value="{StaticResource MyMenu}"></Setter>
+                </Style>
+            </ListBox.ItemContainerStyle>
+        </ListBox>
+        <TextBlock HorizontalAlignment="Left" Margin="187,14,0,0" TextWrapping="Wrap" Text="{Binding ConnectedTo, StringFormat='Connected to: {0}', UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Height="16" Width="178" Grid.ColumnSpan="2"/>
+        <Button Visibility="{Binding ButDisconnectVisible, Converter={StaticResource BoolToVis}, FallbackValue=Visible}" Content="Disconnect" Margin="193,10,10,0" VerticalAlignment="Top" Height="25" Click="ButDisconnect_Click" HorizontalAlignment="Stretch" Width="Auto" Grid.Column="1"/>
+        <TextBlock Text="{Binding Info3, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Margin="187,245,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="17" Grid.ColumnSpan="2"/>
+        <TextBlock Text="{Binding Info2, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Margin="187,267,0,0" TextWrapping="Wrap" VerticalAlignment="Top" RenderTransformOrigin="2.301,0.272" Grid.ColumnSpan="2"/>
+        <Grid Margin="187,44,10,0" Height="196" VerticalAlignment="Top" Grid.ColumnSpan="2">
+            <Border BorderBrush="Black" BorderThickness="2"></Border>
+            <Button Content="Pair" Click="ButPair_Click" Margin="10,10,10,0" Height="25" VerticalAlignment="Top"/>
+            <Button Content="Send Message" Click="ButSendMessage_Click" Margin="10,160,10,0" Height="25" VerticalAlignment="Top"/>
+            <Button Content="Options" Click="ButOptions_Click" Margin="10,85,10,0" Height="25" VerticalAlignment="Top"/>
+        </Grid>
+    </Grid>
 </Window>

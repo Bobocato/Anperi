@@ -26,6 +26,9 @@ namespace JJA.Anperi.Host.Model
 {
     class HostModel : INotifyPropertyChanged, IDisposable
     {
+        public static HostModel Instance => _instance.Value;
+        private static Lazy<HostModel> _instance = new Lazy<HostModel>(() => new HostModel());
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         private string _info1 = "No Current WebSocket connection!";
@@ -124,7 +127,6 @@ namespace JJA.Anperi.Host.Model
                 {
                     _favorite = value;
                     _dataModel.Favorite = _favorite;
-                    ConfigHandler.Save(_dataModel);
                     Peripherals.ForEach(p => p.IsFavorite = false);
                     Peripheral peri = Peripherals.SingleOrDefault(p => p.Id == _favorite);
                     if (peri != null) peri.IsFavorite = true;
@@ -139,7 +141,6 @@ namespace JJA.Anperi.Host.Model
             set
             {
                 _dataModel.Tray = value;
-                ConfigHandler.Save(_dataModel);
                 OnPropertyChanged();
             }
         }
@@ -151,7 +152,6 @@ namespace JJA.Anperi.Host.Model
             {
                 _dataModel.Autostart = value;
                 OnPropertyChanged();
-                ConfigHandler.Save(_dataModel);
             }
         }
 
@@ -173,7 +173,6 @@ namespace JJA.Anperi.Host.Model
             {
                 _token = value;
                 _dataModel.Token = _token;
-                ConfigHandler.Save(_dataModel);
                 OnPropertyChanged();
             }
         }
@@ -780,9 +779,9 @@ namespace JJA.Anperi.Host.Model
             SendToWebsocket(json.Serialize());
         }
 
-        public void Connect(object item)
+        public void Connect(Peripheral peripheral)
         {
-            if (!(item is Peripheral peripheral)) throw new ArgumentException("The given item wasn't the required type Peripheral", nameof(item));
+            if (peripheral == null) throw new ArgumentNullException(nameof(peripheral));
             var json = HostJsonApiObjectFactory.CreateConnectToPeripheralRequest(peripheral.Id);
             SendToWebsocket(json.Serialize());
         }

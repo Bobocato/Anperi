@@ -18,8 +18,11 @@ namespace JJA.Anperi.Host.Utility
         private const string SaltPath = "salt.data";
         private static byte[] _salt;
 
+        private static HostDataModel _data = null;
+
         public static HostDataModel Load()
         {
+            if (_data != null) return _data;
             bool fileExists = File.Exists(ConfigPath);
             if (!fileExists) return new HostDataModel();
 
@@ -43,7 +46,8 @@ namespace JJA.Anperi.Host.Utility
                     Util.TraceException("Error loading HostData, restoring defaults ...", e);
                 }
             }
-            return model ?? new HostDataModel();
+            _data = model ?? new HostDataModel();
+            return _data;
         }
 
         private static byte[] Protect(byte[] data)
@@ -56,6 +60,12 @@ namespace JJA.Anperi.Host.Utility
         {
             //TODO: look protect
             return ProtectedData.Unprotect(data, _salt, DataProtectionScope.LocalMachine);
+        }
+
+        public static void Save()
+        {
+            if (_data == null) throw new InvalidOperationException("You need to call Load first.");
+            Save(_data);
         }
 
         public static void Save(HostDataModel dataModel)

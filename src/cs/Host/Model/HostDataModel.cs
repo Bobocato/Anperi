@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using JJA.Anperi.WpfUtility;
 
 namespace JJA.Anperi.Host.Model
 {
@@ -40,6 +41,8 @@ namespace JJA.Anperi.Host.Model
             {
                 if (_autostart == value) return;
                 _autostart = value;
+                if (_autostart) WpfUtil.AddToAutostart("-tray");
+                else WpfUtil.RemoveFromAutostart();
                 OnPropertyChanged();
             }
         }

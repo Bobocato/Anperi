@@ -16,8 +16,8 @@ namespace JJA.Anperi.Host.ViewModel
         public HostViewModel(Dispatcher dispatcher)
         {
             _dispatcher = dispatcher;
-            Peripherals = new ObservableCollection<Peripheral>();
-            _model = new HostModel();
+            _model = HostModel.Instance;
+            Peripherals = new ObservableCollection<Peripheral>(_model.Peripherals);
             _model.PropertyChanged += OnModelPropertyChanged;
         }       
 
@@ -121,7 +121,7 @@ namespace JJA.Anperi.Host.ViewModel
 
         public void Connect(object item)
         {
-            _model.Connect(item);
+            _model.Connect((Peripheral)item);
         }
 
         public void Disconnect()
@@ -140,15 +140,8 @@ namespace JJA.Anperi.Host.ViewModel
             switch (e.PropertyName)
             {
                 case nameof(HostModel.Peripherals):
-                    _dispatcher.Invoke(() =>
-                    {
-                        Peripherals.Clear();
-                        _model.Peripherals.ForEach((a) =>
-                        {
-                            Peripherals.Add(a);
-                        });
-                    });
-                    OnPropertyChanged(nameof(Peripherals));
+                    RefillPeripherals();
+                    //OnPropertyChanged(nameof(Peripherals));
                     break;
                 case nameof(HostModel.ConnectedPeripheral):
                     OnPropertyChanged(nameof(ButDisconnectVisible));
@@ -158,6 +151,18 @@ namespace JJA.Anperi.Host.ViewModel
                     OnPropertyChanged(e.PropertyName);
                     break;
             }
+        }
+
+        private void RefillPeripherals()
+        {
+            _dispatcher.Invoke(() =>
+            {
+                Peripherals.Clear();
+                _model.Peripherals.ForEach((a) =>
+                {
+                    Peripherals.Add(a);
+                });
+            });
         }
 
         private void OnPropertyChanged(string property)

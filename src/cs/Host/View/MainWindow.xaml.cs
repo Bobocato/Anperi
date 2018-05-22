@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Windows;
 using JJA.Anperi.Host.Model;
+using JJA.Anperi.Host.Utility;
 using JJA.Anperi.Host.ViewModel;
 
 namespace JJA.Anperi.Host.View
@@ -19,11 +20,6 @@ namespace JJA.Anperi.Host.View
         private void ButPair_Click(object sender, RoutedEventArgs e)
         {
             SpawnPopup("pair");
-        }
-
-        private void MainWindow_OnClosing(object sender, CancelEventArgs e)
-        {
-            _viewModel.Close();
         }
 
         private void ButUnpair_Click(object sender, RoutedEventArgs e)
@@ -58,7 +54,11 @@ namespace JJA.Anperi.Host.View
 
         private void ButOptions_Click(object sender, RoutedEventArgs e)
         {
-            SpawnPopup("options");
+            var win = new SettingsWindow();
+            if (win.ShowDialog().GetValueOrDefault(false))
+            {
+                win.Settings.SaveToDataModel(ConfigHandler.Load());
+            }
         }
 
         private void SpawnPopup(string windowType)

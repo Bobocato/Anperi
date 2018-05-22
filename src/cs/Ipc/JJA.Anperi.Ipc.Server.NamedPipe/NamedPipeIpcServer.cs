@@ -47,8 +47,12 @@ namespace JJA.Anperi.Ipc.Server.NamedPipe
         public void Stop()
         {
             _running = false;
-            _cts?.Cancel();
-            _cts?.Dispose();
+            try
+            {
+                _cts?.Cancel();
+                _cts?.Dispose();
+            }
+            catch (ObjectDisposedException) { }
             lock (_syncRootClients)
             {
                 foreach (NamedPipeIpcClient namedPipeIpcClient in _clients.Values)

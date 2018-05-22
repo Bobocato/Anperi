@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using JJA.Anperi.Host.Model;
 using JJA.Anperi.Host.Utility;
 using JJA.Anperi.Host.View;
 using JJA.Anperi.Utility;
@@ -71,6 +72,9 @@ namespace JJA.Anperi.Host
                 TrayHelper.Instance.ItemExitClick += TrayIcon_ItemExitClick;
                 TrayHelper.Instance.IconVisible = true;
             }
+
+            var _ = HostModel.Instance;
+
             if (createUi) this.ShowCreateMainWindow<MainWindow>();
 
             base.OnStartup(e);
@@ -108,6 +112,8 @@ namespace JJA.Anperi.Host
 
         protected override void OnExit(ExitEventArgs e)
         {
+            HostModel.Instance.Close();
+            ConfigHandler.Save();
             TrayHelper.Instance.IconVisible = false;
             WpfUtil.Dispose();
             base.OnExit(e);
