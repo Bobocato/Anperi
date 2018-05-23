@@ -546,7 +546,7 @@ public class MainActivity extends AppCompatActivity {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-        } else if (createFragment == null) {
+        } else {
             try {
                 createFragment = new CreateFragment();
                 createFragment.setLayout(new JSONObject(StatusObject.layoutString));
