@@ -46,7 +46,6 @@ public class MainActivity extends AppCompatActivity {
     private LoadingFragment loadingFragment;
     private TestFragment testFragment;
     private CreateFragment createFragment;
-    public WebSocket ws;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -133,10 +132,18 @@ public class MainActivity extends AppCompatActivity {
         super.onSaveInstanceState(savedInstanceState);
     }
 
+    //------------------------------
+    //-----------Lifecycle----------
+    //------------------------------
     @Override
     public void onStart() {
         Log.v(TAG, "MainActivity onStart called");
         isRunning = true;
+        StatusObject.getInstance();
+        if (!StatusObject.isConnected && (StatusObject.isRegistered || StatusObject.isLoggedIn)) {
+            MyWebSocket.reconnect();
+            //MyWebSocket.getInstance().recreate().connectAsynchronously();
+        }
         super.onStart();
     }
 
@@ -158,6 +165,16 @@ public class MainActivity extends AppCompatActivity {
     public void onStop() {
         Log.v(TAG, "MainActivity onStop() called");
         isRunning = false;
+        if (StatusObject.isConnected) {
+            try {
+                MyWebSocket.getInstance().disconnect();
+                StatusObject.isConnected = false;
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (WebSocketException e) {
+                e.printStackTrace();
+            }
+        }
         super.onStop();
     }
 
@@ -314,6 +331,8 @@ public class MainActivity extends AppCompatActivity {
                                         case "login":
                                             //User was logged in get a pairing code
                                             StatusObject.isLoggedIn = true;
+                                            //Logged in Users are registered
+                                            StatusObject.isRegistered = true;
                                             MyWebSocket.sendMessage("server", "request", "get_pairing_code", null);
                                             break;
                                     }
@@ -434,7 +453,7 @@ public class MainActivity extends AppCompatActivity {
                 //Set server and start websocket
                 MyWebSocket.setServer(serverUrl);
                 try {
-                    ws = MyWebSocket.getInstance();
+                    MyWebSocket.getInstance();
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (WebSocketException e) {

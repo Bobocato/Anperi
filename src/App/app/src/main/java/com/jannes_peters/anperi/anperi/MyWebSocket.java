@@ -18,7 +18,6 @@ import java.util.TimerTask;
 public class MyWebSocket {
     private static final String TAG = "jja.anperi";
     private static com.neovisionaries.ws.client.WebSocket instance;
-    private static final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
     //WS variables
     private static String server;
     private static final int timeout = 500;
@@ -54,6 +53,15 @@ public class MyWebSocket {
         }, 2000);
     }
 
+    public static void connect() throws IOException{
+        Log.v(TAG, "Connect ws to: " + server);
+        MyWebSocket.instance = new WebSocketFactory()
+                .setConnectionTimeout(timeout)
+                .createSocket(server)
+                .addExtension(WebSocketExtension.PERMESSAGE_DEFLATE)
+                .connectAsynchronously();
+    }
+
     private static com.neovisionaries.ws.client.WebSocket create() throws IOException {
         Log.v(TAG, "Create MyWebSocket was called");
         return new WebSocketFactory()
@@ -70,6 +78,7 @@ public class MyWebSocket {
                     .put("message_type", message_type)
                     .put("message_code", message_code)
                     .put("data", data).toString();
+            Log.v(TAG,"Send Message: " + jsonString);
             instance.sendText(jsonString);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -85,6 +94,7 @@ public class MyWebSocket {
                     .put("message_code", "error")
                     .put("data", new JSONObject()
                             .put("msg", text)).toString();
+            Log.v(TAG,"Send Message: " + jsonString);
             instance.sendText(jsonString);
         } catch (JSONException e) {
             e.printStackTrace();
