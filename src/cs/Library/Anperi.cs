@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using JJA.Anperi.Ipc.Client;
@@ -10,6 +11,7 @@ using JJA.Anperi.Lib.Elements;
 using JJA.Anperi.Lib.Message;
 using JJA.Anperi.Utility;
 
+[assembly: ComVisible(true)]
 namespace JJA.Anperi.Lib
 {
     public class Anperi : IDisposable
@@ -57,10 +59,10 @@ namespace JJA.Anperi.Lib
             await _ipcClient.SendAsync(new IpcMessage {MessageCode = IpcMessageCode.GetPeripheralInfo}).ConfigureAwait(false);
         }
 
-        public async Task SetLayout(RootGrid layout)
+        public async Task SetLayout(RootGrid layout, ScreenOrientation orientation = ScreenOrientation.unspecified)
         {
             if (!HasControl) throw new InvalidOperationException("We aren't in control of the device.");
-            await _ipcClient.SendAsync(new IpcMessage {MessageCode = IpcMessageCode.SetPeripheralLayout, Data = new Dictionary<string, dynamic>{{"grid", layout}}}).ConfigureAwait(false);
+            await _ipcClient.SendAsync(new IpcMessage {MessageCode = IpcMessageCode.SetPeripheralLayout, Data = new Dictionary<string, dynamic>{{"grid", layout}, {"orientation", orientation.ToString()}}}).ConfigureAwait(false);
         }
 
         public async Task UpdateElementParam(string elementId, string paramName, dynamic value)
@@ -222,5 +224,10 @@ namespace JJA.Anperi.Lib
             _ipcClient?.Dispose();
             _semConnecting?.Dispose();
         }
+    }
+
+    public enum ScreenOrientation
+    {
+        unspecified, landscape, portrait
     }
 }

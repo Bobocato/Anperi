@@ -2,13 +2,18 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <Authors>Jannes Peters</Authors>
     <Company>JJA</Company>
     <Product>Anperi</Product>
     <Description>The Lib to consume to write a client application that is using Anperi to display controls on a peripheral.</Description>
-    <Version>1.0.5</Version>
+    <Version>1.0.6</Version>
     <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
+    <NeutralLanguage>en</NeutralLanguage>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile></DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

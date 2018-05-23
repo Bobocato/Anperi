@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using AnperiRemote.Annotations;
@@ -81,7 +82,7 @@ namespace AnperiRemote.Model
                 {
                     grid = _currentLayout;
                 }
-                await _anperi.SetLayout(grid).ConfigureAwait(false);
+                await _anperi.SetLayout(grid, ScreenOrientation.portrait).ConfigureAwait(false);
             }
         }
 
