@@ -1,6 +1,8 @@
 package com.jannes_peters.anperi.anperi;
 
+import android.app.Activity;
 import android.app.Fragment;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -79,9 +81,25 @@ public class CreateFragment extends Fragment {
             android.support.v7.widget.GridLayout newGrid = createGrid(elements);
             create_container = this.getView().findViewById(R.id.create_container);
             create_container.addView(newGrid);
+            setOrientation(json);
             //gridLayout = createGrid(elements);
         } catch (JSONException e) {
             Log.v(TAG, "The Element could not be converted");
+            e.printStackTrace();
+        }
+    }
+
+    private void setOrientation(JSONObject json) {
+        try {
+            String orientation = json.getString("orientation");
+            if (orientation.equals("landscape")) {
+                getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+            } else if (orientation.equals("portrait")) {
+                getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            } else {
+                getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+            }
+        } catch (JSONException e) {
             e.printStackTrace();
         }
     }
@@ -239,6 +257,7 @@ public class CreateFragment extends Fragment {
         Log.v(TAG, "createGrid called");
         //Log.v(TAG, this.getActivity().toString());
         android.support.v7.widget.GridLayout grid = new android.support.v7.widget.GridLayout(getActivity());
+
         for (int i = 0; i < elements.length(); i++) {
             try {
                 JSONObject currentElement = elements.getJSONObject(i);

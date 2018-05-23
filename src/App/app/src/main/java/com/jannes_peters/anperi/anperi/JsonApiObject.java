@@ -32,10 +32,8 @@ public class JsonApiObject {
                     case "message":
                         switch (messageCode) {
                             case "partner_disconnected":
-                                //TODO: "Reset" App (show pairing messageCode)
                                 return Action.reset;
                             case "error":
-                                //TODO: Show Error
                                 return Action.error;
                         }
                         break;

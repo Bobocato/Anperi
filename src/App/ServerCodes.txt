@@ -24,7 +24,7 @@ while(ul.childElementCount > 0){
   "message_type": "request",
   "message_code": "pair",
   "data": {
-    "code": "325549"
+    "code": "230398"
   }
 }
 //Get Peripherals:
@@ -65,6 +65,7 @@ while(ul.childElementCount > 0){
   "message_type": "request",
   "message_code": "set_layout",
   "data": {
+  	"orientation" : "landscape",
     "grid": {
       "elements": [
         {

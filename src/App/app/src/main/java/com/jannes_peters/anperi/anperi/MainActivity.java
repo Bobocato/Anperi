@@ -165,14 +165,16 @@ public class MainActivity extends AppCompatActivity {
     public void onStop() {
         Log.v(TAG, "MainActivity onStop() called");
         isRunning = false;
-        if (StatusObject.isConnected) {
-            try {
-                MyWebSocket.getInstance().disconnect();
-                StatusObject.isConnected = false;
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (WebSocketException e) {
-                e.printStackTrace();
+        if(isFinishing()){
+            if (StatusObject.isConnected) {
+                try {
+                    MyWebSocket.getInstance().disconnect();
+                    StatusObject.isConnected = false;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (WebSocketException e) {
+                    e.printStackTrace();
+                }
             }
         }
         super.onStop();
