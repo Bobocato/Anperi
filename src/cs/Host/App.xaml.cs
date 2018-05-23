@@ -3,12 +3,16 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using JJA.Anperi.Host.Model;
 using JJA.Anperi.Host.Utility;
+using JJA.Anperi.Host.View;
 using JJA.Anperi.Utility;
 using JJA.Anperi.WpfUtility;
+using Microsoft.VisualBasic.Logging;
 
 namespace JJA.Anperi.Host
 {
@@ -28,7 +32,15 @@ namespace JJA.Anperi.Host
             if (!WpfUtil.IsFirstInstance)
             {
                 Shutdown();
+                return;
+                //aborting startup here to prevent the ui from being initialized.
             }
+
+#if DEBUG
+            if (!Directory.Exists("logs")) Directory.CreateDirectory("logs");
+            Trace.Listeners.Add(new FileLogTraceListener("filelistener") {Location = LogFileLocation.Custom, CustomLocation = "logs", Append = true, BaseFileName = "anperi", AutoFlush = true});
+#endif
+            Trace.TraceInformation("Starting as first, new instance gonna start ...");
 
             bool createUi = true;
             bool trayActive = true;
@@ -60,6 +72,9 @@ namespace JJA.Anperi.Host
                 TrayHelper.Instance.ItemExitClick += TrayIcon_ItemExitClick;
                 TrayHelper.Instance.IconVisible = true;
             }
+
+            var _ = HostModel.Instance;
+
             if (createUi) this.ShowCreateMainWindow<MainWindow>();
 
             base.OnStartup(e);
@@ -97,6 +112,8 @@ namespace JJA.Anperi.Host
 
         protected override void OnExit(ExitEventArgs e)
         {
+            HostModel.Instance.Close();
+            ConfigHandler.Save();
             TrayHelper.Instance.IconVisible = false;
             WpfUtil.Dispose();
             base.OnExit(e);

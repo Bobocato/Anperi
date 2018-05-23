@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using JJA.Anperi.Host.ViewModel;
 
 namespace JJA.Anperi.Host
 {

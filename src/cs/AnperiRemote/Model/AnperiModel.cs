@@ -24,6 +24,7 @@ namespace AnperiRemote.Model
         private readonly object _syncRootLayout = new object();
         private RootGrid _currentLayout;
         private readonly SettingsModel _settings;
+        private bool _shuttingDown = false;
 
         private enum Elements : int
         {
@@ -100,18 +101,7 @@ namespace AnperiRemote.Model
         private async void _anperi_PeripheralConnected(object sender, EventArgs e)
         {
             OnPropertyChanged(nameof(IsPeripheralConnected));
-            if (_anperi.HasControl)
-            {
-                if (_currentLayout != null)
-                {
-                    RootGrid grid;
-                    lock (_syncRootLayout)
-                    {
-                        grid = _currentLayout;
-                    }
-                    await _anperi.SetLayout(grid).ConfigureAwait(false);
-                }
-            }
+            await SetLayout(SettingsModel.Instance).ConfigureAwait(false);
         }
 
         private async void _anperi_HostNotClaimed(object sender, EventArgs e)
@@ -133,6 +123,17 @@ namespace AnperiRemote.Model
                     switch (eventMessage.Event)
                     {
                         case EventFiredAnperiMessage.EventType.on_click:
+                            if (_shuttingDown)
+                            {
+                                ShutdownHelper.AbortShutdown();
+                                _shuttingDown = false;
+                            }
+                            else
+                            {
+                                ShutdownHelper.Shutdown(10);
+                                _shuttingDown = true;
+                            }
+                            _anperi.UpdateElementParam(_elementIds[Elements.ButtonShutdown], "text", _shuttingDown ? "Abort Shutdown" : "Shutdown");
                             break;
                         case EventFiredAnperiMessage.EventType.on_click_long:
                             break;

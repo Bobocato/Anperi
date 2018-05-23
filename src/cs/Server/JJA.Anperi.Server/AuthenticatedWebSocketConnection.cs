@@ -152,8 +152,22 @@ namespace JJA.Anperi.Server
                             break;
                     }
                 }
-
-                apiObjectResult = await _socket.ReceiveApiMessage(new ArraySegment<byte>(_buffer), token);
+                try
+                {
+                    apiObjectResult = await _socket.ReceiveApiMessage(new ArraySegment<byte>(_buffer), token);
+                }
+                catch (WebSocketException wse)
+                {
+                    _logger.LogWarning(wse, "WebSocketException occured while receiving message.");
+                    apiObjectResult = new WebSocketApiResult();
+                    apiObjectResult.SocketResult = new WebSocketReceiveResult(0, WebSocketMessageType.Binary, true, WebSocketCloseStatus.Empty, "WebSocketException thrown while receiving message.");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error handling request.");
+                    apiObjectResult = new WebSocketApiResult();
+                    apiObjectResult.SocketResult = new WebSocketReceiveResult(0, WebSocketMessageType.Binary, true, WebSocketCloseStatus.InternalServerError, "Exception thrown while receiving message.");
+                }
             }
             return apiObjectResult.SocketResult.CloseStatus ?? WebSocketCloseStatus.NormalClosure;
         }

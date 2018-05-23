@@ -6,6 +6,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using JJA.Anperi.Host.Model;
 using JJA.Anperi.Utility;
 using Microsoft.Win32;
 
@@ -17,18 +18,21 @@ namespace JJA.Anperi.Host.Utility
         private const string SaltPath = "salt.data";
         private static byte[] _salt;
 
+        private static HostDataModel _data = null;
+
         public static HostDataModel Load()
         {
+            if (_data != null) return _data;
             bool fileExists = File.Exists(ConfigPath);
             if (!fileExists) return new HostDataModel();
 
             HostDataModel model = null;
 
-            if (File.Exists(SaltPath))
+            if (File.Exists(SaltPath) && File.Exists(ConfigPath))
             {
-                _salt = File.ReadAllBytes(SaltPath);
                 try
                 {
+                    _salt = File.ReadAllBytes(SaltPath);
                     byte[] file = File.ReadAllBytes(ConfigPath);
                     file = Unprotect(file);
                     using (var ms = new MemoryStream(file))
@@ -42,7 +46,8 @@ namespace JJA.Anperi.Host.Utility
                     Util.TraceException("Error loading HostData, restoring defaults ...", e);
                 }
             }
-            return model ?? new HostDataModel();
+            _data = model ?? new HostDataModel();
+            return _data;
         }
 
         private static byte[] Protect(byte[] data)
@@ -55,6 +60,12 @@ namespace JJA.Anperi.Host.Utility
         {
             //TODO: look protect
             return ProtectedData.Unprotect(data, _salt, DataProtectionScope.LocalMachine);
+        }
+
+        public static void Save()
+        {
+            if (_data == null) throw new InvalidOperationException("You need to call Load first.");
+            Save(_data);
         }
 
         public static void Save(HostDataModel dataModel)
@@ -74,7 +85,7 @@ namespace JJA.Anperi.Host.Utility
             }
             catch (Exception e)
             {
-                Util.TraceException("Error while saving VpnData", e);
+                Util.TraceException("Error while saving data", e);
             }
         }
 

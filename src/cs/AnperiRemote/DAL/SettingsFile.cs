@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using AnperiRemote.Model;
 using AnperiRemote.Utility;
+using JJA.Anperi.Utility;
 using Newtonsoft.Json;
-using Util = JJA.Anperi.Utility.Util;
 
 namespace AnperiRemote.DAL
 {
