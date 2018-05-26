@@ -25,9 +25,6 @@ namespace JJA.Anperi.Host
                 case "pair":
                     viewModel.Pair(InputBox.Text);
                     break;
-                case "options":
-                    //TODO: implement this
-                    break;
                 case "rename":
                     viewModel.Rename(PeriId, InputBox.Text);
                     break;

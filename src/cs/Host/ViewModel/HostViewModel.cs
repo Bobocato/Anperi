@@ -5,7 +5,6 @@ using JJA.Anperi.Host.Model;
 
 namespace JJA.Anperi.Host.ViewModel
 {
-    //TODO: seperate DLL for the model
     //TODO: probably split model into multiple classes because this will get REALLY messy the moment IPC comes into play
     class HostViewModel : INotifyPropertyChanged
     {
@@ -141,7 +140,6 @@ namespace JJA.Anperi.Host.ViewModel
             {
                 case nameof(HostModel.Peripherals):
                     RefillPeripherals();
-                    //OnPropertyChanged(nameof(Peripherals));
                     break;
                 case nameof(HostModel.ConnectedPeripheral):
                     OnPropertyChanged(nameof(ButDisconnectVisible));

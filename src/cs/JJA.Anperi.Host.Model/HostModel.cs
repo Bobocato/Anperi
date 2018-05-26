@@ -41,8 +41,8 @@ namespace JJA.Anperi.Host.Model
 
         private string _popupTitle = "";
 
-        //private string _wsAddress = "ws://localhost:63514/api/ws";
-        private string _wsAddress = "wss://anperi.jannes-peters.com/api/ws";
+        private string _wsAddress = "ws://localhost:63514/api/ws";
+        //private string _wsAddress = "wss://anperi.jannes-peters.com/api/ws";
         private string _token = "";
         private int _favorite = -1;
         private WebSocket _ws;
@@ -330,7 +330,6 @@ namespace JJA.Anperi.Host.Model
 
                 _ipcServer.Error += (sender, args) =>
                 {
-                    //TODO: maybe dc all clients here
                     Trace.TraceError("IPC-Server error: " + args.ToString());
                 };
 
@@ -437,10 +436,13 @@ namespace JJA.Anperi.Host.Model
 
         private void ResetUi()
         {
-            //TODO @Addy check if I missed something
             //the ui should reset here to handle a disconnect
+            Info2 = "";
             ConnectedPeripheral = null;
             Peripherals.Clear();
+
+            //temporarily fix, the Clear-method does not invoke the setter
+            OnPropertyChanged(nameof(Peripherals));
         }
 
         private void HandleHostMessageCode(HostMessage code, JsonApiObject json)
