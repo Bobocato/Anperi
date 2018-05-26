@@ -15,14 +15,9 @@
 			<Button Content="Cancel" Margin="0,0,10,10" HorizontalAlignment="Right" Width="110" Height="36" VerticalAlignment="Bottom" Click="ButCancel_Click" Grid.Column="1"/>
 		</Grid>
 		<Grid Height="200" Margin="10,10,10,0" VerticalAlignment="Top">
-			<Border BorderBrush="Black" BorderThickness="2"></Border>
 			<TextBlock Text="{Binding PopupTitle}" TextAlignment="Center" FontWeight="Bold" HorizontalAlignment="Left" Margin="10,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="252"/>
-			<Grid Visibility="{Binding PopupInput, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}" HorizontalAlignment="Left" Height="159" Margin="10,31,0,0" VerticalAlignment="Top" Width="252">
+			<Grid Visibility="{Binding PopupInput, Converter={StaticResource BoolToVis}, FallbackValue=Visible}" HorizontalAlignment="Left" Height="159" Margin="10,31,0,0" VerticalAlignment="Top" Width="252">
 				<TextBox x:Name="InputBox" HorizontalAlignment="Left" Height="23" Margin="10,67,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="232"/>
-			</Grid>
-			<Grid Visibility="{Binding PopupOptions, Converter={StaticResource BoolToVis}, FallbackValue=Visible}" HorizontalAlignment="Left" Height="159" Margin="10,31,0,0" VerticalAlignment="Top" Width="252">
-				<CheckBox IsChecked="{Binding Tray, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, FallbackValue=True}" Content="Reduce to Tray" HorizontalAlignment="Left" Height="18" Margin="10,10,0,0" VerticalAlignment="Top" Width="138"/>
-				<CheckBox IsChecked="{Binding Autostart, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, FallbackValue=True}" Content="Autostart" HorizontalAlignment="Left" Height="18" Margin="10,33,0,0" VerticalAlignment="Top" Width="138"/>
 			</Grid>
 		</Grid>
 

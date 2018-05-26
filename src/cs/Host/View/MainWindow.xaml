@@ -69,9 +69,8 @@
         <Button Visibility="{Binding ButDisconnectVisible, Converter={StaticResource BoolToVis}, FallbackValue=Visible}" Content="Disconnect" Margin="193,10,10,0" VerticalAlignment="Top" Height="25" Click="ButDisconnect_Click" HorizontalAlignment="Stretch" Width="Auto" Grid.Column="1"/>
         <TextBlock Text="{Binding Info3, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Margin="187,245,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="17" Grid.ColumnSpan="2"/>
         <TextBlock Text="{Binding Info2, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Margin="187,267,0,0" TextWrapping="Wrap" VerticalAlignment="Top" RenderTransformOrigin="2.301,0.272" Grid.ColumnSpan="2"/>
-        <Grid Margin="187,44,10,0" Height="196" VerticalAlignment="Top" Grid.ColumnSpan="2">
-            <Border BorderBrush="Black" BorderThickness="2"></Border>
-            <Button Content="Pair" Click="ButPair_Click" Margin="10,10,10,0" Height="25" VerticalAlignment="Top"/>
+		<Grid Margin="187,44,10,0" Height="196" VerticalAlignment="Top" Grid.ColumnSpan="2">
+			<Button Content="Pair" Click="ButPair_Click" Margin="10,10,10,0" Height="25" VerticalAlignment="Top"/>
             <Button Content="Send Message" Click="ButSendMessage_Click" Margin="10,160,10,0" Height="25" VerticalAlignment="Top"/>
             <Button Content="Options" Click="ButOptions_Click" Margin="10,85,10,0" Height="25" VerticalAlignment="Top"/>
         </Grid>
