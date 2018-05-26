@@ -39,6 +39,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnperiRemote", "AnperiRemot
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JJA.Anperi.WpfUtility", "WpfUtility\JJA.Anperi.WpfUtility.csproj", "{269E94BF-441D-4042-8082-F68D16AE375C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JJA.Anperi.Host.Model", "JJA.Anperi.Host.Model\JJA.Anperi.Host.Model.csproj", "{D56C146C-56CA-4D0F-A222-A50F9D354665}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -117,6 +119,10 @@ Global
 		{269E94BF-441D-4042-8082-F68D16AE375C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{269E94BF-441D-4042-8082-F68D16AE375C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{269E94BF-441D-4042-8082-F68D16AE375C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D56C146C-56CA-4D0F-A222-A50F9D354665}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D56C146C-56CA-4D0F-A222-A50F9D354665}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D56C146C-56CA-4D0F-A222-A50F9D354665}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D56C146C-56CA-4D0F-A222-A50F9D354665}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

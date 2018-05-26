@@ -24,7 +24,7 @@ using Newtonsoft.Json.Linq;
 
 namespace JJA.Anperi.Host.Model
 {
-    class HostModel : INotifyPropertyChanged, IDisposable
+    public class HostModel : INotifyPropertyChanged, IDisposable
     {
         public static HostModel Instance => _instance.Value;
         private static Lazy<HostModel> _instance = new Lazy<HostModel>(() => new HostModel());
