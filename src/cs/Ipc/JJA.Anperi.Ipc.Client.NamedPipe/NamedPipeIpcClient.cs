@@ -66,8 +66,8 @@ namespace JJA.Anperi.Ipc.Client.NamedPipe
                 _streamOut = new NamedPipeClientStream(Settings.ServerInputPipeName);
 
                 await Task.WhenAll(
-                    _streamIn.ConnectAsync(2000, _cts.Token),
-                    _streamOut.ConnectAsync(2000, _cts.Token)
+                    _streamIn.ConnectAsync(2000, ct),
+                    _streamOut.ConnectAsync(2000, ct)
                 ).ConfigureAwait(false);
 
                 await Task.WhenAll(
@@ -76,7 +76,7 @@ namespace JJA.Anperi.Ipc.Client.NamedPipe
                 ).ConfigureAwait(false);
 
                 _ss = new StreamString(_streamIn, _streamOut);
-                string res = await _ss.ReadStringAsync(_cts.Token).ConfigureAwait(false);
+                string res = await _ss.ReadStringAsync(ct).ConfigureAwait(false);
                 if (Settings.ConnectionSuccessString.Equals(res))
                 {
                     await ThrowIfNotStateAndSetNewState(State.Connecting, State.Connected, ct);
