@@ -21,9 +21,13 @@ namespace JJA.Anperi.Host
     /// </summary>
     public partial class App : Application
     {
+        private bool _initialized = false;
+
         protected override void OnStartup(StartupEventArgs e)
         {
             DispatcherUnhandledException += App_DispatcherUnhandledException;
+
+            Environment.CurrentDirectory = Util.AssemblyDirectory;
 
             this.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
@@ -72,7 +76,7 @@ namespace JJA.Anperi.Host
                 TrayHelper.Instance.ItemExitClick += TrayIcon_ItemExitClick;
                 TrayHelper.Instance.IconVisible = true;
             }
-
+            _initialized = true;
             var _ = HostModel.Instance;
 
             if (createUi) this.ShowCreateMainWindow<MainWindow>();
@@ -106,16 +110,27 @@ namespace JJA.Anperi.Host
                 //ignored
             }
             Util.TraceException("Unhandled exception in UI dispatcher", e.Exception);
+            Trace.Flush();
             MessageBox.Show("Error occured in UI thread, exiting ...", "Error in Anperi", MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
 
         protected override void OnExit(ExitEventArgs e)
         {
-            HostModel.Instance.Close();
-            ConfigHandler.Save();
-            TrayHelper.Instance.IconVisible = false;
-            WpfUtil.Dispose();
+            try
+            {
+                if (_initialized)
+                {
+                    HostModel.Instance.Close();
+                    ConfigHandler.Save();
+                }
+                TrayHelper.Instance.IconVisible = false;
+                WpfUtil.Dispose();
+            }
+            catch (Exception ex)
+            {
+                Util.TraceException("Error in OnExit", ex);
+            }
             base.OnExit(e);
         }
     }
