@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Shapes;
 using JJA.Anperi.Host.Model;
 using JJA.Anperi.Host.Utility;
 using JJA.Anperi.Host.ViewModel;

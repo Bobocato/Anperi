@@ -104,6 +104,7 @@ namespace JJA.Anperi.Host.ViewModel
         {
             switch (e.PropertyName)
             {
+                case nameof(HostModel.Favorite):
                 case nameof(HostModel.Peripherals):
                     RefillPeripherals();
                     break;

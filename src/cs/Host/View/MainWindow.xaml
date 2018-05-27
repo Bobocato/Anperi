@@ -28,15 +28,17 @@
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">
-                        <Polygon Points="0 -96, 56, 78, -91 -30, 91 -30, -56 78" Height="12" Width="12" Fill="DarkGoldenrod" Stroke="DarkGoldenrod" StrokeThickness="1" Stretch="Uniform">
+                        <Polygon Points="0 -96, 56, 78, -91 -30, 91 -30, -56 78" Height="12" Width="12" StrokeThickness="1" Stretch="Uniform" MouseUp="ButFavorite_Click">
                             <Polygon.Style>
-                                <Style TargetType="Polygon">
-                                    <Setter Property="Visibility" Value="Visible"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Path=IsFavorite, UpdateSourceTrigger=PropertyChanged}" Value="False">
-                                            <Setter Property="Visibility" Value="Collapsed"/>
+								<Style TargetType="Polygon">
+									<Style.Triggers>
+										<DataTrigger Binding="{Binding Path=IsFavorite, UpdateSourceTrigger=PropertyChanged}" Value="True">
+											<Setter Property="Stroke" Value="DarkGoldenrod"></Setter>
                                         </DataTrigger>
-                                    </Style.Triggers>
+										<DataTrigger Binding="{Binding Path=IsFavorite, UpdateSourceTrigger=PropertyChanged}" Value="False">
+											<Setter Property="Stroke" Value="Gray"></Setter>
+										</DataTrigger>
+									</Style.Triggers>
                                 </Style>
                             </Polygon.Style>
                         </Polygon>
@@ -61,8 +63,8 @@
             <ListBox.ItemContainerStyle>
                 <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                     <EventSetter Event="MouseDoubleClick" Handler="ButConnect_Click"/>
-                    <Setter Property="ContextMenu" Value="{StaticResource MyMenu}"></Setter>
-                </Style>
+					<Setter Property="ContextMenu" Value="{StaticResource MyMenu}"></Setter>
+				</Style>
             </ListBox.ItemContainerStyle>
         </ListBox>
         <TextBlock HorizontalAlignment="Left" Margin="187,14,0,0" TextWrapping="Wrap" Text="{Binding ConnectedTo, StringFormat='Connected to: {0}', UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Height="16" Width="178" Grid.ColumnSpan="2"/>
