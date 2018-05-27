@@ -6,9 +6,11 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security.Policy;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using AnperiRemote.Annotations;
 using AnperiRemote.Utility;
+using JJA.Anperi.Utility;
 using NAudio.CoreAudioApi;
 using NAudio.CoreAudioApi.Interfaces;
 
@@ -17,7 +19,11 @@ namespace AnperiRemote.Model
     class VolumeModel : INotifyPropertyChanged
     {
         private Guid _guid;
-        private int _lastSetVolume = -1;
+        private MMDeviceNotis _deviceNotis;
+        private int _lastSetVolume = 0;
+        private readonly object _syncRootLastDevice = new object(); 
+        private int _lastVolumeSetThreadId = -1;
+        private MMDevice _lastDevice;
         public static VolumeModel Instance => _instance.Value;
         private static readonly Lazy<VolumeModel> _instance = new Lazy<VolumeModel>(() =>
         {
@@ -26,33 +32,87 @@ namespace AnperiRemote.Model
             return instance;
         });
 
-        private MMDeviceEnumerator _deviceEnum;
-        private MMDevice _defaultDevice;
-
         private void Init()
         {
             _guid = Guid.NewGuid();
-            _deviceEnum = new MMDeviceEnumerator();
-            _deviceEnum.RegisterEndpointNotificationCallback(new MMDeviceNotis(this));
-            if (_deviceEnum.HasDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia))
-            {
-                _defaultDevice = _deviceEnum.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
-            }
+            _deviceNotis = new MMDeviceNotis(_guid);
+            _deviceNotis.DefaultDeviceChanged += _deviceNotis_DefaultDeviceChanged;
+            _deviceNotis.VolumeChanged += _deviceNotis_VolumeChanged;
+            
             AnperiModel.Instance.VolumeChanged += (sender, args) => Volume = args.Volume;
+        }
+
+        private void _deviceNotis_VolumeChanged(object sender, AudioVolumeNotificationData e)
+        {
+            if (!e.Guid.Equals(_guid)) OnPropertyChanged(nameof(Volume));
+        }
+
+        private void _deviceNotis_DefaultDeviceChanged(object sender, EventArgs e)
+        {
+            OnPropertyChanged(nameof(Volume));
+        }
+
+        private static MMDevice GetDefaultDevice(Guid guid, MMDeviceEnumerator deviceEnumerator = null)
+        {
+            if (deviceEnumerator == null) deviceEnumerator = new MMDeviceEnumerator();
+            try
+            {
+                MMDevice dev = null;
+                if (deviceEnumerator.HasDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia))
+                {
+                    dev = deviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+                    dev.AudioEndpointVolume.NotificationGuid = guid;
+                }
+                return dev;
+            }
+            catch (Exception e)
+            {
+                Util.TraceException("Error getting default audio device", e);
+            }
+            return null;
+        }
+
+        private MMDevice GetThreadsafeDefaultDevice()
+        {
+            lock (_syncRootLastDevice)
+            {
+                if (_lastVolumeSetThreadId != Thread.CurrentThread.ManagedThreadId)
+                {
+                    _lastVolumeSetThreadId = Thread.CurrentThread.ManagedThreadId;
+                    _lastDevice = GetDefaultDevice(_guid);
+                }
+                return _lastDevice;
+            }
         }
 
         public int Volume
         {
-            get => _defaultDevice == null ? 0 : (int) (_defaultDevice.AudioEndpointVolume.MasterVolumeLevelScalar * 100);
+            get
+            {
+                MMDevice defaultDevice = GetThreadsafeDefaultDevice();
+                if (defaultDevice == null) return 0;
+                
+                int volume = _lastSetVolume;
+                try
+                {
+                    volume = (int) (defaultDevice.AudioEndpointVolume.MasterVolumeLevelScalar * 100);
+                }
+                catch (Exception ex)
+                {
+                    Util.TraceException("Exception thrown while retrieving audio volume", ex);
+                }
+                return volume;
+            }
             set
             {
                 if (value < 0 || value > 100) throw new ArgumentOutOfRangeException(nameof(value));
                 if (_lastSetVolume == value) return;
-                if (_defaultDevice != null)
+                MMDevice defaultDevice = GetThreadsafeDefaultDevice();
+                if (defaultDevice != null)
                 {
                     try
                     {
-                        _defaultDevice.AudioEndpointVolume.MasterVolumeLevelScalar = (float)value / 100.0f;
+                        defaultDevice.AudioEndpointVolume.MasterVolumeLevelScalar = (float)value / 100.0f;
                         _lastSetVolume = value;
                         AnperiModel.Instance.UpdateUiVolume(value).ContinueWith(t =>
                         {
@@ -69,17 +129,25 @@ namespace AnperiRemote.Model
             }
         }
 
-        private void AudioEndpointVolume_OnVolumeNotification(AudioVolumeNotificationData data)
-        {
-            if (!data.Guid.Equals(_guid)) OnPropertyChanged(nameof(Volume));
-        }
-
         private class MMDeviceNotis : IMMNotificationClient
         {
-            private readonly VolumeModel _vm; 
-            public MMDeviceNotis(VolumeModel vm)
+            private readonly MMDeviceEnumerator _deviceEnum;
+            private readonly Guid _guid;
+            private MMDevice _defaultDevice;
+
+            public MMDeviceNotis(Guid guid)
             {
-                _vm = vm;
+                _guid = guid;
+                _deviceEnum = new MMDeviceEnumerator();
+                _deviceEnum.RegisterEndpointNotificationCallback(this);
+                _defaultDevice = GetDefaultDevice(_guid);
+                SetVolumeEventHandler(_defaultDevice);
+            }
+
+            private void SetVolumeEventHandler(MMDevice device)
+            {
+                device.AudioEndpointVolume.NotificationGuid = _guid;
+                device.AudioEndpointVolume.OnVolumeNotification += OnVolumeChanged;
             }
 
             public void OnDeviceStateChanged(string deviceId, DeviceState newState) { }
@@ -92,20 +160,33 @@ namespace AnperiRemote.Model
             {
                 if (flow == DataFlow.Render && role == Role.Multimedia)
                 {
-                    if (_vm._defaultDevice != null)
+                    if (_defaultDevice != null)
                     {
-                        _vm._defaultDevice.AudioEndpointVolume.OnVolumeNotification -=
-                            _vm.AudioEndpointVolume_OnVolumeNotification;
+                        _defaultDevice.AudioEndpointVolume.OnVolumeNotification -=
+                            OnVolumeChanged;
                     }
-                    _vm._defaultDevice = _vm._deviceEnum.GetDevice(defaultDeviceId);
-                    if (_vm._defaultDevice == null) return;
-                    _vm._defaultDevice.AudioEndpointVolume.NotificationGuid = _vm._guid;
-                    _vm._defaultDevice.AudioEndpointVolume.OnVolumeNotification += _vm.AudioEndpointVolume_OnVolumeNotification;
-                    _vm.OnPropertyChanged(nameof(VolumeModel.Volume));
+                    _defaultDevice = _deviceEnum.GetDevice(defaultDeviceId);
+                    if (_defaultDevice == null) return;
+                    SetVolumeEventHandler(_defaultDevice);
+                    OnDefaultDeviceChanged();
                 }
             }
 
             public void OnPropertyValueChanged(string pwstrDeviceId, PropertyKey key) { }
+
+            public event EventHandler DefaultDeviceChanged;
+
+            public event EventHandler<AudioVolumeNotificationData> VolumeChanged;
+
+            protected virtual void OnVolumeChanged(AudioVolumeNotificationData volume)
+            {
+                VolumeChanged?.Invoke(this, volume);
+            }
+
+            protected virtual void OnDefaultDeviceChanged()
+            {
+                DefaultDeviceChanged?.Invoke(this, EventArgs.Empty);
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
