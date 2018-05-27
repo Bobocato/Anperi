@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using AnperiRemote.DAL;
 using AnperiRemote.Model;
 using AnperiRemote.Utility;
+using JJA.Anperi.Utility;
 using JJA.Anperi.WpfUtility;
+using Microsoft.VisualBasic.Logging;
 
 namespace AnperiRemote
 {
@@ -19,8 +22,18 @@ namespace AnperiRemote
     public partial class App : Application
     {
         protected override void OnStartup(StartupEventArgs e)
-       {
+        {
             DispatcherUnhandledException += App_DispatcherUnhandledException;
+
+            Environment.CurrentDirectory = Util.AssemblyDirectory;
+
+#if DEBUG
+            if (!Directory.Exists("logs")) Directory.CreateDirectory("logs");
+            Trace.Listeners.Add(new FileLogTraceListener("filelistener") { Location = LogFileLocation.Custom, CustomLocation = "logs", Append = true, BaseFileName = "AnperiRemote", AutoFlush = true, TraceOutputOptions = TraceOptions.DateTime, Delimiter = "\t|\t"});
+#endif
+            Trace.TraceInformation("OnStartup called.");
+            AliveTrace();
+
             SettingsModel _ = SettingsModel.Instance;
             this.ShutdownMode = ShutdownMode.OnExplicitShutdown;
             try
@@ -29,6 +42,7 @@ namespace AnperiRemote
                 if (!WpfUtil.IsFirstInstance)
                 {
                     Shutdown(0);
+                    return;
                 }
             }
             catch (Exception)
@@ -41,7 +55,7 @@ namespace AnperiRemote
             {
                 switch (arg)
                 {
-                    case "-trayStart":
+                    case "-tray":
                         createUi = false;
                         break;
                     default:
@@ -79,6 +93,8 @@ namespace AnperiRemote
 
         private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
+            MessageBox.Show($"Unhandled exception in UI Dispatcher:\n\t{e.Exception.GetType()}: {e.Exception.Message}",
+                "Unhandled UI Dispatcher exception in AnperiRemote", MessageBoxButton.OK, MessageBoxImage.Error);
             Trace.TraceError($"Unhandled exception in UI Dispatcher:\n\t{e.Exception.GetType()}: {e.Exception.Message}");
             try
             {
@@ -88,14 +104,25 @@ namespace AnperiRemote
             {
                 //ignored
             }
+            Trace.Flush();
             //just log and crash anyways
         }
 
         protected override void OnExit(ExitEventArgs e)
         {
+            Trace.TraceInformation("OnExit called.");
             TrayHelper.Instance.IconVisible = false;
             SettingsModel.Instance.Save();
             base.OnExit(e);
+        }
+
+        private async void AliveTrace()
+        {
+            while (true)
+            {
+                await Task.Delay(TimeSpan.FromMinutes(1));
+                Trace.TraceInformation("Still active ...");
+            }
         }
     }
 }

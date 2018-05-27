@@ -20,7 +20,7 @@ namespace AnperiRemote.ViewModel
         {
             if (!(o is bool)) throw new ArgumentException("This command requires a bool parameter.");
             bool param = (bool) o;
-            if (param) WpfUtil.AddToAutostart("-trayStart");
+            if (param) WpfUtil.AddToAutostart("-tray");
             else WpfUtil.RemoveFromAutostart();
         });
     }
