@@ -12,9 +12,8 @@
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
         <ContextMenu x:Key="MyMenu">
-            <MenuItem Header="Rename" Click="ButRename_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}"/>
-            <MenuItem Header="Favorite" Click="ButFavorite_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}"/>
-            <MenuItem Header="Unpair" Click="ButUnpair_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}" />
+			<MenuItem Header="Rename" Click="ButRename_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}"/>
+			<MenuItem Header="Unpair" Click="ButUnpair_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}" />
             <MenuItem Header="Connect" Click="ButConnect_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}"/>
         </ContextMenu>
     </Window.Resources>
@@ -28,15 +27,17 @@
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">
-                        <Polygon Points="0 -96, 56, 78, -91 -30, 91 -30, -56 78" Height="12" Width="12" StrokeThickness="1" Stretch="Uniform" MouseUp="ButFavorite_Click">
+                        <Polygon Points="0 -96, 56, 78, -91 -30, 91 -30, -56 78" Height="20" Width="20" StrokeThickness="1" Stretch="Uniform" MouseUp="ButFavorite_Click" FillRule="Nonzero">
                             <Polygon.Style>
 								<Style TargetType="Polygon">
 									<Style.Triggers>
 										<DataTrigger Binding="{Binding Path=IsFavorite, UpdateSourceTrigger=PropertyChanged}" Value="True">
 											<Setter Property="Stroke" Value="DarkGoldenrod"></Setter>
+											<Setter Property="Fill" Value="DarkGoldenrod"></Setter>
                                         </DataTrigger>
 										<DataTrigger Binding="{Binding Path=IsFavorite, UpdateSourceTrigger=PropertyChanged}" Value="False">
 											<Setter Property="Stroke" Value="Gray"></Setter>
+											<Setter Property="Fill" Value="Gray"></Setter>
 										</DataTrigger>
 									</Style.Triggers>
                                 </Style>
