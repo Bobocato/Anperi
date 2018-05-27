@@ -81,7 +81,7 @@ namespace JJA.Anperi.Lib
 
         private void _ipcClient_Error(object sender, System.IO.ErrorEventArgs e)
         {
-            Util.TraceException("IIpcClient encountered error", e.GetException());
+            //Util.TraceException("IIpcClient encountered error", e.GetException());
             OnDisconnected();
             ReconnectIn(TimeSpan.FromSeconds(1));
         }

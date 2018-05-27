@@ -50,12 +50,13 @@
     <Reference Include="JJA.Anperi.Ipc.Dto, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\JJA.Anperi.Ipc.Dto.1.0.0\lib\netstandard2.0\JJA.Anperi.Ipc.Dto.dll</HintPath>
     </Reference>
-    <Reference Include="JJA.Anperi.Lib, Version=1.0.6.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\JJA.Anperi.Lib.1.0.6\lib\netstandard2.0\JJA.Anperi.Lib.dll</HintPath>
+    <Reference Include="JJA.Anperi.Lib, Version=1.0.7.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\JJA.Anperi.Lib.1.0.7\lib\netstandard2.0\JJA.Anperi.Lib.dll</HintPath>
     </Reference>
     <Reference Include="JJA.Anperi.Utility, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\JJA.Anperi.Utility.1.1.0\lib\netstandard2.0\JJA.Anperi.Utility.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="NAudio, Version=1.8.4.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\NAudio.1.8.4\lib\net35\NAudio.dll</HintPath>
     </Reference>
