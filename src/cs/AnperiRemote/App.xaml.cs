@@ -24,6 +24,7 @@ namespace AnperiRemote
         protected override void OnStartup(StartupEventArgs e)
         {
             DispatcherUnhandledException += App_DispatcherUnhandledException;
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
             Environment.CurrentDirectory = Util.AssemblyDirectory;
 
@@ -76,6 +77,28 @@ namespace AnperiRemote
             base.OnStartup(e);
         }
 
+        private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            Exception ex = e.ExceptionObject as Exception;
+            if (e.IsTerminating)
+            {
+                MessageBox.Show($"Unhandled exception occured:\n\t{e.ExceptionObject.GetType()}: {ex?.Message ?? "<Error getting exception message>"}\nExiting ...",
+                    "Unhandled exception in AnperiRemote", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            
+            Util.TraceException("Unhandled exception in AppDomain", ex);
+            try
+            {
+                TrayHelper.Instance.IconVisible = false;
+            }
+            catch (Exception)
+            {
+                //ignored
+            }
+            Trace.Flush();
+            //just log and crash anyways
+        }
+
         private void WpfUtil_SecondInstanceStarted(object sender, EventArgs e)
         {
             this.ShowCreateMainWindow<MainWindow>(out bool _);
@@ -95,7 +118,7 @@ namespace AnperiRemote
         {
             MessageBox.Show($"Unhandled exception in UI Dispatcher:\n\t{e.Exception.GetType()}: {e.Exception.Message}",
                 "Unhandled UI Dispatcher exception in AnperiRemote", MessageBoxButton.OK, MessageBoxImage.Error);
-            Trace.TraceError($"Unhandled exception in UI Dispatcher:\n\t{e.Exception.GetType()}: {e.Exception.Message}");
+            Util.TraceException("Unhandled exception in UI Dispatcher", e.Exception);
             try
             {
                 TrayHelper.Instance.IconVisible = false;
