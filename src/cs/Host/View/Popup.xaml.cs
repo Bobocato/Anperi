@@ -9,9 +9,38 @@ namespace JJA.Anperi.Host
     /// </summary>
     public partial class Popup : Window
     {
+        public enum WindowType
+        {
+            Rename,
+            Pair,
+            Message
+        }
+
+        private WindowType _windowType = WindowType.Message;
+
         public Popup()
         {
             InitializeComponent();
+        }
+
+        public Popup(WindowType windowType)
+        {
+            InitializeComponent();
+            _windowType = windowType;
+            switch (windowType)
+            {
+                case WindowType.Rename:
+                    Title.Text = "Rename";
+                    break;
+                case WindowType.Pair:
+                    Title.Text = "Pair";
+                    break;
+                case WindowType.Message:
+                    Title.Text = "Message";
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(windowType), windowType, null);
+            }
         }
 
         public int PeriId { get; set; } = -1;
@@ -20,15 +49,15 @@ namespace JJA.Anperi.Host
         {
             var viewModel = (HostViewModel)DataContext;
 
-            switch (viewModel.PopupTitle)
+            switch (_windowType)
             {
-                case "pair":
+                case WindowType.Pair:
                     viewModel.Pair(InputBox.Text);
                     break;
-                case "rename":
+                case WindowType.Rename:
                     viewModel.Rename(PeriId, InputBox.Text);
                     break;
-                case "message":
+                case WindowType.Message:
                     viewModel.SendMessage(InputBox.Text);
                     break;
                 default:

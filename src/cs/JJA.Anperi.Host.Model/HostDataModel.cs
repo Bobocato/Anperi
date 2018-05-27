@@ -8,21 +8,9 @@ namespace JJA.Anperi.Host.Model
     [Serializable]
     public class HostDataModel : INotifyPropertyChanged
     {
-        private bool _tray = false;
         private bool _autostart = false;
         private string _token = "";
         private int _favorite = -1;
-
-        public bool Tray
-        {
-            get => _tray;
-            set
-            {
-                if (_tray == value) return;
-                _tray = value;
-                OnPropertyChanged();
-            }
-        }
 
         public int Favorite
         {

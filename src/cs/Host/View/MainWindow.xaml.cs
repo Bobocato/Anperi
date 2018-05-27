@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using System.Windows;
+﻿using System.Windows;
 using JJA.Anperi.Host.Model;
 using JJA.Anperi.Host.Utility;
 using JJA.Anperi.Host.ViewModel;
@@ -19,7 +18,7 @@ namespace JJA.Anperi.Host.View
 
         private void ButPair_Click(object sender, RoutedEventArgs e)
         {
-            SpawnPopup("pair");
+            SpawnPopup(Popup.WindowType.Pair);
         }
 
         private void ButUnpair_Click(object sender, RoutedEventArgs e)
@@ -39,7 +38,7 @@ namespace JJA.Anperi.Host.View
 
         private void ButRename_Click(object sender, RoutedEventArgs e)
         {
-            SpawnPopup("rename");
+            SpawnPopup(Popup.WindowType.Rename);
         }
 
         private void ButDisconnect_Click(object sender, RoutedEventArgs e)
@@ -49,7 +48,7 @@ namespace JJA.Anperi.Host.View
 
         private void ButSendMessage_Click(object sender, RoutedEventArgs e)
         {
-            SpawnPopup("message");
+            SpawnPopup(Popup.WindowType.Message);
         }
 
         private void ButOptions_Click(object sender, RoutedEventArgs e)
@@ -61,11 +60,10 @@ namespace JJA.Anperi.Host.View
             }
         }
 
-        private void SpawnPopup(string windowType)
+        private void SpawnPopup(Popup.WindowType windowType)
         {
-            _viewModel.PopupTitle = windowType;
-            var popup = new Popup();
-            if (windowType == "rename")
+            var popup = new Popup(windowType);
+            if (windowType == Popup.WindowType.Rename)
             {
                 var item = (Peripheral)PeriBox.SelectedItem;
                 popup.PeriId = item.Id;

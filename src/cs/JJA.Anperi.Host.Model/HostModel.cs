@@ -2,13 +2,11 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using JJA.Anperi.Host.Annotations;
-using JJA.Anperi.Host.Model;
 using WebSocketSharp;
 using JJA.Anperi.Host.Utility;
 using JJA.Anperi.Internal.Api;
@@ -41,8 +39,8 @@ namespace JJA.Anperi.Host.Model
 
         private string _popupTitle = "";
 
-        private string _wsAddress = "ws://localhost:63514/api/ws";
-        //private string _wsAddress = "wss://anperi.jannes-peters.com/api/ws";
+        //private string _wsAddress = "ws://localhost:63514/api/ws";
+        private string _wsAddress = "wss://anperi.jannes-peters.com/api/ws";
         private string _token = "";
         private int _favorite = -1;
         private WebSocket _ws;
@@ -135,26 +133,6 @@ namespace JJA.Anperi.Host.Model
             }
         }
 
-        public bool Tray
-        {
-            get => _dataModel.Tray;
-            set
-            {
-                _dataModel.Tray = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public bool Autostart
-        {
-            get => _dataModel.Autostart;
-            set
-            {
-                _dataModel.Autostart = value;
-                OnPropertyChanged();
-            }
-        }
-
         public List<Peripheral> Peripherals
         {
             get => _periList;
@@ -176,55 +154,6 @@ namespace JJA.Anperi.Host.Model
                 OnPropertyChanged();
             }
         }
-
-        #region Popup
-
-        public string PopupTitle
-        {
-            get => _popupTitle;
-            set
-            {
-                _popupTitle = value;
-                switch (value)
-                {
-                    case "rename":
-                    case "message":
-                    case "pair":
-                        _popupOptions = false;
-                        _popupInput = true;
-                        break;
-                    case "options":
-                        _popupOptions = true;
-                        _popupInput = false;
-                        break;
-                    default:
-                        throw new NotImplementedException();
-                }
-                OnPropertyChanged();
-            }
-        }
-
-        public bool PopupInput
-        {
-            get => _popupInput;
-            set
-            {
-                _popupInput = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public bool PopupOptions
-        {
-            get => _popupOptions;
-            set
-            {
-                _popupOptions = value;
-                OnPropertyChanged();
-            }
-        }
-
-        #endregion
 
         #endregion
 
