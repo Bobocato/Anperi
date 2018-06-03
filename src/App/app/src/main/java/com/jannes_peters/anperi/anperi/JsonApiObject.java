@@ -78,6 +78,9 @@ public class JsonApiObject {
                             case "set_element_param":
                                 Log.v(TAG, "set_element_param was called");
                                 return Action.success;
+                            case "client_went_away":
+                                Log.v(TAG, "client_went_away");
+                                return  Action.reset;
                         }
                         break;
                     case "request":

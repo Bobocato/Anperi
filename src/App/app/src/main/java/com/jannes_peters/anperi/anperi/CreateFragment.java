@@ -1,6 +1,5 @@
 package com.jannes_peters.anperi.anperi;
 
-import android.app.Activity;
 import android.app.Fragment;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;

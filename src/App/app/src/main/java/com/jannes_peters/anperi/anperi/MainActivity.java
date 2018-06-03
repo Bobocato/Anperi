@@ -381,17 +381,16 @@ public class MainActivity extends AppCompatActivity {
                                 case "server":
                                     switch (apiObject.messageCode) {
                                         case "partner_disconnected":
-                                            if (getFragmentManager().findFragmentByTag("createFrag") != null) {
-                                                createFragment = (CreateFragment) getFragmentManager().findFragmentByTag("createFrag");
-                                            }
-                                            if (createFragment != null)
-                                                getFragmentManager().beginTransaction().remove(createFragment).commit();
-                                            StatusObject.layoutString = "";
-                                            StatusObject.isCustomLayout = false;
-                                            getPairingCodeWS();
+                                            resetApp();
                                             break;
                                     }
                                     break;
+                                case "device":
+                                    switch (apiObject.messageCode){
+                                        case "client_went_away":
+                                            resetApp();
+                                            break;
+                                    }
                             }
                             break;
                         case debug:
@@ -425,6 +424,20 @@ public class MainActivity extends AppCompatActivity {
     //------------------------------
     private void clearPreferences() {
         this.getSharedPreferences(getString(R.string.preference_file_name), 0).edit().clear().apply();
+    }
+
+    //Reset the App to the pairing code
+    private void resetApp(){
+        //Reset Fragment and shit
+        if (getFragmentManager().findFragmentByTag("createFrag") != null) {
+            createFragment = (CreateFragment) getFragmentManager().findFragmentByTag("createFrag");
+        }
+        if (createFragment != null)
+            getFragmentManager().beginTransaction().remove(createFragment).commit();
+        StatusObject.layoutString = "";
+        StatusObject.isCustomLayout = false;
+        //Get a new pairing code and show i
+        getPairingCodeWS();
     }
 
     //Startup the WS
