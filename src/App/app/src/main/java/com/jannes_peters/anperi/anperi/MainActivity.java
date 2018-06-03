@@ -165,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
     public void onStop() {
         Log.v(TAG, "MainActivity onStop() called");
         isRunning = false;
-        if(isFinishing()){
+        if(!isChangingConfigurations()){
             if (StatusObject.isConnected) {
                 try {
                     MyWebSocket.getInstance().disconnect();
