@@ -35,7 +35,7 @@ namespace AnperiRemote
             Trace.TraceInformation("OnStartup called.");
             AliveTrace();
 
-            SettingsModel _ = SettingsModel.Instance;
+            object _ = SettingsModel.Instance;
             this.ShutdownMode = ShutdownMode.OnExplicitShutdown;
             try
             {
@@ -69,6 +69,7 @@ namespace AnperiRemote
             TrayHelper.Instance.DoubleClick += TrayIcon_DoubleClick;
             TrayHelper.Instance.ItemExitClick += TrayIcon_ItemExitClick;
 
+            AnperiModel.Init();
             if (createUi)
             {
                 this.ShowCreateMainWindow<MainWindow>(out bool _);

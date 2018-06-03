@@ -19,13 +19,15 @@ namespace AnperiRemote.Model
 {
     class AnperiModel : INotifyPropertyChanged
     {
-        public static AnperiModel Instance => _instance.Value;
-        private static readonly Lazy<AnperiModel> _instance = new Lazy<AnperiModel>(() => new AnperiModel());
+        //this should not be lazy-loaded cause it's supposed to run always
+        public static readonly AnperiModel Instance = new AnperiModel();
         private readonly Anperi _anperi;
         private readonly object _syncRootLayout = new object();
         private RootGrid _currentLayout;
         private readonly SettingsModel _settings;
         private bool _shuttingDown = false;
+
+        public static void Init() { }
 
         private enum Elements : int
         {
