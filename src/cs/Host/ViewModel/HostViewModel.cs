@@ -25,26 +25,6 @@ namespace JJA.Anperi.Host.ViewModel
             get => _model.ConnectedPeripheral != null;
         }
 
-        public bool Tray
-        {
-            get => _model.Tray;
-            set
-            {
-                _model.Tray = value;
-                OnPropertyChanged(nameof(Tray));
-            }
-        }
-
-        public bool Autostart
-        {
-            get => _model.Autostart;
-            set
-            {
-                _model.Autostart = value;
-                OnPropertyChanged(nameof(Autostart));
-            }
-        }
-
         public string Info1
         {
             get => _model.Info1;
@@ -76,20 +56,6 @@ namespace JJA.Anperi.Host.ViewModel
         }
 
         public string ConnectedTo => _model.ConnectedPeripheral?.Name ?? "";
-
-        public string PopupTitle
-        {
-            get => _model.PopupTitle;
-            set
-            {
-                _model.PopupTitle = value;
-                OnPropertyChanged(nameof(PopupTitle));
-            }
-        }
-
-        public bool PopupInput => _model.PopupInput;
-
-        public bool PopupOptions => _model.PopupOptions;
 
         public ObservableCollection<Peripheral> Peripherals { get; }
 
@@ -138,6 +104,7 @@ namespace JJA.Anperi.Host.ViewModel
         {
             switch (e.PropertyName)
             {
+                case nameof(HostModel.Favorite):
                 case nameof(HostModel.Peripherals):
                     RefillPeripherals();
                     break;

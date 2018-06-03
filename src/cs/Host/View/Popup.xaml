@@ -15,8 +15,8 @@
 			<Button Content="Cancel" Margin="0,0,10,10" HorizontalAlignment="Right" Width="110" Height="36" VerticalAlignment="Bottom" Click="ButCancel_Click" Grid.Column="1"/>
 		</Grid>
 		<Grid Height="200" Margin="10,10,10,0" VerticalAlignment="Top">
-			<TextBlock Text="{Binding PopupTitle}" TextAlignment="Center" FontWeight="Bold" HorizontalAlignment="Left" Margin="10,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="252"/>
-			<Grid Visibility="{Binding PopupInput, Converter={StaticResource BoolToVis}, FallbackValue=Visible}" HorizontalAlignment="Left" Height="159" Margin="10,31,0,0" VerticalAlignment="Top" Width="252">
+			<TextBlock x:Name="Title" TextAlignment="Center" FontWeight="Bold" HorizontalAlignment="Left" Margin="10,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="252"/>
+			<Grid HorizontalAlignment="Left" Height="159" Margin="10,31,0,0" VerticalAlignment="Top" Width="252">
 				<TextBox x:Name="InputBox" HorizontalAlignment="Left" Height="23" Margin="10,67,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="232"/>
 			</Grid>
 		</Grid>
