@@ -206,6 +206,8 @@ namespace JJA.Anperi.Host.Model
                                 break;
                             case IpcMessageCode.FreeControl:
                                 senderClient.SendAsync(new IpcMessage(IpcMessageCode.ControlLost));
+                                var clientAway = new JsonApiObject(JsonApiContextTypes.device, JsonApiMessageTypes.message, "client_went_away", null);
+                                SendToWebsocket(clientAway.Serialize());
                                 _curIpcClient = null;
                                 _ipcClients.AsParallel().ForAll(c => c.SendAsync(new IpcMessage(IpcMessageCode.NotClaimed)));
                                 break;
@@ -242,6 +244,8 @@ namespace JJA.Anperi.Host.Model
                     if (client.Equals(_curIpcClient))
                     {
                         _curIpcClient = null;
+                        var clientAway = new JsonApiObject(JsonApiContextTypes.device, JsonApiMessageTypes.message, "client_went_away", null);
+                        SendToWebsocket(clientAway.Serialize());
                     }
                 };
 
