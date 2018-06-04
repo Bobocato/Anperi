@@ -88,7 +88,7 @@ namespace JJA.Anperi.Server
                     if (Enum.TryParse(typeString, out SharedJsonDeviceType type) &&
                         Enum.TryParse(apiObjectResult.Obj.message_code, out SharedJsonRequestCode code))
                     {
-                        RegisteredDevice device;
+                        RegisteredDevice device = null;
                         switch (code)
                         {
                             case SharedJsonRequestCode.login:
@@ -108,7 +108,10 @@ namespace JJA.Anperi.Server
                                             device = dbContext.Peripherals.SingleOrDefault(d => d.Token == token);
                                             break;
                                         default:
-                                            throw new NotImplementedException();
+                                            await socket.SendJson(
+                                                SharedJsonApiObjectFactory.CreateError(
+                                                    "You need to be a host or peripheral."));
+                                            break;
                                     }
                                     if (device != null)
                                     {
@@ -117,16 +120,13 @@ namespace JJA.Anperi.Server
                                         {
                                             _activeConnections.TryGetValue(device.Id, out activeConn);
                                         }
-                                        if (activeConn == null)
+                                        if (activeConn != null)
                                         {
-                                            closeStatus = await LoginDevice(ctx, socket, buffer, device, dbContext);
-                                            authFailed = false;
+                                            activeConn.Abort();
+                                            await RemoveLoggedInDevice(activeConn, dbContext);
                                         }
-                                        else
-                                        {
-                                            await socket.SendJson(SharedJsonApiObjectFactory.CreateError(
-                                                "Error logging in ... a device with your token is already active."));
-                                        }
+                                        closeStatus = await LoginDevice(ctx, socket, buffer, device, dbContext);
+                                        authFailed = false;
                                     }
                                 }
                                 break;
@@ -140,26 +140,32 @@ namespace JJA.Anperi.Server
                                         device = new Peripheral();
                                         break;
                                     default:
-                                        throw new NotImplementedException();
+                                        await socket.SendJson(
+                                            SharedJsonApiObjectFactory.CreateError(
+                                                "You need to be a host or peripheral."));
+                                        break;
                                 }
-                                device.Token = Cryptography.CreateAuthToken();
-                                if (apiObjectResult.Obj.data.TryGetValue("name", out string name))
+                                if (device != null)
                                 {
-                                    device.Name = name;
-                                }
-                                else
-                                {
-                                    device.Name = "GIVE ME A NAME PLEASE";
+                                    device.Token = Cryptography.CreateAuthToken();
+                                    if (apiObjectResult.Obj.data.TryGetValue("name", out string name))
+                                    {
+                                        device.Name = name;
+                                    }
+                                    else
+                                    {
+                                        device.Name = "GIVE ME A NAME PLEASE";
+                                        await socket.SendJson(
+                                            SharedJsonApiObjectFactory.CreateError(
+                                                "A device registration requires a name!"));
+                                    }
+                                    dbContext.RegisteredDevices.Add(device);
+                                    await dbContext.SaveChangesAsync();
                                     await socket.SendJson(
-                                        SharedJsonApiObjectFactory.CreateError(
-                                            "A device registration requires a name!"));
+                                        SharedJsonApiObjectFactory.CreateRegisterResponse(device.Token, device.Name));
+                                    closeStatus = await LoginDevice(ctx, socket, buffer, device, dbContext);
+                                    authFailed = false;
                                 }
-                                dbContext.RegisteredDevices.Add(device);
-                                await dbContext.SaveChangesAsync();
-                                await socket.SendJson(
-                                    SharedJsonApiObjectFactory.CreateRegisterResponse(device.Token, device.Name));
-                                closeStatus = await LoginDevice(ctx, socket, buffer, device, dbContext);
-                                authFailed = false;
                                 break;
                             default:
                                 await socket.SendJson(
@@ -217,17 +223,21 @@ namespace JJA.Anperi.Server
             }
             finally
             {
-                lock (_syncRootActiveConnections)
+                if (!connection.IsAborted)
                 {
-                    _activeConnections.Remove(connection.Device.Id);
+                    await RemoveLoggedInDevice(connection, dbContext);
                 }
-                await OnDeviceLoggedOut(connection, dbContext);
             }
+            return closeStatus;
+        }
+
+        private async Task RemoveLoggedInDevice(AuthenticatedWebSocketConnection connection, AnperiDbContext dbContext)
+        {
             lock (_syncRootActiveConnections)
             {
                 _activeConnections.Remove(connection.Device.Id);
             }
-            return closeStatus;
+            await OnDeviceLoggedOut(connection, dbContext);
         }
 
         private async Task<IEnumerable<int>> GetPairedDeviceIds(RegisteredDevice device, AnperiDbContext dbContext)

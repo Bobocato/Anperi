@@ -74,6 +74,8 @@ namespace JJA.Anperi.Server
 
         public RegisteredDevice Device => _device;
 
+        public bool IsAborted { get; private set; }
+
         public HttpContext Context
         {
             get { return _context; }
@@ -170,6 +172,12 @@ namespace JJA.Anperi.Server
                 }
             }
             return apiObjectResult.SocketResult.CloseStatus ?? WebSocketCloseStatus.NormalClosure;
+        }
+
+        public void Abort()
+        {
+            IsAborted = true;
+            _socket.Abort();
         }
 
         private async Task<bool> HandleSharedMessage(JsonApiObject message, CancellationToken token)
