@@ -11,7 +11,7 @@ namespace JJA.Anperi.Host.Utility
 {
     class TrayHelper
     {
-        private static readonly Lazy<TrayHelper> _instance = new Lazy<TrayHelper>();
+        private static readonly Lazy<TrayHelper> _instance = new Lazy<TrayHelper>(() => new TrayHelper());
         public static TrayHelper Instance => _instance.Value;
         private static string ResourceName => "JJA.Anperi.Host.Resources.anperi.ico";
 

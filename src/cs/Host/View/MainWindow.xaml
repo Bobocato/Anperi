@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:JJA.Anperi.Host"
+        xmlns:local="clr-namespace:JJA.Anperi.Host.View"
         xmlns:viewModel="clr-namespace:JJA.Anperi.Host.ViewModel"
         mc:Ignorable="d"
         Title="Anperi" Height="350" Width="600"
@@ -19,31 +19,34 @@
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="101*"/>
+            <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="196*"/>
         </Grid.ColumnDefinitions>
-        <TextBlock x:Name="InfoBlock" Margin="187,288,0,0" TextWrapping="Wrap" Text="{Binding Path = Info1, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Height="16" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
-        <ListBox x:Name="PeriBox" Margin="10,10,0,10" ItemsSource="{Binding Path=Peripherals}" HorizontalAlignment="Left" Width="172">
+        <ListBox Grid.Column="0" x:Name="PeriBox" Margin="5" ItemsSource="{Binding Path=Peripherals}" HorizontalAlignment="Left" HorizontalContentAlignment="Stretch" Width="180">
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <StackPanel Orientation="Horizontal">
-                        <Polygon Points="0 -96, 56, 78, -91 -30, 91 -30, -56 78" Height="20" Width="20" StrokeThickness="1" Stretch="Uniform" MouseUp="ButFavorite_Click" FillRule="Nonzero">
-                            <Polygon.Style>
-								<Style TargetType="Polygon">
-									<Style.Triggers>
-										<DataTrigger Binding="{Binding Path=IsFavorite, UpdateSourceTrigger=PropertyChanged}" Value="True">
-											<Setter Property="Stroke" Value="DarkGoldenrod"></Setter>
-											<Setter Property="Fill" Value="DarkGoldenrod"></Setter>
+                    <Grid HorizontalAlignment="Stretch">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Click="ButFavorite_Click" Visibility="Visible" BorderBrush="#FFBDBDBD" Background="Transparent">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Content" Value="{StaticResource StarUnselected}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Path=IsFavorite, UpdateSourceTrigger=PropertyChanged}" Value="True">
+                                            <Setter Property="Content" Value="{StaticResource StarSelected}"/>
                                         </DataTrigger>
-										<DataTrigger Binding="{Binding Path=IsFavorite, UpdateSourceTrigger=PropertyChanged}" Value="False">
-											<Setter Property="Stroke" Value="Gray"></Setter>
-											<Setter Property="Fill" Value="Gray"></Setter>
-										</DataTrigger>
-									</Style.Triggers>
+                                        <DataTrigger Binding="{Binding Path=IsFavorite, UpdateSourceTrigger=PropertyChanged}" Value="False">
+                                            <Setter Property="Content" Value="{StaticResource StarUnselected}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
                                 </Style>
-                            </Polygon.Style>
-                        </Polygon>
-                        <Label Content="{Binding Path=Name}">
+                            </Button.Style>
+                        </Button>
+                        <Label Grid.Column="1" Content="{Binding Path=Name}">
                             <Label.Style>
                                 <Style TargetType="Label">
                                     <Setter Property="Foreground" Value="Black"/>
@@ -58,7 +61,22 @@
                                 </Style>
                             </Label.Style>
                         </Label>
-                    </StackPanel>
+                        <Button Grid.Column="2" IsEnabled="{Binding Path=Online}" Width="22" Height="22" VerticalAlignment="Center" HorizontalAlignment="Right" Click="ButConnect_Click" Visibility="Visible" BorderBrush="#FFBDBDBD" Background="Transparent">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Content" Value="{StaticResource PeripheralConnect}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Path=IsConnected, UpdateSourceTrigger=PropertyChanged}" Value="True">
+                                            <Setter Property="Content" Value="{StaticResource PeripheralDisconnect}"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Path=Online, UpdateSourceTrigger=PropertyChanged}" Value="False">
+                                            <Setter Property="Content" Value="{StaticResource PeripheralDisabled}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button><!--"{Binding Path=IsConnected, Converter={StaticResource BoolToVis}, FallbackValue=Visible}"-->
+                    </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>
             <ListBox.ItemContainerStyle>
@@ -68,14 +86,23 @@
 				</Style>
             </ListBox.ItemContainerStyle>
         </ListBox>
-        <TextBlock HorizontalAlignment="Left" Margin="187,14,0,0" TextWrapping="Wrap" Text="{Binding ConnectedTo, StringFormat='Connected to: {0}', UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Height="16" Width="178" Grid.ColumnSpan="2"/>
-        <Button Visibility="{Binding ButDisconnectVisible, Converter={StaticResource BoolToVis}, FallbackValue=Visible}" Content="Disconnect" Margin="193,10,10,0" VerticalAlignment="Top" Height="25" Click="ButDisconnect_Click" HorizontalAlignment="Stretch" Width="Auto" Grid.Column="1"/>
-        <TextBlock Text="{Binding Info3, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Margin="187,245,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="17" Grid.ColumnSpan="2"/>
-        <TextBlock Text="{Binding Info2, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Margin="187,267,0,0" TextWrapping="Wrap" VerticalAlignment="Top" RenderTransformOrigin="2.301,0.272" Grid.ColumnSpan="2"/>
-		<Grid Margin="187,44,10,0" Height="196" VerticalAlignment="Top" Grid.ColumnSpan="2">
-			<Button Content="Pair" Click="ButPair_Click" Margin="10,10,10,0" Height="25" VerticalAlignment="Top"/>
-            <Button Content="Send Message" Click="ButSendMessage_Click" Margin="10,160,10,0" Height="25" VerticalAlignment="Top"/>
-            <Button Content="Options" Click="ButOptions_Click" Margin="10,85,10,0" Height="25" VerticalAlignment="Top"/>
-        </Grid>
+        <StackPanel Grid.Column="1" Margin="5">
+            <TextBlock Text="{Binding Path=ConnectedString}" TextAlignment="Center" Height="16"/>
+            
+            <StackPanel Margin="0,0,0,10">
+                <StackPanel.Resources>
+                    <Style TargetType="{x:Type Button}">
+                        <Setter Property="Margin" Value="0,10,0,0"/>
+                    </Style>
+                </StackPanel.Resources>
+                <Button Content="Pair" Click="ButPair_Click" Height="25" VerticalAlignment="Top"/>
+                <Button Content="Send Message" Click="ButSendMessage_Click" Height="25" VerticalAlignment="Top"/>
+                <Button Content="Options" Click="ButOptions_Click" Height="25" VerticalAlignment="Top"/>
+            </StackPanel>
+
+            <TextBlock Text="{Binding Path = Info1, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Height="16"/>
+            <TextBlock Text="{Binding Info2, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding Info3, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" TextWrapping="Wrap" />
+        </StackPanel>
     </Grid>
 </Window>

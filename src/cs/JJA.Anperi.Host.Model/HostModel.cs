@@ -6,9 +6,9 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using JJA.Anperi.Host.Annotations;
+using JJA.Anperi.Host.Model.Annotations;
+using JJA.Anperi.Host.Model.Utility;
 using WebSocketSharp;
-using JJA.Anperi.Host.Utility;
 using JJA.Anperi.Internal.Api;
 using JJA.Anperi.Internal.Api.Device;
 using JJA.Anperi.Internal.Api.Host;
@@ -32,16 +32,7 @@ namespace JJA.Anperi.Host.Model
         private string _info1 = "No Current WebSocket connection!";
         private string _info2 = "";
         private string _info3 = "";
-        private string _name = "";
-
-        private bool _popupInput = false;
-        private bool _popupOptions = false;
-
-        private string _popupTitle = "";
-
-        //private string _wsAddress = "ws://localhost:63514/api/ws";
-        private string _wsAddress = "wss://anperi.jannes-peters.com/api/ws";
-        private string _token = "";
+        
         private int _favorite = -1;
         private WebSocket _ws;
         private List<Peripheral> _periList;
@@ -52,13 +43,11 @@ namespace JJA.Anperi.Host.Model
         private NamedPipeIpcServer _ipcServer;
         private readonly List<IIpcClient> _ipcClients;
         private IIpcClient _curIpcClient;
-        private HostDataModel _dataModel;
+        private string _ownName;
+        private string _serverAddress;
 
         public HostModel()
         {
-            _dataModel = ConfigHandler.Load();
-            Token = _dataModel.Token;          
-            _favorite = _dataModel.Favorite;
             _periList = new List<Peripheral>();
             _ipcClients = new List<IIpcClient>();
             _messages = new Queue<string>();
@@ -95,6 +84,27 @@ namespace JJA.Anperi.Host.Model
                 OnPropertyChanged(nameof(Info3));
             }
         }
+
+        public string OwnName
+        {
+            get => _ownName;
+            set
+            {
+                _ownName = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string ServerAddress
+        {
+            get { return _serverAddress; }
+            set
+            {
+                _serverAddress = value;
+                OnPropertyChanged();
+            }
+        }
+
         public Peripheral ConnectedPeripheral
         {
             get => _connectedPeripheral;
@@ -124,7 +134,7 @@ namespace JJA.Anperi.Host.Model
                 if (_favorite != value)
                 {
                     _favorite = value;
-                    _dataModel.Favorite = _favorite;
+                    ConfigHandler.Load().Favorite = _favorite;
                     Peripherals.ForEach(p => p.IsFavorite = false);
                     Peripheral peri = Peripherals.SingleOrDefault(p => p.Id == _favorite);
                     if (peri != null) peri.IsFavorite = true;
@@ -144,137 +154,130 @@ namespace JJA.Anperi.Host.Model
             }
         }
 
-        public string Token
-        {
-            get => _token;
-            set
-            {
-                _token = value;
-                _dataModel.Token = _token;
-                OnPropertyChanged();
-            }
-        }
+        public bool IsConnected => _ws.IsAlive;
 
         #endregion
 
         private void InitializeIpcServer()
         {
-            Task.Run(() =>
+            _ipcServer?.Dispose();
+            _ipcServer = new NamedPipeIpcServer();               
+            _ipcServer.ClientConnected += (sender, args) =>
             {
-                _ipcServer = new NamedPipeIpcServer();               
-                _ipcServer.ClientConnected += (sender, args) =>
+                var client = args.Client;
+                _ipcClients.Add(client);
+                client.Message += (o, eventArgs) =>
                 {
-                    var client = args.Client;
-                    _ipcClients.Add(client);
-                    client.Message += (o, eventArgs) =>
-                    {
-                        IIpcClient senderClient = (IIpcClient) o;
-                        var message = eventArgs.Message;
-                        var messageType = message.MessageCode;
+                    IIpcClient senderClient = (IIpcClient) o;
+                    var message = eventArgs.Message;
+                    var messageType = message.MessageCode;
 
-                        switch (messageType)
-                        {
-                            case IpcMessageCode.Debug:
-                                if (message.Data.TryGetValue("msg", out string msg))
-                                {
-                                    QueueMessage(msg);
-                                }
-                                client.SendAsync(message);
-                                break;
-                            case IpcMessageCode.Unset:
-                                client.SendAsync(message);
-                                break;
-                            case IpcMessageCode.GetPeripheralInfo:
-                                var getInfo = new JsonApiObject(JsonApiContextTypes.device, JsonApiMessageTypes.request, "get_info", message.Data);
-                                SendToWebsocket(getInfo.Serialize());
-                                break;
-                            case IpcMessageCode.SetPeripheralElementParam:
-                                var setParam = new JsonApiObject(JsonApiContextTypes.device, JsonApiMessageTypes.message, "set_element_param", message.Data);
-                                SendToWebsocket(setParam.Serialize());
-                                break;
-                            case IpcMessageCode.SetPeripheralLayout:
-                                var setLayout = new JsonApiObject(JsonApiContextTypes.device, JsonApiMessageTypes.message, "set_layout", message.Data);
-                                SendToWebsocket(setLayout.Serialize());
-                                break;
-                            case IpcMessageCode.ClaimControl:
-                                if (_curIpcClient != null)
-                                {
-                                    _curIpcClient?.SendAsync(new IpcMessage(IpcMessageCode.ControlLost));
-                                    _curIpcClient = null;
-                                }
-                                _curIpcClient = (IIpcClient) o;
-                                break;
-                            case IpcMessageCode.FreeControl:
-                                senderClient.SendAsync(new IpcMessage(IpcMessageCode.ControlLost));
+                    switch (messageType)
+                    {
+                        case IpcMessageCode.Debug:
+                            if (message.Data.TryGetValue("msg", out string msg))
+                            {
+                                QueueMessage(msg);
+                            }
+                            client.SendAsync(message);
+                            break;
+                        case IpcMessageCode.Unset:
+                            client.SendAsync(message);
+                            break;
+                        case IpcMessageCode.GetPeripheralInfo:
+                            var getInfo = new JsonApiObject(JsonApiContextTypes.device, JsonApiMessageTypes.request, "get_info", message.Data);
+                            SendToWebsocket(getInfo.Serialize());
+                            break;
+                        case IpcMessageCode.SetPeripheralElementParam:
+                            var setParam = new JsonApiObject(JsonApiContextTypes.device, JsonApiMessageTypes.message, "set_element_param", message.Data);
+                            SendToWebsocket(setParam.Serialize());
+                            break;
+                        case IpcMessageCode.SetPeripheralLayout:
+                            var setLayout = new JsonApiObject(JsonApiContextTypes.device, JsonApiMessageTypes.message, "set_layout", message.Data);
+                            SendToWebsocket(setLayout.Serialize());
+                            break;
+                        case IpcMessageCode.ClaimControl:
+                            if (_curIpcClient != null)
+                            {
+                                _curIpcClient?.SendAsync(new IpcMessage(IpcMessageCode.ControlLost));
                                 _curIpcClient = null;
-                                _ipcClients.AsParallel().ForAll(c => c.SendAsync(new IpcMessage(IpcMessageCode.NotClaimed)));
-                                break;
-                            case IpcMessageCode.PeripheralEventFired:
-                            case IpcMessageCode.PeripheralDisconnected:
-                            case IpcMessageCode.PeripheralConnected:
-                            case IpcMessageCode.ControlLost:
-                            case IpcMessageCode.NotClaimed:
-                                //ignored
-                                break;
-                            case IpcMessageCode.Error:
-                            default:
-                                throw new NotImplementedException($"Didnt implement: {messageType}");
-                        }
-                    };
-                    client.StartReceive();
-
-                    if (_curIpcClient == null)
-                    {
-                        client.SendAsync(
-                            new IpcMessage(IpcMessageCode.NotClaimed));
-                    }
-
-                    if (ConnectedPeripheral != null)
-                    {
-                        client.SendAsync(new IpcMessage(IpcMessageCode.PeripheralConnected));
+                            }
+                            _curIpcClient = (IIpcClient) o;
+                            break;
+                        case IpcMessageCode.FreeControl:
+                            senderClient.SendAsync(new IpcMessage(IpcMessageCode.ControlLost));
+                            _curIpcClient = null;
+                            _ipcClients.AsParallel().ForAll(c => c.SendAsync(new IpcMessage(IpcMessageCode.NotClaimed)));
+                            break;
+                        case IpcMessageCode.PeripheralEventFired:
+                        case IpcMessageCode.PeripheralDisconnected:
+                        case IpcMessageCode.PeripheralConnected:
+                        case IpcMessageCode.ControlLost:
+                        case IpcMessageCode.NotClaimed:
+                            //ignored
+                            break;
+                        case IpcMessageCode.Error:
+                            Trace.TraceError("Error from IpcMessage: {0}", message.Data.ToDataString());
+                            break;
+                        default:
+                            throw new NotImplementedException($"Didnt implement: {messageType}");
                     }
                 };
+                client.StartReceive();
 
-                _ipcServer.ClientDisconnected += (sender, args) =>
+                if (_curIpcClient == null)
                 {
-                    var client = args.Client;
-                    _ipcClients.Remove(client);
-                    if (client.Equals(_curIpcClient))
-                    {
-                        _curIpcClient = null;
-                    }
-                };
+                    client.SendAsync(
+                        new IpcMessage(IpcMessageCode.NotClaimed));
+                }
 
-                _ipcServer.Closed += (sender, args) =>
+                if (ConnectedPeripheral != null)
                 {
-                    _ipcClients.ForEach(x => x.Close());
-                    _ipcClients.Clear();
-                    if (!_closing)
-                    {
-                        Thread.Sleep(2000);
-                        QueueMessage("Ipc Server is restarting!");
-                        _ipcServer.Start();
-                    }
-                };
+                    client.SendAsync(new IpcMessage(IpcMessageCode.PeripheralConnected));
+                }
+            };
 
-                _ipcServer.Error += (sender, args) =>
+            _ipcServer.ClientDisconnected += (sender, args) =>
+            {
+                var client = args.Client;
+                _ipcClients.Remove(client);
+                if (client.Equals(_curIpcClient))
                 {
-                    Trace.TraceError("IPC-Server error: " + args.ToString());
-                };
+                    _curIpcClient = null;
+                }
+            };
 
-                _ipcServer.Start();
-                QueueMessage("Ipc-Server is running!");
-            });
+            _ipcServer.Closed += (sender, args) =>
+            {
+                _ipcClients.ForEach(x => x.Close());
+                _ipcClients.Clear();
+                if (!_closing)
+                {
+                    Thread.Sleep(2000);
+                    QueueMessage("Ipc Server is restarting!");
+                    _ipcServer.Start();
+                }
+            };
+
+            _ipcServer.Error += (sender, args) =>
+            {
+                Trace.TraceError("IPC-Server error: " + args.ToString());
+            };
+
+            _ipcServer.Start();
+            QueueMessage("Ipc-Server is running!");
         }
-
+        
         private void InitializeWebSocket()
         {
             Task.Run(() =>
             {
-                _ws = new WebSocket(_wsAddress);
+                (_ws as IDisposable)?.Dispose();
+                ServerAddress = ConfigHandler.Load().ServerAddress;
+                _ws = new WebSocket(ServerAddress);
                 _ws.OnOpen += (sender, e) =>
                 {
-                    if (string.IsNullOrEmpty(Token))
+                    if (string.IsNullOrEmpty(ConfigHandler.Load().Token))
                     {
                         var name = Environment.MachineName;
                         var json =
@@ -287,10 +290,11 @@ namespace JJA.Anperi.Host.Model
                     {
                         var json =
                             SharedJsonApiObjectFactory.CreateLoginRequest(
-                                Token, SharedJsonDeviceType.host);
+                                ConfigHandler.Load().Token, SharedJsonDeviceType.host);
                         string msg = json.Serialize();
                         _ws.Send(msg);
                     }
+                    OnPropertyChanged(nameof(IsConnected));
                 };
 
                 _ws.OnMessage += (sender, e) =>
@@ -313,7 +317,8 @@ namespace JJA.Anperi.Host.Model
                             else if (Enum.TryParse(json.message_code, out SharedJsonMessageCode sharedMessage))
                             {
                                 HandleSharedMessageCode(sharedMessage, json);
-                            }else if (Enum.TryParse(json.message_code, out HostMessage hostMessage))
+                            }
+                            else if (Enum.TryParse(json.message_code, out HostMessage hostMessage))
                             {
                                 HandleHostMessageCode(hostMessage, json);
                             }
@@ -348,6 +353,7 @@ namespace JJA.Anperi.Host.Model
                             Thread.Sleep(2000);
                             _ws.Connect();
                         }
+                        OnPropertyChanged(nameof(IsConnected));
                     }
                 };
 
@@ -372,6 +378,7 @@ namespace JJA.Anperi.Host.Model
 
             //temporarily fix, the Clear-method does not invoke the setter
             OnPropertyChanged(nameof(Peripherals));
+            OnPropertyChanged(nameof(IsConnected));
         }
 
         private void HandleHostMessageCode(HostMessage code, JsonApiObject json)
@@ -579,14 +586,13 @@ namespace JJA.Anperi.Host.Model
                         {
                             json.data.TryGetValue("name",
                                 out dynamic loginName);
-                            _name = loginName;
+                            OwnName = loginName;
                             SendPeripheralRequest();
-                            Info1 = "Current WebSocket-Address is: " + _wsAddress;
-                            Info2 = "Your name is: " + _name;
+                            Info1 = "Current WebSocket-Address is: " + ConfigHandler.Load().ServerAddress;
                         }
                         else
                         {
-                            Token = "";
+                            ConfigHandler.Load().Token = "";
                             QueueMessage("Login failed!");
                         }
                     }
@@ -599,15 +605,17 @@ namespace JJA.Anperi.Host.Model
                     break;
                 case SharedJsonRequestCode.register:
                     json.data.TryGetValue("token", out dynamic token);
-                    Token = token;
+                    ConfigHandler.Load().Token = token;
                     json.data.TryGetValue("name", out dynamic name);
-                    _name = name;
+                    OwnName = name;
 
                     SendPeripheralRequest();
-                    Info1 = "Current WebSocket-Address is: " + _wsAddress;
-                    Info2 = "Your name is: " + _name;
+                    Info1 = "Current WebSocket-Address is: " + ConfigHandler.Load().ServerAddress;
                     break;
                 case SharedJsonRequestCode.set_own_name:
+                    json.data.TryGetValue("name", out string newName);
+                    OwnName = newName;
+                    break;
                 default:
                     throw new NotImplementedException(
                         $"Didnt implement: {code.ToString()}");
@@ -700,6 +708,12 @@ namespace JJA.Anperi.Host.Model
             var json =
                 HostJsonApiObjectFactory.CreateChangeNameRequest(id,
                     name);
+            SendToWebsocket(json.Serialize());
+        }
+
+        public void RenameSelf(string name)
+        {
+            var json = SharedJsonApiObjectFactory.CreateChangeOwnNameRequest(name);
             SendToWebsocket(json.Serialize());
         }
 

@@ -6,14 +6,24 @@
         xmlns:local="clr-namespace:JJA.Anperi.Host.View"
         xmlns:viewModel="clr-namespace:JJA.Anperi.Host.ViewModel"
         mc:Ignorable="d"
-        Title="SettingsWindow" SizeToContent="WidthAndHeight"
+        Title="SettingsWindow" SizeToContent="WidthAndHeight" ResizeMode="NoResize"
         d:DataContext="{d:DesignInstance viewModel:SettingsViewModel}">
-    <StackPanel Margin="4">
-        <CheckBox Content="start on user login (in tray)" IsChecked="{Binding Path=Autostart}" Margin="0,0,0,4" />
-    
+    <StackPanel Margin="5">
+        <CheckBox Content="start on user login (in tray)" IsChecked="{Binding Path=Autostart}" TabIndex="0" />
+        <StackPanel Orientation="Vertical" Margin="0,0,0,0">
+            <Label Content="Server Address (may require restart after save):" />
+            <TextBox Text="{Binding Path=ServerAddress}" VerticalAlignment="Center" Width="300" TabIndex="1" />
+        </StackPanel>
+        <GroupBox Header="Online settings" IsEnabled="{Binding Path=IsConnected}">
+            <StackPanel Orientation="Vertical" Margin="0,0,0,0">
+                <Label Content="Own Name:" />
+                <TextBox Text="{Binding Path=OwnName}" VerticalAlignment="Center" Width="300" TabIndex="1" />
+            </StackPanel>
+        </GroupBox>
+        
         <DockPanel LastChildFill="False">
-            <Button DockPanel.Dock="Left" Content="Save" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Click="ButtonSave_Click"/>
-            <Button DockPanel.Dock="Right" Content="Cancel" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Click="ButtonCancel_Click"/>
+            <Button DockPanel.Dock="Left" Content="Save" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Click="ButtonSave_Click" TabIndex="2"/>
+            <Button DockPanel.Dock="Right" Content="Cancel" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Click="ButtonCancel_Click" TabIndex="3"/>
         </DockPanel>
     </StackPanel>
 </Window>

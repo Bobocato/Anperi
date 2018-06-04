@@ -10,9 +10,9 @@ using JJA.Anperi.Host.Model;
 using JJA.Anperi.Utility;
 using Microsoft.Win32;
 
-namespace JJA.Anperi.Host.Utility
+namespace JJA.Anperi.Host.Model.Utility
 {
-    static class ConfigHandler
+    public static class ConfigHandler
     {
         private const string ConfigPath = "settings.data";
         private const string SaltPath = "salt.data";
@@ -23,11 +23,7 @@ namespace JJA.Anperi.Host.Utility
         public static HostDataModel Load()
         {
             if (_data != null) return _data;
-            bool fileExists = File.Exists(ConfigPath);
-            if (!fileExists) return new HostDataModel();
-
             HostDataModel model = null;
-
             if (File.Exists(SaltPath) && File.Exists(ConfigPath))
             {
                 try
@@ -92,8 +88,10 @@ namespace JJA.Anperi.Host.Utility
         private static void CreateNewSalt()
         {
             var salt = new byte[8];
-            var rnd = new Random();
-            rnd.NextBytes(salt);
+            using (var rng = new RNGCryptoServiceProvider())
+            {
+                rng.GetBytes(salt);
+            }
             _salt = salt;
             File.WriteAllBytes(SaltPath, _salt);
         }

@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using JJA.Anperi.Host.Annotations;
 using JJA.Anperi.Host.Model;
+using JJA.Anperi.Host.Model.Utility;
 using JJA.Anperi.Host.Utility;
 
 namespace JJA.Anperi.Host.ViewModel
@@ -16,10 +17,23 @@ namespace JJA.Anperi.Host.ViewModel
         public SettingsViewModel()
         {
             HostDataModel mdl = ConfigHandler.Load();
+            HostModel.Instance.PropertyChanged += Instance_PropertyChanged;
             _autostart = mdl.Autostart;
+            _serverAddress = mdl.ServerAddress;
+            _ownName = HostModel.Instance.OwnName;
+        }
+
+        private void Instance_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(HostModel.IsConnected))
+            {
+                OnPropertyChanged(nameof(IsConnected));
+            }
         }
 
         private bool _autostart;
+        private string _serverAddress;
+        private string _ownName;
 
         public bool Autostart
         {
@@ -32,9 +46,36 @@ namespace JJA.Anperi.Host.ViewModel
             }
         }
 
+        public string ServerAddress
+        {
+            get { return _serverAddress; }
+            set
+            {
+                if (value == _serverAddress) return;
+                _serverAddress = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string OwnName
+        {
+            get { return _ownName; }
+            set
+            {
+                if (value == _ownName) return;
+                _ownName = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool IsConnected => HostModel.Instance.IsConnected;
+
         public void SaveToDataModel(HostDataModel dataModel)
         {
             dataModel.Autostart = _autostart;
+            dataModel.ServerAddress = _serverAddress;
+            if (_ownName != HostModel.Instance.OwnName) HostModel.Instance.RenameSelf(_ownName);
+            ConfigHandler.Save();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

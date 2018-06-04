@@ -1,6 +1,8 @@
 ﻿using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Shapes;
 using JJA.Anperi.Host.Model;
+using JJA.Anperi.Host.Model.Utility;
 using JJA.Anperi.Host.Utility;
 using JJA.Anperi.Host.ViewModel;
 
@@ -19,7 +21,11 @@ namespace JJA.Anperi.Host.View
 
         private void ButPair_Click(object sender, RoutedEventArgs e)
         {
-            SpawnPopup(Popup.WindowType.Pair);
+            StringDialog wndPair = new StringDialog("Pairing", "Enter the code you can see on the device and click ok.");
+            if (wndPair.ShowDialog().GetValueOrDefault(false))
+            {
+                _viewModel.Pair(wndPair.Result);
+            }
         }
 
         private void ButUnpair_Click(object sender, RoutedEventArgs e)
@@ -29,17 +35,40 @@ namespace JJA.Anperi.Host.View
 
         private void ButConnect_Click(object sender, RoutedEventArgs e)
         {
-            _viewModel.Connect(PeriBox.SelectedItem);
+            Peripheral p = (Peripheral) ((FrameworkElement)sender).DataContext;
+            if (p.IsConnected)
+            {
+                _viewModel.Disconnect();
+            }
+            else
+            {
+                _viewModel.Connect(p);
+            }
         }
 
         private void ButFavorite_Click(object sender, RoutedEventArgs e)
         {
+            if (((PeriBox.SelectedItem as Peripheral)?.IsFavorite).GetValueOrDefault(false))
+            {
+                _viewModel.Favorite(null);
+            }
             _viewModel.Favorite(PeriBox.SelectedItem);
         }
 
         private void ButRename_Click(object sender, RoutedEventArgs e)
         {
-            SpawnPopup(Popup.WindowType.Rename);
+            Peripheral selectedPeri = (Peripheral) PeriBox.SelectedItem;
+            if (selectedPeri == null)
+            {
+                MessageBox.Show("You can't rename nothing :(", "Error renaming.", MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+                return;
+            }
+            StringDialog wndPair = new StringDialog("Renaming", "Enter a new name for the device");
+            if (wndPair.ShowDialog().GetValueOrDefault(false))
+            {
+                if (!string.IsNullOrWhiteSpace(wndPair.Result)) _viewModel.Rename(selectedPeri.Id, wndPair.Result);
+            }
         }
 
         private void ButDisconnect_Click(object sender, RoutedEventArgs e)
@@ -49,7 +78,12 @@ namespace JJA.Anperi.Host.View
 
         private void ButSendMessage_Click(object sender, RoutedEventArgs e)
         {
-            SpawnPopup(Popup.WindowType.Message);
+            StringDialog wndPair =
+                new StringDialog("Debug Message", "Enter the message you want to send to the peripheral.");
+            if (wndPair.ShowDialog().GetValueOrDefault(false))
+            {
+                _viewModel.SendMessage(wndPair.Result);
+            }
         }
 
         private void ButOptions_Click(object sender, RoutedEventArgs e)
@@ -59,21 +93,6 @@ namespace JJA.Anperi.Host.View
             {
                 win.Settings.SaveToDataModel(ConfigHandler.Load());
             }
-        }
-
-        private void SpawnPopup(Popup.WindowType windowType)
-        {
-            var popup = new Popup(windowType);
-            if (windowType == Popup.WindowType.Rename)
-            {
-                var item = (Peripheral)PeriBox.SelectedItem;
-                popup.PeriId = item.Id;
-            }
-            popup.DataContext = this.DataContext;
-            popup.WindowStartupLocation = WindowStartupLocation.Manual;
-            popup.Left = this.Left + (this.Width / 2);
-            popup.Top = this.Top + (this.Height - popup.Height) / 2;
-            popup.ShowDialog();
         }
     }
 }

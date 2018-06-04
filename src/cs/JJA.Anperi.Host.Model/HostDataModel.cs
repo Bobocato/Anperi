@@ -10,6 +10,7 @@ namespace JJA.Anperi.Host.Model
     {
         private bool _autostart = false;
         private string _token = "";
+        private string _serverAddress = "ws://localhost:5000/api/ws";
         private int _favorite = -1;
 
         public int Favorite
@@ -42,6 +43,17 @@ namespace JJA.Anperi.Host.Model
             {
                 if (_token == value) return;
                 _token = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string ServerAddress
+        {
+            get => _serverAddress;
+            set
+            {
+                if (_serverAddress == value) return;
+                _serverAddress = value;
                 OnPropertyChanged();
             }
         }

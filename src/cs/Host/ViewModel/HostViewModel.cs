@@ -1,6 +1,8 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Windows.Threading;
+using JJA.Anperi.Host.Annotations;
 using JJA.Anperi.Host.Model;
 
 namespace JJA.Anperi.Host.ViewModel
@@ -9,8 +11,8 @@ namespace JJA.Anperi.Host.ViewModel
     class HostViewModel : INotifyPropertyChanged
     {
         private readonly Dispatcher _dispatcher;
-        public event PropertyChangedEventHandler PropertyChanged;
         private readonly HostModel _model;
+        private string _connectedString;
 
         public HostViewModel(Dispatcher dispatcher)
         {
@@ -55,6 +57,17 @@ namespace JJA.Anperi.Host.ViewModel
             }
         }
 
+        public string ConnectedString
+        {
+            get
+            {
+                if (IsConnected) return $"Logged in to {_model.ServerAddress} as {_model.OwnName}";
+                return $"Trying to connect to: {_model.ServerAddress}";
+            }
+        }
+
+        public bool IsConnected => _model.IsConnected;
+
         public string ConnectedTo => _model.ConnectedPeripheral?.Name ?? "";
 
         public ObservableCollection<Peripheral> Peripherals { get; }
@@ -76,7 +89,7 @@ namespace JJA.Anperi.Host.ViewModel
 
         public void Favorite(object item)
         {
-            _model.Favorite = ((Peripheral) item).Id;
+            _model.Favorite = ((Peripheral) item)?.Id ?? -1;
         }
 
         public void Rename(int id, string name)
@@ -112,8 +125,14 @@ namespace JJA.Anperi.Host.ViewModel
                     OnPropertyChanged(nameof(ButDisconnectVisible));
                     OnPropertyChanged(nameof(ConnectedTo));
                     break;
+                case nameof(HostModel.ServerAddress):
+                case nameof(HostModel.OwnName):
+                    OnPropertyChanged(nameof(HostModel.OwnName));
+                    OnPropertyChanged(nameof(ConnectedString));
+                    break;
                 default:
-                    OnPropertyChanged(e.PropertyName);
+                    if (GetType().GetProperty(e.PropertyName) != null)
+                        OnPropertyChanged(e.PropertyName);
                     break;
             }
         }
@@ -130,10 +149,11 @@ namespace JJA.Anperi.Host.ViewModel
             });
         }
 
-        private void OnPropertyChanged(string property)
+        public event PropertyChangedEventHandler PropertyChanged;
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-
     }
 }

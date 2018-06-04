@@ -6,7 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using JJA.Anperi.Host.Annotations;
+using JJA.Anperi.Host.Model.Annotations;
 using JJA.Anperi.Internal.Api.Host;
 
 namespace JJA.Anperi.Host.Model

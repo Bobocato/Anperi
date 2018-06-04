@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CSharp.RuntimeBinder;
 using Newtonsoft.Json.Linq;
 
-namespace JJA.Anperi.Host.Utility
+namespace JJA.Anperi.Host.Model.Utility
 {
     static class Extensions
     {
