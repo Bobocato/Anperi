@@ -33,7 +33,6 @@ namespace JJA.Anperi.Host.Model
         private string _info2 = "";
         private string _info3 = "";
         
-        private int _favorite = -1;
         private WebSocket _ws;
         private List<Peripheral> _periList;
         private readonly Queue<string> _messages;
@@ -128,15 +127,14 @@ namespace JJA.Anperi.Host.Model
 
         public int Favorite
         {
-            get => _favorite;
+            get => ConfigHandler.Load().Favorite;
             set
             {
-                if (_favorite != value)
+                if (ConfigHandler.Load().Favorite != value)
                 {
-                    _favorite = value;
-                    ConfigHandler.Load().Favorite = _favorite;
+                    ConfigHandler.Load().Favorite = value;
                     Peripherals.ForEach(p => p.IsFavorite = false);
-                    Peripheral peri = Peripherals.SingleOrDefault(p => p.Id == _favorite);
+                    Peripheral peri = Peripherals.SingleOrDefault(p => p.Id == ConfigHandler.Load().Favorite);
                     if (peri != null) peri.IsFavorite = true;
                     OnPropertyChanged();
                 }
@@ -494,11 +492,11 @@ namespace JJA.Anperi.Host.Model
                         Trace.TraceWarning("Something is wrong with the send peripherals!");
                     }
 
-                    if (_favorite != -1)
+                    if (Favorite != -1 && ConnectedPeripheral == null)
                     {
                         foreach (var x in Peripherals)
                         {
-                            if (x.Id == _favorite)
+                            if (x.Id == Favorite)
                             {
                                 if (x.Online)
                                 {
