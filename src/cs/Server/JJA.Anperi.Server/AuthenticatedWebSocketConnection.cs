@@ -288,12 +288,15 @@ namespace JJA.Anperi.Server
                         Peripheral deviceToPair = _db.Peripherals.Find(pairingCode.PeripheralId);
                         if (deviceToPair != null)
                         {
-                            deviceToPair.PairedDevices.Add(new HostPeripheral
+                            if (deviceToPair.PairedDevices.All(hp => hp.PeripheralId != deviceToPair.Id))
                             {
-                                HostId = Device.Id,
-                                PeripheralId = deviceToPair.Id
-                            });
-                            _db.ActivePairingCodes.Remove(pairingCode);
+                                deviceToPair.PairedDevices.Add(new HostPeripheral
+                                {
+                                    HostId = Device.Id,
+                                    PeripheralId = deviceToPair.Id
+                                });
+                                _db.ActivePairingCodes.Remove(pairingCode);
+                            }
                         }
                         else
                         {
