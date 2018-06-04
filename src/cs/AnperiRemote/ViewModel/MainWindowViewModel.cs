@@ -19,10 +19,11 @@ namespace AnperiRemote.ViewModel
         public MainWindowViewModel()
         {
             AnperiModel.Instance.PropertyChanged += AnperiModel_PropertyChanged;
-            VolumeModel.Instance.PropertyChanged += VolumeModel_PropertyChanged1;
+            VolumeModel.Instance.PropertyChanged += VolumeModel_PropertyChanged;
+            CalcStatusBrush();
         }
 
-        private void VolumeModel_PropertyChanged1(object sender, PropertyChangedEventArgs e)
+        private void VolumeModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             switch (e.PropertyName)
             {
