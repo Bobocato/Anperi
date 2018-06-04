@@ -185,16 +185,23 @@ namespace JJA.Anperi.Host.Model
                             client.SendAsync(message);
                             break;
                         case IpcMessageCode.GetPeripheralInfo:
-                            var getInfo = new JsonApiObject(JsonApiContextTypes.device, JsonApiMessageTypes.request, "get_info", message.Data);
-                            SendToWebsocket(getInfo.Serialize());
+                            SendToWebsocket(DeviceJsonApiObjectFactory.CreateGetInfo().Serialize());
                             break;
                         case IpcMessageCode.SetPeripheralElementParam:
-                            var setParam = new JsonApiObject(JsonApiContextTypes.device, JsonApiMessageTypes.message, "set_element_param", message.Data);
-                            SendToWebsocket(setParam.Serialize());
+                            if (message.Data == null)
+                            {
+                                Trace.TraceWarning("Got empty element param data from client.");
+                                return;
+                            }
+                            SendToWebsocket(DeviceJsonApiObjectFactory.CreateSetElementParam(message.Data).Serialize());
                             break;
                         case IpcMessageCode.SetPeripheralLayout:
-                            var setLayout = new JsonApiObject(JsonApiContextTypes.device, JsonApiMessageTypes.message, "set_layout", message.Data);
-                            SendToWebsocket(setLayout.Serialize());
+                            if (message.Data == null)
+                            {
+                                Trace.TraceWarning("Got empty set_layout data from client.");
+                                return;
+                            }
+                            SendToWebsocket(DeviceJsonApiObjectFactory.CreateSetLayout(message.Data).Serialize());
                             break;
                         case IpcMessageCode.ClaimControl:
                             if (_curIpcClient != null)
@@ -206,6 +213,7 @@ namespace JJA.Anperi.Host.Model
                             break;
                         case IpcMessageCode.FreeControl:
                             senderClient.SendAsync(new IpcMessage(IpcMessageCode.ControlLost));
+                            SendToWebsocket(DeviceJsonApiObjectFactory.CreateDeviceWentAway().Serialize());
                             _curIpcClient = null;
                             _ipcClients.AsParallel().ForAll(c => c.SendAsync(new IpcMessage(IpcMessageCode.NotClaimed)));
                             break;
@@ -237,15 +245,16 @@ namespace JJA.Anperi.Host.Model
                 }
             };
 
-            _ipcServer.ClientDisconnected += (sender, args) =>
-            {
-                var client = args.Client;
-                _ipcClients.Remove(client);
-                if (client.Equals(_curIpcClient))
+                _ipcServer.ClientDisconnected += (sender, args) =>
                 {
-                    _curIpcClient = null;
-                }
-            };
+                    var client = args.Client;
+                    _ipcClients.Remove(client);
+                    if (client.Equals(_curIpcClient))
+                    {
+                        _curIpcClient = null;
+                        SendToWebsocket(DeviceJsonApiObjectFactory.CreateDeviceWentAway().Serialize());
+                    }
+                };
 
             _ipcServer.Closed += (sender, args) =>
             {
@@ -720,7 +729,7 @@ namespace JJA.Anperi.Host.Model
         public void SendMessage(string message)
         {
             var json =
-                DeviceJsonApiObjectFactory.CreateDebugRequest(message);
+                DeviceJsonApiObjectFactory.CreateDebug(message);
             SendToWebsocket(json.Serialize());
         }
 

@@ -11,16 +11,27 @@
         d:DataContext="{d:DesignInstance viewModel:HostViewModel}">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
-        <ContextMenu x:Key="MyMenu">
-			<MenuItem Header="Rename" Click="ButRename_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}"/>
-			<MenuItem Header="Unpair" Click="ButUnpair_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}" />
-            <MenuItem Header="Connect" Click="ButConnect_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}"/>
+        <ContextMenu x:Key="CtxMenuListBox">
+            <MenuItem Header="Rename" Click="ButRename_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}"/>
+            <MenuItem Header="Unpair" Click="ButUnpair_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}" />
+            <MenuItem IsEnabled="{Binding Path=Online}" Click="ButConnect_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}">
+                <MenuItem.Style>
+                    <Style TargetType="MenuItem">
+                        <Setter Property="Header" Value="Connect" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Path=IsConnected, UpdateSourceTrigger=PropertyChanged}" Value="True">
+                                <Setter Property="Header" Value="Disconnect"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </MenuItem.Style>
+            </MenuItem>
         </ContextMenu>
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="196*"/>
+            <ColumnDefinition/>
         </Grid.ColumnDefinitions>
         <ListBox Grid.Column="0" x:Name="PeriBox" Margin="5" ItemsSource="{Binding Path=Peripherals}" HorizontalAlignment="Left" HorizontalContentAlignment="Stretch" Width="180">
             <ListBox.ItemTemplate>
@@ -75,15 +86,15 @@
                                     </Style.Triggers>
                                 </Style>
                             </Button.Style>
-                        </Button><!--"{Binding Path=IsConnected, Converter={StaticResource BoolToVis}, FallbackValue=Visible}"-->
+                        </Button>
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>
             <ListBox.ItemContainerStyle>
                 <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                     <EventSetter Event="MouseDoubleClick" Handler="ButConnect_Click"/>
-					<Setter Property="ContextMenu" Value="{StaticResource MyMenu}"></Setter>
-				</Style>
+                    <Setter Property="ContextMenu" Value="{StaticResource CtxMenuListBox}"/>
+                </Style>
             </ListBox.ItemContainerStyle>
         </ListBox>
         <StackPanel Grid.Column="1" Margin="5">

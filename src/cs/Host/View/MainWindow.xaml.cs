@@ -30,7 +30,8 @@ namespace JJA.Anperi.Host.View
 
         private void ButUnpair_Click(object sender, RoutedEventArgs e)
         {
-            _viewModel.Unpair(PeriBox.SelectedItem);
+            Peripheral p = (Peripheral)((FrameworkElement)sender).DataContext;
+            _viewModel.Unpair(p);
         }
 
         private void ButConnect_Click(object sender, RoutedEventArgs e)
@@ -48,32 +49,22 @@ namespace JJA.Anperi.Host.View
 
         private void ButFavorite_Click(object sender, RoutedEventArgs e)
         {
-            if (((PeriBox.SelectedItem as Peripheral)?.IsFavorite).GetValueOrDefault(false))
+            Peripheral p = (Peripheral)((FrameworkElement)sender).DataContext;
+            if (p.IsFavorite)
             {
                 _viewModel.Favorite(null);
             }
-            _viewModel.Favorite(PeriBox.SelectedItem);
+            _viewModel.Favorite(p);
         }
 
         private void ButRename_Click(object sender, RoutedEventArgs e)
         {
-            Peripheral selectedPeri = (Peripheral) PeriBox.SelectedItem;
-            if (selectedPeri == null)
-            {
-                MessageBox.Show("You can't rename nothing :(", "Error renaming.", MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-                return;
-            }
+            Peripheral p = (Peripheral)((FrameworkElement)sender).DataContext;
             StringDialog wndPair = new StringDialog("Renaming", "Enter a new name for the device");
             if (wndPair.ShowDialog().GetValueOrDefault(false))
             {
-                if (!string.IsNullOrWhiteSpace(wndPair.Result)) _viewModel.Rename(selectedPeri.Id, wndPair.Result);
+                if (!string.IsNullOrWhiteSpace(wndPair.Result)) _viewModel.Rename(p.Id, wndPair.Result);
             }
-        }
-
-        private void ButDisconnect_Click(object sender, RoutedEventArgs e)
-        {
-            _viewModel.Disconnect();
         }
 
         private void ButSendMessage_Click(object sender, RoutedEventArgs e)

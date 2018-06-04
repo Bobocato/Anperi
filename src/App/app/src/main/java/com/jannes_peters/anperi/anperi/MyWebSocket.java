@@ -1,7 +1,5 @@
 package com.jannes_peters.anperi.anperi;
 
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 
 import com.neovisionaries.ws.client.WebSocketException;
