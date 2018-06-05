@@ -107,8 +107,9 @@
                     </Style>
                 </StackPanel.Resources>
                 <Button Content="Pair" Click="ButPair_Click" Height="25" VerticalAlignment="Top"/>
-                <Button Content="Send Message" Click="ButSendMessage_Click" Height="25" VerticalAlignment="Top"/>
                 <Button Content="Options" Click="ButOptions_Click" Height="25" VerticalAlignment="Top"/>
+                
+                <Button Content="Debug Message" Click="ButSendMessage_Click" Height="25" VerticalAlignment="Top" Visibility="{x:Static viewModel:HostViewModel.IsDebug}"/>
             </StackPanel>
 
             <TextBlock Text="{Binding Path = Info1, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Height="16"/>

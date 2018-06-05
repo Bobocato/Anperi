@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Windows.Threading;
 using JJA.Anperi.Host.Annotations;
 using JJA.Anperi.Host.Model;
@@ -110,6 +111,15 @@ namespace JJA.Anperi.Host.ViewModel
         public void SendMessage(string msg)
         {
             _model.SendMessage(msg);
+        }
+
+        public static Visibility IsDebug
+        {
+#if DEBUG
+            get => Visibility.Visible;
+#else
+            get => Visibility.Collapsed;
+#endif
         }
 
         private void OnModelPropertyChanged(object sender,
