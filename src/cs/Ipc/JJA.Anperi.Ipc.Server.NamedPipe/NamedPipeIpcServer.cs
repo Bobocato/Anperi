@@ -99,7 +99,7 @@ namespace JJA.Anperi.Ipc.Server.NamedPipe
                     {
                         CreatePipeAsync((oId++).ToString(), PipeDirection.Out, token);
                     }
-                    try { await Task.Delay(TimeSpan.FromMilliseconds(100), token); }
+                    try { await Task.Delay(TimeSpan.FromMilliseconds(25), token); }
                     catch
                     {
                         // ignored 
