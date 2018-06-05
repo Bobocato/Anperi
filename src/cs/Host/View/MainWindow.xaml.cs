@@ -50,11 +50,7 @@ namespace JJA.Anperi.Host.View
         private void ButFavorite_Click(object sender, RoutedEventArgs e)
         {
             Peripheral p = (Peripheral)((FrameworkElement)sender).DataContext;
-            if (p.IsFavorite)
-            {
-                _viewModel.Favorite(null);
-            }
-            _viewModel.Favorite(p);
+            _viewModel.Favorite(p.IsFavorite ? null : p);
         }
 
         private void ButRename_Click(object sender, RoutedEventArgs e)
