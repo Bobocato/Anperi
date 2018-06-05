@@ -8,12 +8,17 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.util.ArraySet;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.SubMenu;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -27,9 +32,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "jja.anperi";
@@ -47,6 +55,9 @@ public class MainActivity extends AppCompatActivity {
     private TestFragment testFragment;
     private CreateFragment createFragment;
 
+    //------------------------------
+    //-----------Lifecycle----------
+    //------------------------------
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -121,22 +132,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onSaveInstanceState(Bundle savedInstanceState) {
-        Log.v(TAG, "onSavedInstance was called");
-        savedInstanceState.putBoolean("isRegistered", StatusObject.isRegistered);
-        savedInstanceState.putBoolean("isLoggedIn", StatusObject.isLoggedIn);
-        savedInstanceState.putBoolean("isConnected", StatusObject.isConnected);
-        savedInstanceState.putCharSequence("pairingCode", StatusObject.pairingCode);
-        savedInstanceState.putBoolean("shouldReconnect", StatusObject.shouldReconnect);
-        savedInstanceState.putBoolean("isCustomLayout", StatusObject.isCustomLayout);
-        savedInstanceState.putCharSequence("layoutString", StatusObject.layoutString);
-        super.onSaveInstanceState(savedInstanceState);
-    }
-
-    //------------------------------
-    //-----------Lifecycle----------
-    //------------------------------
-    @Override
     public void onStart() {
         Log.v(TAG, "MainActivity onStart called");
         isRunning = true;
@@ -166,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
     public void onStop() {
         Log.v(TAG, "MainActivity onStop() called");
         isRunning = false;
-        if(!isChangingConfigurations()){
+        if (!isChangingConfigurations()) {
             if (StatusObject.isConnected) {
                 try {
                     MyWebSocket.getInstance().disconnect();
@@ -187,6 +182,68 @@ public class MainActivity extends AppCompatActivity {
         isRunning = false;
         super.onDestroy();
     }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        Log.v(TAG, "onSavedInstance was called");
+        savedInstanceState.putBoolean("isRegistered", StatusObject.isRegistered);
+        savedInstanceState.putBoolean("isLoggedIn", StatusObject.isLoggedIn);
+        savedInstanceState.putBoolean("isConnected", StatusObject.isConnected);
+        savedInstanceState.putCharSequence("pairingCode", StatusObject.pairingCode);
+        savedInstanceState.putBoolean("shouldReconnect", StatusObject.shouldReconnect);
+        savedInstanceState.putBoolean("isCustomLayout", StatusObject.isCustomLayout);
+        savedInstanceState.putCharSequence("layoutString", StatusObject.layoutString);
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.settings_menu, menu);
+        menu.add(0, 0, 0, R.string.addServer);
+        SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.preference_file_name), MODE_PRIVATE);
+        Set<String> serverSet = sharedPref.getStringSet("servers", null);
+        if (serverSet != null) {
+            SubMenu subMenu = menu.addSubMenu(0,1,0,R.string.serverSetting);
+            String[] servers = serverSet.toArray(new String[serverSet.size()]);
+            for (int i = 0; i < servers.length; i++) {
+                subMenu.add(0, i + 2, 0, servers[i]);
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case 0:
+                openServerDialog();
+                return true;
+            case 1:
+                //Not default....
+                return true;
+            default:
+                try {
+                    String url = item.getTitle().toString();
+                    MyWebSocket.destroyWS();
+                    MyWebSocket.setServer(url);
+                    MyWebSocket.getInstance();
+                    resetApp();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (WebSocketException e) {
+                    e.printStackTrace();
+                }
+                resetApp();
+                return true;
+        }
+        //return super.onOptionsItemSelected(item);
+    }
+
+
+    //------------------------------
+    //--------WebSocket Stuff-------
+    //------------------------------
 
     private void connected() {
         if (debug) {
@@ -245,7 +302,7 @@ public class MainActivity extends AppCompatActivity {
                     StatusObject.isConnected = false;
                     Log.v(TAG, "Connection closed " + websocket.toString());
                     resetApp();
-                    if(StatusObject.shouldReconnect) MyWebSocket.reconnect();
+                    if (StatusObject.shouldReconnect) MyWebSocket.reconnect();
                 }
 
             }
@@ -389,7 +446,7 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                     break;
                                 case "device":
-                                    switch (apiObject.messageCode){
+                                    switch (apiObject.messageCode) {
                                         case "client_went_away":
                                             resetApp();
                                             break;
@@ -425,12 +482,58 @@ public class MainActivity extends AppCompatActivity {
     //------------------------------
     //-------Helper Functions-------
     //------------------------------
+    private void openServerDialog() {
+        final SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.preference_file_name), MODE_PRIVATE);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.addServerTitle);
+        final EditText input = new EditText(this);
+        input.setHint("server url");
+        input.setInputType(InputType.TYPE_TEXT_VARIATION_URI | InputType.TYPE_CLASS_TEXT);
+        builder.setView(input);
+        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                if (!input.getText().toString().equals("")) {
+                    try {
+                        Set<String> urls;
+                        if (sharedPref.getStringSet("servers", null) != null) {
+                            urls = sharedPref.getStringSet("servers", null);
+                        } else {
+                            urls = new HashSet<>();
+                        }
+                        serverUrl = input.getText().toString();
+                        urls.add(serverUrl);
+                        sharedPref.edit().putStringSet("servers", urls).apply();
+                        Log.v(TAG, "User entered new Server: " + serverUrl);
+                        MyWebSocket.destroyWS();
+                        MyWebSocket.setServer(serverUrl);
+                        MyWebSocket.getInstance();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (WebSocketException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    showToast("Please enter a server url", Toast.LENGTH_SHORT);
+                }
+            }
+        });
+        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                //Canceled by User
+                Log.v(TAG, "No new server was added (user canceled)");
+            }
+        });
+        builder.show();
+    }
+
     private void clearPreferences() {
         this.getSharedPreferences(getString(R.string.preference_file_name), 0).edit().clear().apply();
     }
 
     //Reset the App to the pairing code
-    private void resetApp(){
+    private void resetApp() {
         //Reset Fragment
         if (getFragmentManager().findFragmentByTag("createFrag") != null) {
             createFragment = (CreateFragment) getFragmentManager().findFragmentByTag("createFrag");
@@ -446,45 +549,62 @@ public class MainActivity extends AppCompatActivity {
 
     //Startup the WS
     private void startUp() {
-        //Ask for server url
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.enter_server);
-        builder.setMessage("This is the first time you started this app. Please enter a server url to connect to.");
-        final EditText input = new EditText(this);
-        //input.setHint("ws://10.0.2.2:5000/api/ws");
-        input.setHint("wss://anperi.jannes-peters.com/api/ws");
         final SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.preference_file_name), MODE_PRIVATE);
-        String adress = sharedPref.getString("serveradress", null);
+        if (sharedPref.getStringSet("servers", null) == null) {
+            //Ask for server url
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(R.string.enter_server);
+            builder.setMessage("This is the first time you started this app. Please enter a server url to connect to.");
+            final EditText input = new EditText(this);
+            //input.setHint("ws://10.0.2.2:5000/api/ws");
+            input.setHint("wss://anperi.jannes-peters.com/api/ws");
+            String adress = sharedPref.getString("serveradress", null);
 
-        if (adress != null) {
-            input.setText(adress);
-        }
-        input.setInputType(InputType.TYPE_TEXT_VARIATION_URI | InputType.TYPE_CLASS_TEXT);
-        builder.setView(input);
-        builder.setCancelable(false);
-        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                if (!input.getText().toString().equals("")) {
-                    serverUrl = input.getText().toString();
-                } else {
-                    serverUrl = input.getHint().toString();
-                }
-                sharedPref.edit().putString("serveradress", serverUrl).apply();
-                //Set server and start websocket
-                MyWebSocket.setServer(serverUrl);
-                try {
-                    MyWebSocket.getInstance();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (WebSocketException e) {
-                    e.printStackTrace();
-                }
-                addWsListeners();
-                //Wait for connection...
+            if (adress != null) {
+                input.setText(adress);
             }
-        });
-        builder.show();
+            input.setInputType(InputType.TYPE_TEXT_VARIATION_URI | InputType.TYPE_CLASS_TEXT);
+            builder.setView(input);
+            builder.setCancelable(false);
+            builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    if (!input.getText().toString().equals("")) {
+                        serverUrl = input.getText().toString();
+                    } else {
+                        serverUrl = input.getHint().toString();
+                    }
+                    sharedPref.edit().putString("serveradress", serverUrl).apply();
+                    Set<String> serverSet = new HashSet<>();
+                    serverSet.add(serverUrl);
+                    sharedPref.edit().putStringSet("servers", serverSet).apply();
+                    //Set server and start websocket
+                    MyWebSocket.setServer(serverUrl);
+                    try {
+                        MyWebSocket.getInstance();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (WebSocketException e) {
+                        e.printStackTrace();
+                    }
+                    addWsListeners();
+                    //Wait for connection...
+                }
+            });
+            builder.show();
+        } else {
+            Set<String> serverSet = sharedPref.getStringSet("servers", null);
+            String[] servers = serverSet.toArray(new String[serverSet.size()]);
+            MyWebSocket.setServer(servers[0]);
+            try {
+                MyWebSocket.getInstance();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (WebSocketException e) {
+                e.printStackTrace();
+            }
+            addWsListeners();
+        }
     }
 
     // Web Socket Stuff

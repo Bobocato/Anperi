@@ -51,6 +51,12 @@ public class MyWebSocket {
         }, 2000);
     }
 
+    public static void destroyWS(){
+        Log.v(TAG, "WS is about to be destroyed");
+        instance.disconnect();
+        instance =null;
+    }
+
     public static void connect() throws IOException{
         Log.v(TAG, "Connect ws to: " + server);
         MyWebSocket.instance = new WebSocketFactory()
