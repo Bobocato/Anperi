@@ -128,7 +128,6 @@ namespace JJA.Anperi.Ipc.Server.NamedPipe
 
         protected void OnMessage(string message)
         {
-            Trace.TraceInformation($"Received: {message}");
             IpcMessage im = null;
             try
             {
