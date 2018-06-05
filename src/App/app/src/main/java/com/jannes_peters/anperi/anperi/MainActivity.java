@@ -127,6 +127,7 @@ public class MainActivity extends AppCompatActivity {
         savedInstanceState.putBoolean("isLoggedIn", StatusObject.isLoggedIn);
         savedInstanceState.putBoolean("isConnected", StatusObject.isConnected);
         savedInstanceState.putCharSequence("pairingCode", StatusObject.pairingCode);
+        savedInstanceState.putBoolean("shouldReconnect", StatusObject.shouldReconnect);
         savedInstanceState.putBoolean("isCustomLayout", StatusObject.isCustomLayout);
         savedInstanceState.putCharSequence("layoutString", StatusObject.layoutString);
         super.onSaveInstanceState(savedInstanceState);
@@ -243,7 +244,8 @@ public class MainActivity extends AppCompatActivity {
                 if (isRunning) {
                     StatusObject.isConnected = false;
                     Log.v(TAG, "Connection closed " + websocket.toString());
-                    MyWebSocket.reconnect();
+                    resetApp();
+                    if(StatusObject.shouldReconnect) MyWebSocket.reconnect();
                 }
 
             }
@@ -283,6 +285,7 @@ public class MainActivity extends AppCompatActivity {
                 if (isRunning) {
                     Log.v(TAG, "Connection established " + headers.toString());
                     StatusObject.isConnected = true;
+                    StatusObject.shouldReconnect = true;
                     connected();
                 }
             }
@@ -428,7 +431,7 @@ public class MainActivity extends AppCompatActivity {
 
     //Reset the App to the pairing code
     private void resetApp(){
-        //Reset Fragment and shit
+        //Reset Fragment
         if (getFragmentManager().findFragmentByTag("createFrag") != null) {
             createFragment = (CreateFragment) getFragmentManager().findFragmentByTag("createFrag");
         }
@@ -436,7 +439,8 @@ public class MainActivity extends AppCompatActivity {
             getFragmentManager().beginTransaction().remove(createFragment).commit();
         StatusObject.layoutString = "";
         StatusObject.isCustomLayout = false;
-        //Get a new pairing code and show i
+        StatusObject.shouldReconnect = false;
+        //Get a new pairing code and show it
         getPairingCodeWS();
     }
 
@@ -445,11 +449,13 @@ public class MainActivity extends AppCompatActivity {
         //Ask for server url
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.enter_server);
+        builder.setMessage("This is the first time you started this app. Please enter a server url to connect to.");
         final EditText input = new EditText(this);
         //input.setHint("ws://10.0.2.2:5000/api/ws");
         input.setHint("wss://anperi.jannes-peters.com/api/ws");
         final SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.preference_file_name), MODE_PRIVATE);
         String adress = sharedPref.getString("serveradress", null);
+
         if (adress != null) {
             input.setText(adress);
         }

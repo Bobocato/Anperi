@@ -6,6 +6,7 @@ public class StatusObject {
     public static Boolean isLoggedIn = false;
     public static String pairingCode = "";
     public static Boolean isConnected = false;
+    public static Boolean shouldReconnect = true;
     public static Boolean isCustomLayout = false;
     public static String layoutString = "";
 
