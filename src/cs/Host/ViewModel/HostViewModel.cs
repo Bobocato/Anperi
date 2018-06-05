@@ -28,34 +28,9 @@ namespace JJA.Anperi.Host.ViewModel
             get => _model.ConnectedPeripheral != null;
         }
 
-        public string Info1
+        public string Message
         {
-            get => _model.Info1;
-            set
-            {
-                _model.Info1 = value;
-                OnPropertyChanged(nameof(Info1));
-            }
-        }
-
-        public string Info2
-        {
-            get => _model.Info2;
-            set
-            {
-                _model.Info2 = value;
-                OnPropertyChanged(nameof(Info2));
-            }
-        }
-
-        public string Info3
-        {
-            get => _model.Info3;
-            set
-            {
-                _model.Info3 = value;
-                OnPropertyChanged(nameof(Info3));
-            }
+            get => _model.Message;
         }
 
         public string ConnectedString
@@ -68,6 +43,7 @@ namespace JJA.Anperi.Host.ViewModel
         }
 
         public bool IsConnected => _model.IsConnected;
+        public bool IsConnecting => !_model.IsConnected;
 
         public string ConnectedTo => _model.ConnectedPeripheral?.Name ?? "";
 
@@ -122,6 +98,8 @@ namespace JJA.Anperi.Host.ViewModel
 #endif
         }
 
+        public bool ArePeripheralsLoading => !_model.IsPeripheralListLoaded;
+
         private void OnModelPropertyChanged(object sender,
             PropertyChangedEventArgs e)
         {
@@ -139,6 +117,13 @@ namespace JJA.Anperi.Host.ViewModel
                 case nameof(HostModel.OwnName):
                     OnPropertyChanged(nameof(HostModel.OwnName));
                     OnPropertyChanged(nameof(ConnectedString));
+                    break;
+                case nameof(HostModel.IsPeripheralListLoaded):
+                    OnPropertyChanged(nameof(ArePeripheralsLoading));
+                    break;
+                case nameof(HostModel.IsConnected):
+                    OnPropertyChanged(nameof(IsConnected));
+                    OnPropertyChanged(nameof(IsConnecting));
                     break;
                 default:
                     if (GetType().GetProperty(e.PropertyName) != null)

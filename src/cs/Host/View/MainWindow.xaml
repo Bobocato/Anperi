@@ -5,8 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:JJA.Anperi.Host.View"
         xmlns:viewModel="clr-namespace:JJA.Anperi.Host.ViewModel"
+        xmlns:resources="clr-namespace:JJA.Anperi.Host.Resources"
         mc:Ignorable="d"
-        Title="Anperi" Height="350" Width="600"
+        Title="Anperi" Height="283.443" Width="604.842"
         ResizeMode="CanMinimize"
         d:DataContext="{d:DesignInstance viewModel:HostViewModel}">
     <Window.Resources>
@@ -27,12 +28,36 @@
                 </MenuItem.Style>
             </MenuItem>
         </ContextMenu>
+        <SolidColorBrush x:Key="AccentColorBrush" Color="#CC8BE669"/>
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
+        <Grid Grid.ColumnSpan="2" Background="#C0000000" ZIndex="100" Visibility="{Binding Path=IsConnecting, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <resources:LoadingIndicator Grid.Row="1" Style="{StaticResource LoadingIndicatorArcsStyleKey}" IsActive="{Binding Path=IsConnecting}"/>
+            <Label Grid.Row="2"  Content="Connecting to Server ..." Foreground="{Binding Source={StaticResource AccentColorBrush}}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,5,0,0"/>
+            <Button Grid.Row="3" Content="Options" HorizontalAlignment="Center" Click="ButOptions_Click" Height="25" Width="100"/>
+        </Grid>
+        <Grid Grid.Column="0" Background="#80000000" ZIndex="100" Visibility="{Binding Path=ArePeripheralsLoading, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <resources:LoadingIndicator Grid.Row="1" Style="{StaticResource LoadingIndicatorArcsStyleKey}" IsActive="{Binding Path=ArePeripheralsLoading}"/>
+            <Label Grid.Row="2"  Content="Loading paired peripherals ..." Foreground="{Binding Source={StaticResource AccentColorBrush}}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,5,0,0"/>
+        </Grid>
         <ListBox Grid.Column="0" x:Name="PeriBox" Margin="5" ItemsSource="{Binding Path=Peripherals}" HorizontalAlignment="Left" HorizontalContentAlignment="Stretch" Width="180">
             <ListBox.ItemTemplate>
                 <DataTemplate>
@@ -97,10 +122,9 @@
                 </Style>
             </ListBox.ItemContainerStyle>
         </ListBox>
-        <StackPanel Grid.Column="1" Margin="5">
-            <TextBlock Text="{Binding Path=ConnectedString}" TextAlignment="Center" Height="16"/>
-            
-            <StackPanel Margin="0,0,0,10">
+        <DockPanel Grid.Column="1" Margin="5">
+            <TextBlock DockPanel.Dock="Top" Text="{Binding Path=ConnectedString}" TextAlignment="Center" Height="16"/>
+            <StackPanel DockPanel.Dock="Top" Margin="0,0,0,10">
                 <StackPanel.Resources>
                     <Style TargetType="{x:Type Button}">
                         <Setter Property="Margin" Value="0,10,0,0"/>
@@ -108,13 +132,11 @@
                 </StackPanel.Resources>
                 <Button Content="Pair" Click="ButPair_Click" Height="25" VerticalAlignment="Top"/>
                 <Button Content="Options" Click="ButOptions_Click" Height="25" VerticalAlignment="Top"/>
-                
+
                 <Button Content="Debug Message" Click="ButSendMessage_Click" Height="25" VerticalAlignment="Top" Visibility="{x:Static viewModel:HostViewModel.IsDebug}"/>
             </StackPanel>
 
-            <TextBlock Text="{Binding Path = Info1, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Height="16"/>
-            <TextBlock Text="{Binding Info2, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" TextWrapping="Wrap" />
-            <TextBlock Text="{Binding Info3, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" TextWrapping="Wrap" />
-        </StackPanel>
+            <TextBlock DockPanel.Dock="Bottom" Text="{Binding Path=Message, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" VerticalAlignment="Bottom"/>
+        </DockPanel>
     </Grid>
 </Window>

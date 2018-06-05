@@ -73,6 +73,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Properties\Annotations.cs" />
+    <Compile Include="Resources\LoadingIndicator.cs" />
     <Compile Include="ViewModel\SettingsViewModel.cs" />
     <Compile Include="View\StringDialog.xaml.cs">
       <DependentUpon>StringDialog.xaml</DependentUpon>
@@ -83,6 +84,10 @@
       <DependentUpon>SettingsWindow.xaml</DependentUpon>
     </Compile>
     <Page Include="Resources\Icons.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Resources\LoadingArcs.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

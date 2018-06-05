@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -28,14 +29,10 @@ namespace JJA.Anperi.Host.Model
         private static Lazy<HostModel> _instance = new Lazy<HostModel>(() => new HostModel());
 
         public event PropertyChangedEventHandler PropertyChanged;
-
-        private string _info1 = "No Current WebSocket connection!";
-        private string _info2 = "";
-        private string _info3 = "";
         
         private WebSocket _ws;
         private List<Peripheral> _periList;
-        private readonly Queue<string> _messages;
+        private readonly BlockingCollection<string> _messages;
         private bool _closing = false;
         private Peripheral _connectedPeripheral = null;
         private int _connectToPeripheral = -1;
@@ -44,70 +41,79 @@ namespace JJA.Anperi.Host.Model
         private IIpcClient _curIpcClient;
         private string _ownName;
         private string _serverAddress;
+        private bool _isPeripheralListLoaded = false;
+        private string _message;
+        private readonly CancellationTokenSource _closeTokenSource;
 
         public HostModel()
         {
             _periList = new List<Peripheral>();
             _ipcClients = new List<IIpcClient>();
-            _messages = new Queue<string>();
+            _messages = new BlockingCollection<string>(new ConcurrentQueue<string>());
+            _closeTokenSource = new CancellationTokenSource();
             InitializeWebSocket();
             InitializeIpcServer();
+            DequeueMessages();
         }
 
         #region Properties
 
-        public string Info1
+        public string Message
         {
-            get => _info1;
-            set
+            get => _message;
+            private set
             {
-                _info1 = value;
-                OnPropertyChanged(nameof(Info1));
-            }
-        }
-        public string Info2
-        {
-            get => _info2;
-            set
-            {
-                _info2 = value;
-                OnPropertyChanged(nameof(Info2));
-            }
-        }
-        public string Info3
-        {
-            get => _info3;
-            set
-            {
-                _info3 = value;
-                OnPropertyChanged(nameof(Info3));
+                if (_message != value)
+                {
+                    _message = value;
+                    OnPropertyChanged();
+                }
             }
         }
 
         public string OwnName
         {
             get => _ownName;
-            set
+            private set
             {
-                _ownName = value;
-                OnPropertyChanged();
+                if (_ownName != value)
+                {
+                    _ownName = value;
+                    OnPropertyChanged();
+                }
             }
         }
 
         public string ServerAddress
         {
             get { return _serverAddress; }
-            set
+            private set
             {
-                _serverAddress = value;
-                OnPropertyChanged();
+                if (_serverAddress != value)
+                {
+                    _serverAddress = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public bool IsPeripheralListLoaded
+        {
+            get => _isPeripheralListLoaded;
+            private set
+            {
+                if (_isPeripheralListLoaded != value)
+                {
+                    _isPeripheralListLoaded = value;
+                    OnPropertyChanged();
+                }
             }
         }
 
         public Peripheral ConnectedPeripheral
         {
             get => _connectedPeripheral;
-            set
+            private set
             {
                 if (!Equals(value, _connectedPeripheral))
                 {
@@ -144,7 +150,7 @@ namespace JJA.Anperi.Host.Model
         public List<Peripheral> Peripherals
         {
             get => _periList;
-            set
+            private set
             {
                 var tmp = from x in value orderby x.Online descending select x;
                 _periList = tmp.ToList();
@@ -167,6 +173,7 @@ namespace JJA.Anperi.Host.Model
                 client.Message += (o, eventArgs) =>
                 {
                     IIpcClient senderClient = (IIpcClient) o;
+                    Trace.TraceInformation("Received on IPC client {0} - {1}: {2}", senderClient.Id, eventArgs.Message.MessageCode.ToString(), eventArgs.Message.Data?.ToDataString());
                     var message = eventArgs.Message;
                     var messageType = message.MessageCode;
 
@@ -175,7 +182,9 @@ namespace JJA.Anperi.Host.Model
                         case IpcMessageCode.Debug:
                             if (message.Data.TryGetValue("msg", out string msg))
                             {
+#if DEBUG
                                 QueueMessage(msg);
+#endif
                             }
                             client.SendAsync(message);
                             break;
@@ -243,25 +252,25 @@ namespace JJA.Anperi.Host.Model
                 }
             };
 
-                _ipcServer.ClientDisconnected += (sender, args) =>
+            _ipcServer.ClientDisconnected += (sender, args) =>
+            {
+                var client = args.Client;
+                _ipcClients.Remove(client);
+                if (client.Equals(_curIpcClient))
                 {
-                    var client = args.Client;
-                    _ipcClients.Remove(client);
-                    if (client.Equals(_curIpcClient))
-                    {
-                        _curIpcClient = null;
-                        SendToWebsocket(DeviceJsonApiObjectFactory.CreateDeviceWentAway().Serialize());
-                    }
-                };
+                    _curIpcClient = null;
+                    SendToWebsocket(DeviceJsonApiObjectFactory.CreateDeviceWentAway().Serialize());
+                }
+            };
 
-            _ipcServer.Closed += (sender, args) =>
+            _ipcServer.Closed += async (sender, args) =>
             {
                 _ipcClients.ForEach(x => x.Close());
                 _ipcClients.Clear();
                 if (!_closing)
                 {
-                    Thread.Sleep(2000);
-                    QueueMessage("Ipc Server is restarting!");
+                    Trace.TraceError("Ipc Server is restarting in 2 seconds!");
+                    await Task.Delay(2000);
                     _ipcServer.Start();
                 }
             };
@@ -272,7 +281,7 @@ namespace JJA.Anperi.Host.Model
             };
 
             _ipcServer.Start();
-            QueueMessage("Ipc-Server is running!");
+            Trace.TraceInformation("Ipc-Server is running!");
         }
         
         private void InitializeWebSocket()
@@ -291,7 +300,7 @@ namespace JJA.Anperi.Host.Model
                             SharedJsonApiObjectFactory
                                 .CreateRegisterRequest(
                                     SharedJsonDeviceType.host, name);
-                        _ws.Send(json.Serialize());
+                        SendToWebsocket(json.Serialize());
                     }
                     else
                     {
@@ -299,6 +308,7 @@ namespace JJA.Anperi.Host.Model
                             SharedJsonApiObjectFactory.CreateLoginRequest(
                                 ConfigHandler.Load().Token, SharedJsonDeviceType.host);
                         string msg = json.Serialize();
+                        Trace.TraceInformation("Sending login request to server.");
                         _ws.Send(msg);
                     }
                     OnPropertyChanged(nameof(IsConnected));
@@ -345,7 +355,11 @@ namespace JJA.Anperi.Host.Model
                             }
                             break;
                         default:
+#if DEBUG
                             throw new NotImplementedException();
+#else
+                            break;
+#endif
                     }
                 };
 
@@ -354,7 +368,6 @@ namespace JJA.Anperi.Host.Model
                     if (!_closing)
                     {
                         ResetUi();
-                        Info1 = "No current WebSocket connection";
                         if (!_ws.IsAlive)
                         {
                             Thread.Sleep(2000);
@@ -379,7 +392,7 @@ namespace JJA.Anperi.Host.Model
         private void ResetUi()
         {
             //the ui should reset here to handle a disconnect
-            Info2 = "";
+            IsPeripheralListLoaded = false;
             ConnectedPeripheral = null;
             Peripherals.Clear();
 
@@ -416,7 +429,11 @@ namespace JJA.Anperi.Host.Model
                     }
                     break;
                 default:
-                    throw new NotImplementedException();
+#if DEBUG
+                            throw new NotImplementedException();
+#else
+                    break;
+#endif
             }
         }
 
@@ -473,6 +490,7 @@ namespace JJA.Anperi.Host.Model
                             }
                         }
                         OnPropertyChanged(nameof(Peripherals));
+                        IsPeripheralListLoaded = true;
                         if (_connectToPeripheral != -1)
                         {
                             foreach (var x in Peripherals)
@@ -595,7 +613,6 @@ namespace JJA.Anperi.Host.Model
                                 out dynamic loginName);
                             OwnName = loginName;
                             SendPeripheralRequest();
-                            Info1 = "Current WebSocket-Address is: " + ConfigHandler.Load().ServerAddress;
                         }
                         else
                         {
@@ -617,15 +634,17 @@ namespace JJA.Anperi.Host.Model
                     OwnName = name;
 
                     SendPeripheralRequest();
-                    Info1 = "Current WebSocket-Address is: " + ConfigHandler.Load().ServerAddress;
                     break;
                 case SharedJsonRequestCode.set_own_name:
                     json.data.TryGetValue("name", out string newName);
                     OwnName = newName;
                     break;
                 default:
-                    throw new NotImplementedException(
-                        $"Didnt implement: {code.ToString()}");
+#if DEBUG
+                    throw new NotImplementedException($"Didnt implement: {code.ToString()}");
+#else
+                    break;
+#endif
             }
         }
 
@@ -760,10 +779,12 @@ namespace JJA.Anperi.Host.Model
             {
                 if (_ws.IsAlive)
                 {
+                    Trace.TraceInformation("Sending To Websocket: {0}", message);
                     _ws.Send(message);
                 }
                 else
                 {
+                    Trace.TraceWarning("Tried to send \n{0}\n\tto websocket, but it was closed.", message);
                     QueueMessage("Websocket is not alive!");
                 }
             });
@@ -771,36 +792,30 @@ namespace JJA.Anperi.Host.Model
 
         private void QueueMessage(string message)
         {
-            _messages.Enqueue(message);
-            if (Info3.Equals(""))
-            {
-                DequeueMessages();
-            }
+            Trace.TraceInformation("QueueMessage got: {0}", message);
+            _messages.Add(message);
         }
 
-        private void DequeueMessages()
+        private async void DequeueMessages()
         {
-            Task.Run(() =>
+            while (!_closeTokenSource.IsCancellationRequested)
             {
-                if (_messages.Count != 0)
+                try
                 {
-                    Info3 = _messages.Dequeue();
-                    Thread.Sleep(3000);
-                    if (_messages.Count != 0)
-                    {
-                        DequeueMessages();
-                    }
-                    else
-                    {
-                        Info3 = "";
-                    }
+                    await Task.Run(() => _messages.Take(_closeTokenSource.Token)).ConfigureAwait(false);
+                    await Task.Delay(3000, _closeTokenSource.Token).ConfigureAwait(false);
+                } catch(OperationCanceledException) { }
+                if (_messages.Count == 0)
+                {
+                    Message = "";
                 }
-            });
+            }
         }
 
         public void Close()
         {
             _closing = true;
+            _closeTokenSource.Cancel();
             if (_ws.IsAlive)
             {
                 _ws.Close();
