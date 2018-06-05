@@ -495,14 +495,34 @@ namespace JJA.Anperi.Host.Model
                         {
                             foreach (var x in Peripherals)
                             {
-                                if (x.Id == _connectToPeripheral && x.Online)
-                                {
-                                    var connectRequest = HostJsonApiObjectFactory
-                                        .CreateConnectToPeripheralRequest(x.Id);
-                                    SendToWebsocket(connectRequest.Serialize());
-                                }
+                                if (x.Id != _connectToPeripheral || !x.Online)
+                                    continue;
+                                var connectRequest = HostJsonApiObjectFactory
+                                    .CreateConnectToPeripheralRequest(x.Id);
+                                SendToWebsocket(connectRequest.Serialize());
                             }
                             _connectToPeripheral = -1;
+                        }else
+                        {
+                            Peripheral peri = null;
+                            foreach (var x in Peripherals)
+                            {
+                                if (!x.Online) continue;
+                                if (peri == null)
+                                {
+                                    peri = x;
+                                }else
+                                {
+                                    peri = null;
+                                    break;
+                                }
+                            }
+                            if (peri != null)
+                            {
+                                var connectRequest = HostJsonApiObjectFactory
+                                    .CreateConnectToPeripheralRequest(peri.Id);
+                                SendToWebsocket(connectRequest.Serialize());
+                            }
                         }
                     }
                     else
