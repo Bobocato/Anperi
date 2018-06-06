@@ -67,10 +67,9 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Button Grid.Column="0" Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Click="ButFavorite_Click" Visibility="Visible" BorderBrush="#FFBDBDBD" Background="Transparent">
+                        <Button Grid.Column="0" Content="{StaticResource StarUnselected}" Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Click="ButFavorite_Click" Visibility="Visible" BorderBrush="#FFBDBDBD" Background="Transparent">
                             <Button.Style>
                                 <Style TargetType="Button">
-                                    <Setter Property="Content" Value="{StaticResource StarUnselected}" />
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding Path=IsFavorite, UpdateSourceTrigger=PropertyChanged}" Value="True">
                                             <Setter Property="Content" Value="{StaticResource StarSelected}"/>
@@ -97,10 +96,9 @@
                                 </Style>
                             </Label.Style>
                         </Label>
-                        <Button Grid.Column="2" IsEnabled="{Binding Path=Online}" Width="22" Height="22" VerticalAlignment="Center" HorizontalAlignment="Right" Click="ButConnect_Click" Visibility="Visible" BorderBrush="#FFBDBDBD" Background="Transparent">
+                        <Button Grid.Column="2" Content="{StaticResource PeripheralConnect}" IsEnabled="{Binding Path=Online}" Width="22" Height="22" VerticalAlignment="Center" HorizontalAlignment="Right" Click="ButConnect_Click" Visibility="Visible" BorderBrush="#FFBDBDBD" Background="Transparent">
                             <Button.Style>
                                 <Style TargetType="Button">
-                                    <Setter Property="Content" Value="{StaticResource PeripheralConnect}" />
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding Path=IsConnected, UpdateSourceTrigger=PropertyChanged}" Value="True">
                                             <Setter Property="Content" Value="{StaticResource PeripheralDisconnect}"/>
