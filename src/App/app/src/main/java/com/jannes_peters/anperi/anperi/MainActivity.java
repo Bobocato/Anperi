@@ -1,6 +1,5 @@
 package com.jannes_peters.anperi.anperi;
 
-import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
@@ -8,7 +7,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.util.ArraySet;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
@@ -18,7 +16,6 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.SubMenu;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -32,7 +29,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -52,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
 
     private KeyFragment keyFragment;
     private LoadingFragment loadingFragment;
+    private SettingsFragment settingsFragment;
     private TestFragment testFragment;
     private CreateFragment createFragment;
 
@@ -200,16 +197,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.settings_menu, menu);
-        menu.add(0, 0, 0, R.string.addServer);
-        SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.preference_file_name), MODE_PRIVATE);
-        Set<String> serverSet = sharedPref.getStringSet("servers", null);
-        if (serverSet != null) {
-            SubMenu subMenu = menu.addSubMenu(0,1,0,R.string.serverSetting);
-            String[] servers = serverSet.toArray(new String[serverSet.size()]);
-            for (int i = 0; i < servers.length; i++) {
-                subMenu.add(0, i + 2, 0, servers[i]);
-            }
-        }
+        menu.add(0, 0, 0, R.string.serverSetting);
         return true;
     }
 
@@ -217,34 +205,15 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case 0:
-                openServerDialog();
-                return true;
-            case 1:
-                //Not default....
-                return true;
-            default:
-                try {
-                    String url = item.getTitle().toString();
-                    MyWebSocket.destroyWS();
-                    MyWebSocket.setServer(url);
-                    MyWebSocket.getInstance();
-                    resetApp();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (WebSocketException e) {
-                    e.printStackTrace();
-                }
-                resetApp();
+                showSettings();
                 return true;
         }
-        //return super.onOptionsItemSelected(item);
+        return super.onOptionsItemSelected(item);
     }
-
 
     //------------------------------
     //--------WebSocket Stuff-------
     //------------------------------
-
     private void connected() {
         if (debug) {
             //Show testPage
@@ -482,52 +451,6 @@ public class MainActivity extends AppCompatActivity {
     //------------------------------
     //-------Helper Functions-------
     //------------------------------
-    private void openServerDialog() {
-        final SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.preference_file_name), MODE_PRIVATE);
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.addServerTitle);
-        final EditText input = new EditText(this);
-        input.setHint("server url");
-        input.setInputType(InputType.TYPE_TEXT_VARIATION_URI | InputType.TYPE_CLASS_TEXT);
-        builder.setView(input);
-        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                if (!input.getText().toString().equals("")) {
-                    try {
-                        Set<String> urls;
-                        if (sharedPref.getStringSet("servers", null) != null) {
-                            urls = sharedPref.getStringSet("servers", null);
-                        } else {
-                            urls = new HashSet<>();
-                        }
-                        serverUrl = input.getText().toString();
-                        urls.add(serverUrl);
-                        sharedPref.edit().putStringSet("servers", urls).apply();
-                        Log.v(TAG, "User entered new Server: " + serverUrl);
-                        MyWebSocket.destroyWS();
-                        MyWebSocket.setServer(serverUrl);
-                        MyWebSocket.getInstance();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (WebSocketException e) {
-                        e.printStackTrace();
-                    }
-                } else {
-                    showToast("Please enter a server url", Toast.LENGTH_SHORT);
-                }
-            }
-        });
-        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                //Canceled by User
-                Log.v(TAG, "No new server was added (user canceled)");
-            }
-        });
-        builder.show();
-    }
-
     private void clearPreferences() {
         this.getSharedPreferences(getString(R.string.preference_file_name), 0).edit().clear().apply();
     }
@@ -558,10 +481,10 @@ public class MainActivity extends AppCompatActivity {
             final EditText input = new EditText(this);
             //input.setHint("ws://10.0.2.2:5000/api/ws");
             input.setHint("wss://anperi.jannes-peters.com/api/ws");
-            String adress = sharedPref.getString("serveradress", null);
+            String address = sharedPref.getString("serveradress", null);
 
-            if (adress != null) {
-                input.setText(adress);
+            if (address != null) {
+                input.setText(address);
             }
             input.setInputType(InputType.TYPE_TEXT_VARIATION_URI | InputType.TYPE_CLASS_TEXT);
             builder.setView(input);
@@ -578,8 +501,12 @@ public class MainActivity extends AppCompatActivity {
                     Set<String> serverSet = new HashSet<>();
                     serverSet.add(serverUrl);
                     sharedPref.edit().putStringSet("servers", serverSet).apply();
+                    //First set server is going to be favourite...
+                    sharedPref.edit().putString("favourite", serverUrl).apply();
                     //Set server and start websocket
-                    MyWebSocket.setServer(serverUrl);
+                    if (!MyWebSocket.setServer(serverUrl)) {
+                        showToast("The WebSocket address was not valid... Used Fallback", Toast.LENGTH_LONG);
+                    }
                     try {
                         MyWebSocket.getInstance();
                     } catch (IOException e) {
@@ -593,9 +520,15 @@ public class MainActivity extends AppCompatActivity {
             });
             builder.show();
         } else {
-            Set<String> serverSet = sharedPref.getStringSet("servers", null);
-            String[] servers = serverSet.toArray(new String[serverSet.size()]);
-            MyWebSocket.setServer(servers[0]);
+            serverUrl = sharedPref.getString("favourite", null);
+            if (serverUrl == null) {
+                //If there is no Favorite set use the first server...
+                Set<String> urls = sharedPref.getStringSet("servers", null);
+                serverUrl = urls.toArray(new String[urls.size()])[0];
+            }
+            if (!MyWebSocket.setServer(serverUrl)) {
+                showToast("The WebSocket address was not valid... used fallback", Toast.LENGTH_LONG);
+            }
             try {
                 MyWebSocket.getInstance();
             } catch (IOException e) {
@@ -639,6 +572,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Fragment Stuff
     private void showKey() {
+        StatusObject.isInSettings = false;
         //Remove loading text and show pairing key
         SharedPreferences sharedPrefs = this.getSharedPreferences(this.getString(R.string.preference_file_name), Context.MODE_PRIVATE);
         String key = sharedPrefs.getString("pairingcode", null);
@@ -656,6 +590,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showLoad() {
+        StatusObject.isInSettings = false;
         if (getFragmentManager().findFragmentByTag("loadFrag") != null) {
             loadingFragment = (LoadingFragment) getFragmentManager().findFragmentByTag("loadFrag");
         } else if (loadingFragment == null) {
@@ -668,6 +603,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showTest() {
+        StatusObject.isInSettings = false;
         if (getFragmentManager().findFragmentByTag("testFrag") != null) {
             testFragment = (TestFragment) getFragmentManager().findFragmentByTag("testFrag");
         }
@@ -678,6 +614,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showCreate() {
+        StatusObject.isInSettings = false;
         if (getFragmentManager().findFragmentByTag("createFrag") != null) {
             try {
                 createFragment = (CreateFragment) getFragmentManager().findFragmentByTag("createFrag");
@@ -699,10 +636,16 @@ public class MainActivity extends AppCompatActivity {
                 .commit();
     }
 
-    private void showFragment(String tag, Fragment fragment) {
+    private void showSettings() {
+        StatusObject.isInSettings = true;
+        if (getFragmentManager().findFragmentByTag("settingsFrag") != null) {
+            settingsFragment = (SettingsFragment) getFragmentManager().findFragmentByTag("settingsFrag");
+        } else if (settingsFragment == null) {
+            settingsFragment = new SettingsFragment();
+        }
         getFragmentManager().beginTransaction()
                 .setCustomAnimations(R.animator.enter_from_left, R.animator.exit_to_right)
-                .replace(R.id.fragment_container, fragment, tag)
+                .replace(R.id.fragment_container, settingsFragment, "settingsFrag")
                 .commit();
     }
 
@@ -710,7 +653,24 @@ public class MainActivity extends AppCompatActivity {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             //if(instance.layoutString != null && !instance.layoutString.isEmpty())
-            exitByBackKey();
+            if (!StatusObject.isInSettings) {
+                exitByBackKey();
+            } else {
+                if (StatusObject.isCustomLayout) {
+                    CreateFragment crf = (CreateFragment) getFragmentManager().findFragmentByTag("createFrag");
+                    if (crf == null) {
+                        //The fragment isn't added until now.. Add one
+                        showLoad();
+                        showCreate();
+                    } else {
+                        //The fragment is already here
+                        showCreate();
+                    }
+                } else {
+                    //get new Key...
+                    getPairingCodeWS();
+                }
+            }
             return true;
         }
         return super.onKeyDown(keyCode, event);

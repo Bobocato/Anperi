@@ -30,9 +30,17 @@ public class MyWebSocket {
         return instance;
     }
 
-    public static void setServer(String server) {
-        Log.v(TAG, "Der server des WebSockets wurde auf " + server + " gesetzt.");
-        MyWebSocket.server = server;
+    public static boolean setServer(String server) {
+        if (checkWSAdress(server)) {
+            Log.v(TAG, "Der server des WebSockets wurde auf " + server + " gesetzt.");
+            MyWebSocket.server = server;
+            return true;
+        } else {
+            //Set to fallback
+            MyWebSocket.server = "wss://anperi.jannes-peters.com/api/ws";
+            return false;
+        }
+
     }
 
     public static void reconnect() {
@@ -51,13 +59,13 @@ public class MyWebSocket {
         }, 2000);
     }
 
-    public static void destroyWS(){
+    public static void destroyWS() {
         Log.v(TAG, "WS is about to be destroyed");
         instance.disconnect();
-        instance =null;
+        instance = null;
     }
 
-    public static void connect() throws IOException{
+    public static void connect() throws IOException {
         Log.v(TAG, "Connect ws to: " + server);
         MyWebSocket.instance = new WebSocketFactory()
                 .setConnectionTimeout(timeout)
@@ -75,6 +83,15 @@ public class MyWebSocket {
                 .connectAsynchronously();
     }
 
+    private static boolean checkWSAdress(String ws) {
+        if (ws.length() > 4) {
+            if (ws.substring(0, 3).equals("wss") || ws.substring(0, 2).equals("ws")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static void sendMessage(String context, String message_type, String message_code, JSONObject data) {
         try {
             String jsonString = new JSONObject()
@@ -82,7 +99,7 @@ public class MyWebSocket {
                     .put("message_type", message_type)
                     .put("message_code", message_code)
                     .put("data", data).toString();
-            Log.v(TAG,"Send Message: " + jsonString);
+            Log.v(TAG, "Send Message: " + jsonString);
             instance.sendText(jsonString);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -98,7 +115,7 @@ public class MyWebSocket {
                     .put("message_code", "error")
                     .put("data", new JSONObject()
                             .put("msg", text)).toString();
-            Log.v(TAG,"Send Message: " + jsonString);
+            Log.v(TAG, "Send Message: " + jsonString);
             instance.sendText(jsonString);
         } catch (JSONException e) {
             e.printStackTrace();

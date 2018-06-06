@@ -14,7 +14,8 @@
     <string name="no_key">Please register first</string>
     <string name="enter_server">Enter Server URL</string>
     <string name="btnDebug">Debug Message</string>
-    <string name="serverSetting">change server</string>
+    <string name="serverSetting">Server Settings</string>
     <string name="addServer">add server</string>
     <string name="addServerTitle">ADD NEW SERVER</string>
+    <string name="settingsTitle">Settings</string>
 </resources>

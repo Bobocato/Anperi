@@ -9,6 +9,7 @@ public class StatusObject {
     public static Boolean shouldReconnect = true;
     public static Boolean isCustomLayout = false;
     public static String layoutString = "";
+    public static boolean isInSettings = false;
 
 
     private StatusObject(){ }
