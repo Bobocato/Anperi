@@ -3,6 +3,7 @@
     <string name="trying_to_connect">Trying to connect</string>
     <string name="new_user_message">This is your first time using our App. \n So please wait a minute until the pairing code is loaded!</string>
     <string name="ok">Ok</string>
+    <string name="cancel">Cancel</string>
     <string name="never_again">Never show this again</string>
     <string name="preference_file_name">com.jannes-peters.anperi</string>
     <string name="test_page">This is just a test page</string>
@@ -13,4 +14,8 @@
     <string name="no_key">Please register first</string>
     <string name="enter_server">Enter Server URL</string>
     <string name="btnDebug">Debug Message</string>
+    <string name="serverSetting">Server Settings</string>
+    <string name="addServer">add server</string>
+    <string name="addServerTitle">ADD NEW SERVER</string>
+    <string name="settingsTitle">Settings</string>
 </resources>

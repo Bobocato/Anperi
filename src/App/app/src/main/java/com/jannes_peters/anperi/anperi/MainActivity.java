@@ -1,6 +1,5 @@
 package com.jannes_peters.anperi.anperi;
 
-import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
@@ -14,6 +13,9 @@ import android.text.InputType;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -27,9 +29,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "jja.anperi";
@@ -44,9 +48,13 @@ public class MainActivity extends AppCompatActivity {
 
     private KeyFragment keyFragment;
     private LoadingFragment loadingFragment;
+    private SettingsFragment settingsFragment;
     private TestFragment testFragment;
     private CreateFragment createFragment;
 
+    //------------------------------
+    //-----------Lifecycle----------
+    //------------------------------
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -121,21 +129,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onSaveInstanceState(Bundle savedInstanceState) {
-        Log.v(TAG, "onSavedInstance was called");
-        savedInstanceState.putBoolean("isRegistered", StatusObject.isRegistered);
-        savedInstanceState.putBoolean("isLoggedIn", StatusObject.isLoggedIn);
-        savedInstanceState.putBoolean("isConnected", StatusObject.isConnected);
-        savedInstanceState.putCharSequence("pairingCode", StatusObject.pairingCode);
-        savedInstanceState.putBoolean("isCustomLayout", StatusObject.isCustomLayout);
-        savedInstanceState.putCharSequence("layoutString", StatusObject.layoutString);
-        super.onSaveInstanceState(savedInstanceState);
-    }
-
-    //------------------------------
-    //-----------Lifecycle----------
-    //------------------------------
-    @Override
     public void onStart() {
         Log.v(TAG, "MainActivity onStart called");
         isRunning = true;
@@ -165,7 +158,7 @@ public class MainActivity extends AppCompatActivity {
     public void onStop() {
         Log.v(TAG, "MainActivity onStop() called");
         isRunning = false;
-        if(!isChangingConfigurations()){
+        if (!isChangingConfigurations()) {
             if (StatusObject.isConnected) {
                 try {
                     MyWebSocket.getInstance().disconnect();
@@ -187,6 +180,40 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        Log.v(TAG, "onSavedInstance was called");
+        savedInstanceState.putBoolean("isRegistered", StatusObject.isRegistered);
+        savedInstanceState.putBoolean("isLoggedIn", StatusObject.isLoggedIn);
+        savedInstanceState.putBoolean("isConnected", StatusObject.isConnected);
+        savedInstanceState.putCharSequence("pairingCode", StatusObject.pairingCode);
+        savedInstanceState.putBoolean("shouldReconnect", StatusObject.shouldReconnect);
+        savedInstanceState.putBoolean("isCustomLayout", StatusObject.isCustomLayout);
+        savedInstanceState.putCharSequence("layoutString", StatusObject.layoutString);
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.settings_menu, menu);
+        menu.add(0, 0, 0, R.string.serverSetting);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case 0:
+                showSettings();
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    //------------------------------
+    //--------WebSocket Stuff-------
+    //------------------------------
     private void connected() {
         if (debug) {
             //Show testPage
@@ -243,7 +270,8 @@ public class MainActivity extends AppCompatActivity {
                 if (isRunning) {
                     StatusObject.isConnected = false;
                     Log.v(TAG, "Connection closed " + websocket.toString());
-                    MyWebSocket.reconnect();
+                    resetApp();
+                    if (StatusObject.shouldReconnect) MyWebSocket.reconnect();
                 }
 
             }
@@ -283,6 +311,7 @@ public class MainActivity extends AppCompatActivity {
                 if (isRunning) {
                     Log.v(TAG, "Connection established " + headers.toString());
                     StatusObject.isConnected = true;
+                    StatusObject.shouldReconnect = true;
                     connected();
                 }
             }
@@ -386,7 +415,7 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                     break;
                                 case "device":
-                                    switch (apiObject.messageCode){
+                                    switch (apiObject.messageCode) {
                                         case "client_went_away":
                                             resetApp();
                                             break;
@@ -427,8 +456,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //Reset the App to the pairing code
-    private void resetApp(){
-        //Reset Fragment and shit
+    private void resetApp() {
+        //Reset Fragment
         if (getFragmentManager().findFragmentByTag("createFrag") != null) {
             createFragment = (CreateFragment) getFragmentManager().findFragmentByTag("createFrag");
         }
@@ -436,49 +465,79 @@ public class MainActivity extends AppCompatActivity {
             getFragmentManager().beginTransaction().remove(createFragment).commit();
         StatusObject.layoutString = "";
         StatusObject.isCustomLayout = false;
-        //Get a new pairing code and show i
+        StatusObject.shouldReconnect = false;
+        //Get a new pairing code and show it
         getPairingCodeWS();
     }
 
     //Startup the WS
     private void startUp() {
-        //Ask for server url
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.enter_server);
-        final EditText input = new EditText(this);
-        //input.setHint("ws://10.0.2.2:5000/api/ws");
-        input.setHint("wss://anperi.jannes-peters.com/api/ws");
         final SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.preference_file_name), MODE_PRIVATE);
-        String adress = sharedPref.getString("serveradress", null);
-        if (adress != null) {
-            input.setText(adress);
-        }
-        input.setInputType(InputType.TYPE_TEXT_VARIATION_URI | InputType.TYPE_CLASS_TEXT);
-        builder.setView(input);
-        builder.setCancelable(false);
-        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                if (!input.getText().toString().equals("")) {
-                    serverUrl = input.getText().toString();
-                } else {
-                    serverUrl = input.getHint().toString();
-                }
-                sharedPref.edit().putString("serveradress", serverUrl).apply();
-                //Set server and start websocket
-                MyWebSocket.setServer(serverUrl);
-                try {
-                    MyWebSocket.getInstance();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (WebSocketException e) {
-                    e.printStackTrace();
-                }
-                addWsListeners();
-                //Wait for connection...
+        if (sharedPref.getStringSet("servers", null) == null) {
+            //Ask for server url
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(R.string.enter_server);
+            builder.setMessage("This is the first time you started this app. Please enter a server url to connect to.");
+            final EditText input = new EditText(this);
+            //input.setHint("ws://10.0.2.2:5000/api/ws");
+            input.setHint("wss://anperi.jannes-peters.com/api/ws");
+            String address = sharedPref.getString("serveradress", null);
+
+            if (address != null) {
+                input.setText(address);
             }
-        });
-        builder.show();
+            input.setInputType(InputType.TYPE_TEXT_VARIATION_URI | InputType.TYPE_CLASS_TEXT);
+            builder.setView(input);
+            builder.setCancelable(false);
+            builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    if (!input.getText().toString().equals("")) {
+                        serverUrl = input.getText().toString();
+                    } else {
+                        serverUrl = input.getHint().toString();
+                    }
+                    sharedPref.edit().putString("serveradress", serverUrl).apply();
+                    Set<String> serverSet = new HashSet<>();
+                    serverSet.add(serverUrl);
+                    sharedPref.edit().putStringSet("servers", serverSet).apply();
+                    //First set server is going to be favourite...
+                    sharedPref.edit().putString("favourite", serverUrl).apply();
+                    //Set server and start websocket
+                    if (!MyWebSocket.setServer(serverUrl)) {
+                        showToast("The WebSocket address was not valid... Used Fallback", Toast.LENGTH_LONG);
+                    }
+                    try {
+                        MyWebSocket.getInstance();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (WebSocketException e) {
+                        e.printStackTrace();
+                    }
+                    addWsListeners();
+                    //Wait for connection...
+                }
+            });
+            builder.show();
+        } else {
+            serverUrl = sharedPref.getString("favourite", null);
+            if (serverUrl == null) {
+                //If there is no Favorite set use the first server...
+                Set<String> urls = sharedPref.getStringSet("servers", null);
+                serverUrl = urls.toArray(new String[urls.size()])[0];
+            }
+            if (!MyWebSocket.setServer(serverUrl)) {
+                showToast("The WebSocket address was not valid... used fallback", Toast.LENGTH_LONG);
+            }
+            try {
+                MyWebSocket.getInstance();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (WebSocketException e) {
+                e.printStackTrace();
+            }
+            addWsListeners();
+        }
     }
 
     // Web Socket Stuff
@@ -513,6 +572,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Fragment Stuff
     private void showKey() {
+        StatusObject.isInSettings = false;
         //Remove loading text and show pairing key
         SharedPreferences sharedPrefs = this.getSharedPreferences(this.getString(R.string.preference_file_name), Context.MODE_PRIVATE);
         String key = sharedPrefs.getString("pairingcode", null);
@@ -530,6 +590,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showLoad() {
+        StatusObject.isInSettings = false;
         if (getFragmentManager().findFragmentByTag("loadFrag") != null) {
             loadingFragment = (LoadingFragment) getFragmentManager().findFragmentByTag("loadFrag");
         } else if (loadingFragment == null) {
@@ -542,6 +603,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showTest() {
+        StatusObject.isInSettings = false;
         if (getFragmentManager().findFragmentByTag("testFrag") != null) {
             testFragment = (TestFragment) getFragmentManager().findFragmentByTag("testFrag");
         }
@@ -552,6 +614,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showCreate() {
+        StatusObject.isInSettings = false;
         if (getFragmentManager().findFragmentByTag("createFrag") != null) {
             try {
                 createFragment = (CreateFragment) getFragmentManager().findFragmentByTag("createFrag");
@@ -573,10 +636,16 @@ public class MainActivity extends AppCompatActivity {
                 .commit();
     }
 
-    private void showFragment(String tag, Fragment fragment) {
+    private void showSettings() {
+        StatusObject.isInSettings = true;
+        if (getFragmentManager().findFragmentByTag("settingsFrag") != null) {
+            settingsFragment = (SettingsFragment) getFragmentManager().findFragmentByTag("settingsFrag");
+        } else if (settingsFragment == null) {
+            settingsFragment = new SettingsFragment();
+        }
         getFragmentManager().beginTransaction()
                 .setCustomAnimations(R.animator.enter_from_left, R.animator.exit_to_right)
-                .replace(R.id.fragment_container, fragment, tag)
+                .replace(R.id.fragment_container, settingsFragment, "settingsFrag")
                 .commit();
     }
 
@@ -584,7 +653,24 @@ public class MainActivity extends AppCompatActivity {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             //if(instance.layoutString != null && !instance.layoutString.isEmpty())
-            exitByBackKey();
+            if (!StatusObject.isInSettings) {
+                exitByBackKey();
+            } else {
+                if (StatusObject.isCustomLayout) {
+                    CreateFragment crf = (CreateFragment) getFragmentManager().findFragmentByTag("createFrag");
+                    if (crf == null) {
+                        //The fragment isn't added until now.. Add one
+                        showLoad();
+                        showCreate();
+                    } else {
+                        //The fragment is already here
+                        showCreate();
+                    }
+                } else {
+                    //get new Key...
+                    getPairingCodeWS();
+                }
+            }
             return true;
         }
         return super.onKeyDown(keyCode, event);
