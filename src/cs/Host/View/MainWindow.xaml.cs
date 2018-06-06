@@ -81,5 +81,30 @@ namespace JJA.Anperi.Host.View
                 win.Settings.SaveToDataModel(ConfigHandler.Load());
             }
         }
+
+        private void ButAbout_Click(object sender, RoutedEventArgs e)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        private void ButRestart_Click(object sender, RoutedEventArgs e)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        private void ButExit_Click(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
+
+        private void ButDeviceSettings_Click(object sender, RoutedEventArgs e)
+        {
+            Peripheral p = (Peripheral)((FrameworkElement)sender).DataContext;
+            StringDialog wndPair = new StringDialog("Renaming", "Enter a name for the device", p.Name);
+            if (wndPair.ShowDialog().GetValueOrDefault(false))
+            {
+                if (!string.IsNullOrWhiteSpace(wndPair.Result)) _viewModel.Rename(p.Id, wndPair.Result);
+            }
+        }
     }
 }

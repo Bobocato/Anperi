@@ -802,7 +802,8 @@ namespace JJA.Anperi.Host.Model
             {
                 try
                 {
-                    await Task.Run(() => _messages.Take(_closeTokenSource.Token)).ConfigureAwait(false);
+                    string msg = await Task.Run(() => _messages.Take(_closeTokenSource.Token)).ConfigureAwait(false);
+                    Message = msg;
                     await Task.Delay(3000, _closeTokenSource.Token).ConfigureAwait(false);
                 } catch(OperationCanceledException) { }
                 if (_messages.Count == 0)
