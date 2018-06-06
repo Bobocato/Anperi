@@ -130,15 +130,19 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <Button Grid.Column="0" Content="{StaticResource StarUnselected}" Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Click="ButFavorite_Click" Visibility="Visible" BorderBrush="#FFBDBDBD" Background="Transparent">
+                                <Button Grid.Column="0" Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Click="ButFavorite_Click" Visibility="Visible" BorderBrush="#FFBDBDBD" Background="Transparent">
                                     <Button.Style>
                                         <Style TargetType="Button">
+                                            <Setter Property="Content" Value="{StaticResource StarUnselected}" />
+                                            <Setter Property="ToolTip" Value="Favorite" />
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding Path=IsFavorite, UpdateSourceTrigger=PropertyChanged}" Value="True">
                                                     <Setter Property="Content" Value="{StaticResource StarSelected}"/>
+                                                    <Setter Property="ToolTip" Value="Unfavorite" />
                                                 </DataTrigger>
                                                 <DataTrigger Binding="{Binding Path=IsFavorite, UpdateSourceTrigger=PropertyChanged}" Value="False">
                                                     <Setter Property="Content" Value="{StaticResource StarUnselected}"/>
+                                                    <Setter Property="ToolTip" Value="Favorite" />
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
@@ -159,16 +163,20 @@
                                         </Style>
                                     </Label.Style>
                                 </Label>
-                                <Button Grid.Column="2" Content="{StaticResource IconSettings}" Width="22" Height="22" VerticalAlignment="Center" HorizontalAlignment="Right" Click="ButDeviceSettings_Click" Margin="0,0,5,0" BorderBrush="#FFBDBDBD" Background="Transparent"/>
-                                <Button Grid.Column="3" Content="{StaticResource PeripheralConnect}" IsEnabled="{Binding Path=Online}" Width="22" Height="22" VerticalAlignment="Center" HorizontalAlignment="Right" Click="ButConnect_Click" BorderBrush="#FFBDBDBD" Background="Transparent">
+                                <Button Grid.Column="2" ToolTip="Settings" Content="{StaticResource IconSettings}" Width="22" Height="22" VerticalAlignment="Center" HorizontalAlignment="Right" Click="ButDeviceSettings_Click" Margin="0,0,5,0" BorderBrush="#FFBDBDBD" Background="Transparent"/>
+                                <Button Grid.Column="3" IsEnabled="{Binding Path=Online}" Width="22" Height="22" VerticalAlignment="Center" HorizontalAlignment="Right" Click="ButConnect_Click" BorderBrush="#FFBDBDBD" Background="Transparent">
                                     <Button.Style>
                                         <Style TargetType="Button">
+                                            <Setter Property="Content" Value="{StaticResource PeripheralConnect}" />
+                                            <Setter Property="ToolTip" Value="Connect" />
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding Path=IsConnected, UpdateSourceTrigger=PropertyChanged}" Value="True">
                                                     <Setter Property="Content" Value="{StaticResource PeripheralDisconnect}"/>
+                                                    <Setter Property="ToolTip" Value="Disconnect" />
                                                 </DataTrigger>
                                                 <DataTrigger Binding="{Binding Path=Online, UpdateSourceTrigger=PropertyChanged}" Value="False">
                                                     <Setter Property="Content" Value="{StaticResource PeripheralDisabled}"/>
+                                                    <Setter Property="ToolTip" Value="" />
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>

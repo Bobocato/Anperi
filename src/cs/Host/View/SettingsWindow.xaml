@@ -12,7 +12,15 @@
         <CheckBox Content="start on user login (in tray)" IsChecked="{Binding Path=Autostart}" TabIndex="0" />
         <StackPanel Orientation="Vertical" Margin="0,0,0,0">
             <Label Content="Server Address (may require restart after save):" />
-            <TextBox Text="{Binding Path=ServerAddress}" VerticalAlignment="Center" Width="300" TabIndex="1" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox Text="{Binding Path=ServerAddress}" TabIndex="1" />
+                <Button Grid.Column="1" Command="{Binding Path=CommandResetServer}" Content="Reset" HorizontalAlignment="Right" Margin="3,0,0,0" Height="20"/>
+            </Grid>
+            
         </StackPanel>
         <GroupBox Header="Online settings" IsEnabled="{Binding Path=IsConnected}">
             <StackPanel Orientation="Vertical" Margin="0,0,0,0">

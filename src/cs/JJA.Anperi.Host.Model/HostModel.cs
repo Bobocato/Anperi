@@ -58,6 +58,8 @@ namespace JJA.Anperi.Host.Model
 
         #region Properties
 
+        public static string DefaultServer => "wss://anperi.jannes-peters.com/api/ws";
+
         public string Message
         {
             get => _message;
