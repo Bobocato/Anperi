@@ -683,6 +683,25 @@ namespace JJA.Anperi.Host.Model
                     break;
                 case SharedJsonMessageCode.partner_disconnected:
                     ConnectedPeripheral = null;
+                    Peripheral favorite = null;
+                    if (Favorite != -1)
+                    {
+                       favorite = Peripherals.First(x => x.Id == Favorite);
+                    }
+                    if (favorite != null && favorite.Online)
+                    {
+                        var connectRequest = HostJsonApiObjectFactory.CreateConnectToPeripheralRequest(Favorite);
+                        SendToWebsocket(connectRequest.Serialize());
+                    }else
+                    {
+                        foreach (var x in Peripherals)
+                        {
+                            if (!x.Online) continue;
+                            var connectRequest = HostJsonApiObjectFactory.CreateConnectToPeripheralRequest(x.Id);
+                            SendToWebsocket(connectRequest.Serialize());
+                            break;
+                        }
+                    }
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(code), code, null);
