@@ -12,7 +12,6 @@ using JJA.Anperi.Server.Model;
 using JJA.Anperi.Server.Utility;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using SQLitePCL;
 
 namespace JJA.Anperi.Server
 {
@@ -94,15 +93,9 @@ namespace JJA.Anperi.Server
         {
             lock (_syncRootPartner)
             {
-                if (_partner == null)
-                {
-                    _partner = connection;
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
+                _partner?.PartnerCloseConnection();
+                _partner = connection;
+                return true;
             }
         }
 
@@ -385,9 +378,19 @@ namespace JJA.Anperi.Server
                         AuthenticatedWebSocketConnection conn = _anperiManager.GetConnectionForId(id);
                         if (conn != null)
                         {
-                            _partner = conn;
-                            conn.PartnerConnect(this);
-                            await _socket.SendJson(HostJsonApiObjectFactory.CreateConnectToPeripheralResponse(true, id));
+                            if (conn.PartnerConnect(this))
+                            {
+                                lock (_syncRootPartner)
+                                {
+                                    _partner = conn;
+                                }
+                                await _socket.SendJson(
+                                    HostJsonApiObjectFactory.CreateConnectToPeripheralResponse(true, id));
+                            }
+                            else
+                            {
+                                await _socket.SendJson(HostJsonApiObjectFactory.CreateConnectToPeripheralResponse(false, -1));
+                            }
                         }
                         else
                         {
@@ -400,8 +403,11 @@ namespace JJA.Anperi.Server
                     }
                     break;
                 case HostRequestCode.disconnect_from_peripheral:
-                    _partner?.PartnerCloseConnection();
-                    _partner = null;
+                    lock (_syncRootPartner)
+                    {
+                        _partner?.PartnerCloseConnection();
+                        _partner = null;
+                    }
                     await _socket.SendJson(HostJsonApiObjectFactory.CreateDisconnectFromPeripheralResponse(true), token);
                     break;
                 case HostRequestCode.change_peripheral_name:
