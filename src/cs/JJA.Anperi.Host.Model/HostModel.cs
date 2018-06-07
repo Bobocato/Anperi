@@ -488,6 +488,7 @@ namespace JJA.Anperi.Host.Model
                                 {
                                     p.IsConnected = true;
                                     _connectedPeripheral = p;
+                                    OnPropertyChanged(nameof(ConnectedPeripheral));
                                 }
                                 Peripherals.Add(p);
                             }
