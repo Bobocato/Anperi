@@ -352,12 +352,15 @@ public class MainActivity extends AppCompatActivity {
                                             break;
                                         case "get_pairing_code":
                                             //User has pairing code show it
-                                            try {
-                                                StatusObject.pairingCode = apiObject.messageData.getString("code");
-                                            } catch (JSONException e) {
-                                                e.printStackTrace();
+                                            if (StatusObject.initialKeyCode && !StatusObject.isCustomLayout) {
+                                                try {
+                                                    StatusObject.pairingCode = apiObject.messageData.getString("code");
+                                                } catch (JSONException e) {
+                                                    e.printStackTrace();
+                                                }
+                                                if (!debug) showKey();
                                             }
-                                            if (!debug) showKey();
+                                            StatusObject.initialKeyCode = false;
                                             break;
                                         case "login":
                                             //User was logged in get a pairing code

@@ -4,6 +4,7 @@ import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.text.InputType;
@@ -81,7 +82,7 @@ public class SettingsFragment extends Fragment {
                 favBtn.setImageDrawable(getResources().getDrawable(android.R.drawable.btn_star_big_off));
                 favBtn.setClickable(true);
             }
-            //favBtn.setBackgroundColor(Color.TRANSPARENT);
+            favBtn.setBackgroundColor(Color.TRANSPARENT);
             favBtn.setTag(aServer);
             favBtn.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             innerRow.addView(favBtn);
