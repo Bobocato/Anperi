@@ -5,10 +5,12 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using JJA.Anperi.Host.Annotations;
 using JJA.Anperi.Host.Model;
 using JJA.Anperi.Host.Model.Utility;
 using JJA.Anperi.Host.Utility;
+using JJA.Anperi.WpfUtility;
 
 namespace JJA.Anperi.Host.ViewModel
 {
@@ -21,6 +23,8 @@ namespace JJA.Anperi.Host.ViewModel
             _autostart = mdl.Autostart;
             _serverAddress = mdl.ServerAddress;
             _ownName = HostModel.Instance.OwnName;
+
+            CommandResetServer = new WpfUtil.RelayCommand((o) => ServerAddress = HostModel.DefaultServer);
         }
 
         private void Instance_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -67,6 +71,8 @@ namespace JJA.Anperi.Host.ViewModel
                 OnPropertyChanged();
             }
         }
+
+        public ICommand CommandResetServer { get; }
 
         public bool IsConnected => HostModel.Instance.IsConnected;
 
