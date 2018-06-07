@@ -194,9 +194,17 @@ namespace JJA.Anperi.Server
                 case SharedJsonRequestCode.set_own_name:
                     if (message.data.TryGetValue("name", out string newName))
                     {
-                        _db.Hosts.Find(_device.Id).Name = newName;
-                        _db.SaveChanges();
-                        await _socket.SendJson(SharedJsonApiObjectFactory.CreateChangeOwnNameResponse(true, newName));
+                        if (string.IsNullOrWhiteSpace(newName))
+                        {
+                            await _socket.SendJson(
+                                SharedJsonApiObjectFactory.CreateChangeOwnNameResponse(false, _device.Name));
+                        }
+                        else
+                        {
+                            _db.Hosts.Find(_device.Id).Name = newName;
+                            _db.SaveChanges();
+                            await _socket.SendJson(SharedJsonApiObjectFactory.CreateChangeOwnNameResponse(true, newName));
+                        }
                     }
                     else
                     {
@@ -418,6 +426,12 @@ namespace JJA.Anperi.Server
                         {
                             await _socket.SendJson(
                                 HostJsonApiObjectFactory.CreateChangeNameResponse(false, null, periId));
+                            return;
+                        }
+                        if (string.IsNullOrWhiteSpace(newName))
+                        {
+                            await _socket.SendJson(
+                                HostJsonApiObjectFactory.CreateChangeNameResponse(false, hp.Peripheral.Name, periId));
                             return;
                         }
                         Peripheral p = hp.Peripheral;

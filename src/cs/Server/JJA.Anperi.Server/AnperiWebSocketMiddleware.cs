@@ -154,11 +154,11 @@ namespace JJA.Anperi.Server
                                     }
                                     else
                                     {
-                                        device.Name = "GIVE ME A NAME PLEASE";
                                         await socket.SendJson(
                                             SharedJsonApiObjectFactory.CreateError(
                                                 "A device registration requires a name!"));
                                     }
+                                    if (string.IsNullOrWhiteSpace(device.Name)) device.Name = "devices want a name :(";
                                     dbContext.RegisteredDevices.Add(device);
                                     await dbContext.SaveChangesAsync();
                                     await socket.SendJson(
