@@ -484,6 +484,11 @@ namespace JJA.Anperi.Host.Model
                             {
                                 Peripheral p = new Peripheral(id, name, online);
                                 if (p.Id == Favorite) p.IsFavorite = true;
+                                if (_connectedPeripheral?.Id == p.Id)
+                                {
+                                    p.IsConnected = true;
+                                    _connectedPeripheral = p;
+                                }
                                 Peripherals.Add(p);
                             }
                             else
