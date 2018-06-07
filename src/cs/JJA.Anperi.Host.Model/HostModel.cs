@@ -690,12 +690,14 @@ namespace JJA.Anperi.Host.Model
                 case SharedJsonMessageCode.partner_disconnected:
                     Peripheral lastConnected = ConnectedPeripheral;
                     ConnectedPeripheral = null;
-                    Peripheral deviceToConnect = 
-                        Peripherals.FirstOrDefault(p => p.Id == Favorite && p.Online && p.Id != lastConnected.Id) ?? 
-                        Peripherals.FirstOrDefault(p => p.Online && p.Id != lastConnected.Id);
+                    bool IsValid(Peripheral p) => p.Online && p.Id != lastConnected.Id;
+                    bool IsValidFavorite(Peripheral p) => p.Online && p.Id != lastConnected.Id;
+                    Peripheral deviceToConnect = Peripherals.FirstOrDefault(IsValidFavorite)
+                                                 ?? Peripherals.FirstOrDefault(IsValid);
                     if (deviceToConnect != null)
                     {
-                        var connectRequest = HostJsonApiObjectFactory.CreateConnectToPeripheralRequest(deviceToConnect.Id);
+                        var connectRequest =
+                            HostJsonApiObjectFactory.CreateConnectToPeripheralRequest(deviceToConnect.Id);
                         SendToWebsocket(connectRequest.Serialize());
                     }
                     break;

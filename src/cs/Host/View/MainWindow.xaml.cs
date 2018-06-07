@@ -99,11 +99,16 @@ namespace JJA.Anperi.Host.View
 
         private void ButDeviceSettings_Click(object sender, RoutedEventArgs e)
         {
-            Peripheral p = (Peripheral)((FrameworkElement)sender).DataContext;
-            StringDialog wndPair = new StringDialog("Renaming", "Enter a name for the device", p.Name);
-            if (wndPair.ShowDialog().GetValueOrDefault(false))
+            var p = (Peripheral)((FrameworkElement)sender).DataContext;
+            var wnd = new PeripheralSettingsWindow(p);
+            if (!wnd.ShowDialog().GetValueOrDefault(false)) return;
+            if (wnd.UnpairRequested)
             {
-                if (!string.IsNullOrWhiteSpace(wndPair.Result)) _viewModel.Rename(p.Id, wndPair.Result);
+                _viewModel.Unpair(p);
+            }
+            else
+            {
+                if (!string.IsNullOrWhiteSpace(wnd.NewName)) _viewModel.Rename(p.Id, wnd.NewName);
             }
         }
     }

@@ -75,6 +75,9 @@
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Resources\LoadingIndicator.cs" />
     <Compile Include="ViewModel\SettingsViewModel.cs" />
+    <Compile Include="View\PeripheralSettingsWindow.xaml.cs">
+      <DependentUpon>PeripheralSettingsWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\StringDialog.xaml.cs">
       <DependentUpon>StringDialog.xaml</DependentUpon>
     </Compile>
@@ -104,6 +107,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="View\PeripheralSettingsWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\StringDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
