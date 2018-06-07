@@ -20,6 +20,8 @@ public class MyWebSocket {
     private static String server;
     private static final int timeout = 500;
 
+    private static Timer timer = null;
+
     MyWebSocket() {
     }
 
@@ -45,19 +47,29 @@ public class MyWebSocket {
 
     public static void reconnect() {
         if (StatusObject.shouldReconnect) {
-            new Timer().schedule(new TimerTask() {
+            timer = new Timer();
+            timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    Log.v(TAG, "Trying to reconnect");
-                    try {
-                        instance = instance.recreate().connect();
-                    } catch (WebSocketException e) {
-                        reconnect();
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    if (StatusObject.shouldReconnect) {
+                        Log.v(TAG, "Trying to reconnect");
+                        try {
+                            instance = instance.recreate().connect();
+                        } catch (WebSocketException e) {
+                            reconnect();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }, 2000);
+        }
+    }
+
+    public static void killReconnect() {
+        if (timer != null) {
+            timer.cancel();
+            timer = null;
         }
     }
 

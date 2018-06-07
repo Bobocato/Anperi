@@ -173,6 +173,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             } else {
                 StatusObject.shouldReconnect = false;
+                MyWebSocket.killReconnect();
             }
         }
         super.onStop();
