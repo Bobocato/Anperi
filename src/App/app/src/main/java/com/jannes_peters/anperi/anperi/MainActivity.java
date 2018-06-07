@@ -133,8 +133,11 @@ public class MainActivity extends AppCompatActivity {
         Log.v(TAG, "MainActivity onStart called");
         isRunning = true;
         StatusObject.getInstance();
-        if (!StatusObject.isConnected && (StatusObject.isRegistered || StatusObject.isLoggedIn)) {
-            MyWebSocket.reconnect();
+        //if (!StatusObject.isConnected && (StatusObject.isRegistered || StatusObject.isLoggedIn)) {
+         if(!StatusObject.isConnected){
+             showLoad();
+             StatusObject.shouldReconnect = true;
+             MyWebSocket.reconnect();
             //MyWebSocket.getInstance().recreate().connectAsynchronously();
         }
         super.onStart();
@@ -158,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
     public void onStop() {
         Log.v(TAG, "MainActivity onStop() called");
         isRunning = false;
-        if (!isChangingConfigurations()) {
+        if (!isChangingConfigurations()) { //The app is going to be closed
             if (StatusObject.isConnected) {
                 try {
                     MyWebSocket.getInstance().disconnect();
@@ -168,6 +171,8 @@ public class MainActivity extends AppCompatActivity {
                 } catch (WebSocketException e) {
                     e.printStackTrace();
                 }
+            } else {
+                StatusObject.shouldReconnect = false;
             }
         }
         super.onStop();
@@ -545,6 +550,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Web Socket Stuff
     private void getPairingCodeWS() {
+        showLoad();
         MyWebSocket.sendMessage("server", "request", "get_pairing_code", null);
     }
 

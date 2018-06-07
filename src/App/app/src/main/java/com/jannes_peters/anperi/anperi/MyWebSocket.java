@@ -44,19 +44,21 @@ public class MyWebSocket {
     }
 
     public static void reconnect() {
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                Log.v(TAG, "Trying to reconnect");
-                try {
-                    instance = instance.recreate().connect();
-                } catch (WebSocketException e) {
-                    reconnect();
-                } catch (IOException e) {
-                    e.printStackTrace();
+        if (StatusObject.shouldReconnect) {
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    Log.v(TAG, "Trying to reconnect");
+                    try {
+                        instance = instance.recreate().connect();
+                    } catch (WebSocketException e) {
+                        reconnect();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
-            }
-        }, 2000);
+            }, 2000);
+        }
     }
 
     public static void destroyWS() {
