@@ -133,13 +133,12 @@ public class MainActivity extends AppCompatActivity {
         Log.v(TAG, "MainActivity onStart called");
         isRunning = true;
         StatusObject.getInstance();
-        //if (!StatusObject.isConnected && (StatusObject.isRegistered || StatusObject.isLoggedIn)) {
-         if(!StatusObject.isConnected){
-             showLoad();
-             StatusObject.shouldReconnect = true;
-             MyWebSocket.reconnect();
-            //MyWebSocket.getInstance().recreate().connectAsynchronously();
+        if (!StatusObject.isConnected && !StatusObject.isFirstRun) {
+            showLoad();
+            StatusObject.shouldReconnect = true;
+            MyWebSocket.reconnect();
         }
+        StatusObject.isFirstRun = false;
         super.onStart();
     }
 
@@ -358,7 +357,16 @@ public class MainActivity extends AppCompatActivity {
                                             break;
                                         case "get_pairing_code":
                                             //User has pairing code show it
-                                            if (StatusObject.initialKeyCode && !StatusObject.isCustomLayout) {
+                                            if (StatusObject.initialKeyCode) {
+                                                if (!StatusObject.isCustomLayout) {
+                                                    try {
+                                                        StatusObject.pairingCode = apiObject.messageData.getString("code");
+                                                    } catch (JSONException e) {
+                                                        e.printStackTrace();
+                                                    }
+                                                    if (!debug) showKey();
+                                                }
+                                            } else {
                                                 try {
                                                     StatusObject.pairingCode = apiObject.messageData.getString("code");
                                                 } catch (JSONException e) {
@@ -366,6 +374,7 @@ public class MainActivity extends AppCompatActivity {
                                                 }
                                                 if (!debug) showKey();
                                             }
+
                                             StatusObject.initialKeyCode = false;
                                             break;
                                         case "login":

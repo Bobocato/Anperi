@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Anperi</string>
-    <string name="trying_to_connect">Trying to connect</string>
+    <string name="loading">Loading…</string>
     <string name="new_user_message">This is your first time using our App. \n So please wait a minute until the pairing code is loaded!</string>
     <string name="ok">Ok</string>
     <string name="cancel">Cancel</string>

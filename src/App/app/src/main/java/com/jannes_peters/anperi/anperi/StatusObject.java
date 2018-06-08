@@ -11,7 +11,7 @@ public class StatusObject {
     public static boolean isCustomLayout = false;
     public static String layoutString = "";
     public static boolean isInSettings = false;
-
+    public static boolean isFirstRun = true;
 
     private StatusObject(){ }
 
