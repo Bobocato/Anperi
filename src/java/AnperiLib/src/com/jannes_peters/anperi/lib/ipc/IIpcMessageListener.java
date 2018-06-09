@@ -1,8 +1,8 @@
 package com.jannes_peters.anperi.lib.ipc;
 
-public interface IAnperiMessageListener {
+public interface IIpcMessageListener {
     /**
-     * Called when a new IpcMessage arrives.
+     * Called when a new IpcMessage arrives. This arrives in a seperate thread.
      * @param msg the message
      */
     void OnIpcMessage(IpcMessage msg);

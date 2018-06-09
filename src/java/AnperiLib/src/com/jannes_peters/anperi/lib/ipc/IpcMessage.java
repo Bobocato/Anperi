@@ -4,13 +4,15 @@ import org.json.simple.JSONAware;
 import org.json.simple.JSONObject;
 
 public class IpcMessage implements JSONAware {
+    private JSONObject mData;
+
     public IpcMessage(JSONObject object) {
-        data = object;
+        mData = object;
     }
 
     public IpcMessageCode getCode() {
         try {
-            return IpcMessageCode.valueOf((Integer) data.get("MessageCode"));
+            return IpcMessageCode.valueOf((Integer) mData.get("MessageCode"));
         }
         catch (Exception e) {
             return IpcMessageCode.Unset;
@@ -20,7 +22,7 @@ public class IpcMessage implements JSONAware {
     @SuppressWarnings("unchecked")
     public <T> T getData(String key) {
         try {
-            return (T) data.get(key);
+            return (T) mData.get(key);
         } catch (Exception e) {
             return null;
         }
@@ -28,13 +30,11 @@ public class IpcMessage implements JSONAware {
 
     @SuppressWarnings("unchecked")
     public void setData(String key, Object value) {
-        data.put(key, value);
+        mData.put(key, value);
     }
-
-    private JSONObject data;
 
     @Override
     public String toJSONString() {
-        return data.toJSONString();
+        return mData.toJSONString();
     }
 }

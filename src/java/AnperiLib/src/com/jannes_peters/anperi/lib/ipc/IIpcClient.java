@@ -30,5 +30,5 @@ public interface IIpcClient {
      * Sets the listener for incoming messages. If you need multiple you have to implement that yourself.
      * @param l the listener instance
      */
-    void setAnperiMessageListener(IAnperiMessageListener l);
+    void setIpcMessageListener(IIpcMessageListener l);
 }

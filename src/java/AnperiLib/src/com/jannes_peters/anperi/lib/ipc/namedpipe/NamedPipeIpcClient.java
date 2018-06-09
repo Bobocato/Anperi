@@ -1,6 +1,6 @@
 package com.jannes_peters.anperi.lib.ipc.namedpipe;
 
-import com.jannes_peters.anperi.lib.ipc.IAnperiMessageListener;
+import com.jannes_peters.anperi.lib.ipc.IIpcMessageListener;
 import com.jannes_peters.anperi.lib.ipc.IIpcClient;
 import com.jannes_peters.anperi.lib.ipc.IpcMessage;
 import org.json.simple.JSONObject;
@@ -24,7 +24,7 @@ public class NamedPipeIpcClient implements IIpcClient {
     private final String CLIENT_NAME = "java.anperi.lib.reference." + UUID.randomUUID().toString();
 
     private static final Logger LOGGER = Logger.getLogger(NamedPipeIpcClient.class.getSimpleName());
-    private IAnperiMessageListener mMessageListener;
+    private IIpcMessageListener mMessageListener;
     private RandomAccessFile mInputStream, mOutputStream;
     private LinkedBlockingQueue<String> mMessagesToSend;
     private Thread mThreadSend, mThreadReceive;
@@ -44,6 +44,7 @@ public class NamedPipeIpcClient implements IIpcClient {
     @Override
     public void connect(final int timeout) throws IOException {
         synchronized (mSyncRootState) {
+            if (mState == State.Connected) return;
             if (mState != State.Disconnected) throw new InvalidStateException("Client is not closed.");
             mState = State.Connecting;
         }
@@ -99,6 +100,7 @@ public class NamedPipeIpcClient implements IIpcClient {
     @Override
     public void send(IpcMessage message) {
         if (!mState.equals(State.Connected)) throw new IllegalStateException("The client is not connected.");
+        //should never throw but you never know
         if (!mMessagesToSend.offer(message.toJSONString())) throw new IllegalStateException("The send queue was full.");
     }
 
@@ -130,7 +132,7 @@ public class NamedPipeIpcClient implements IIpcClient {
     }
 
     @Override
-    public void setAnperiMessageListener(IAnperiMessageListener l) {
+    public void setIpcMessageListener(IIpcMessageListener l) {
         mMessageListener = l;
     }
 
