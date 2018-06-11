@@ -21,7 +21,7 @@ public class NamedPipeIpcClient implements IIpcClient {
     private static final String ENDPOINT_OUTPUT_ADDRESS = ENDPOINT_BASE_ADDRESS + ".output";
     private static final String CONNECTION_SUCCESS_STRING = "connection_success";
 
-    private final String CLIENT_NAME = "java.anperi.lib.reference." + UUID.randomUUID().toString();
+    private String mClientName;
 
     private static final Logger LOGGER = Logger.getLogger(NamedPipeIpcClient.class.getSimpleName());
     private IIpcMessageListener mMessageListener;
@@ -35,6 +35,10 @@ public class NamedPipeIpcClient implements IIpcClient {
 
     private enum State {
         Disconnected, Connecting, Connected, Disconnecting
+    }
+
+    private void createNewName() {
+        mClientName = "java.anperi.lib.reference." + UUID.randomUUID().toString();
     }
 
     public NamedPipeIpcClient() {
@@ -64,12 +68,12 @@ public class NamedPipeIpcClient implements IIpcClient {
                 }
             });
             timeoutThread.start();
-
             mInputStream = new RandomAccessFile(ENDPOINT_OUTPUT_ADDRESS, "rw");
             mOutputStream = new RandomAccessFile(ENDPOINT_INPUT_ADDRESS, "rw");
 
-            StreamString.writeString(mInputStream, CLIENT_NAME);
-            StreamString.writeString(mOutputStream, CLIENT_NAME);
+            createNewName();
+            StreamString.writeString(mInputStream, mClientName);
+            StreamString.writeString(mOutputStream, mClientName);
 
             String response = StreamString.readString(mInputStream);
             timeoutThread.interrupt();

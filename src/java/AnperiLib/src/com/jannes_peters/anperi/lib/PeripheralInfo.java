@@ -30,7 +30,7 @@ public class PeripheralInfo {
     public ScreenType getScreenType() {
         ScreenType st;
         try {
-            st = ScreenType.valueOf(mMessage.getData("screen_type"));
+            st = ScreenType.valueOf(mMessage.<String>getData("screen_type"));
         } catch (Exception e) {
             st = ScreenType.generic;
         }

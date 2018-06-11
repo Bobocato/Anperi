@@ -20,7 +20,7 @@ public class ElementEvent {
     public EventType getEventType() {
         if (mEventType == null) {
             try {
-                mEventType = EventType.valueOf(mMessage.getData("type"));
+                mEventType = EventType.valueOf(mMessage.<String>getData("type"));
             } catch (Exception e) {
                 mEventType = EventType.on_click;
             }
