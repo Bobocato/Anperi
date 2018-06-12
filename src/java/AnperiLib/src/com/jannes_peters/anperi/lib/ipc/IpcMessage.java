@@ -6,6 +6,16 @@ import org.json.simple.JSONObject;
 public class IpcMessage implements JSONAware {
     private JSONObject mData;
 
+    public IpcMessage(IpcMessageCode msgCode) {
+        mData = new JSONObject();
+        mData.put("MessageCode", msgCode.getValue());
+    }
+
+    public IpcMessage(IpcMessageCode msgCode, JSONObject data) {
+        this(msgCode);
+        mData.put("Data", data);
+    }
+
     public IpcMessage(JSONObject object) {
         mData = object;
     }
@@ -22,7 +32,7 @@ public class IpcMessage implements JSONAware {
     @SuppressWarnings("unchecked")
     public <T> T getData(String key) {
         try {
-            return (T) mData.get(key);
+            return (T) ((JSONObject)mData.get("Data")).get(key);
         } catch (Exception e) {
             return null;
         }
@@ -30,7 +40,12 @@ public class IpcMessage implements JSONAware {
 
     @SuppressWarnings("unchecked")
     public void setData(String key, Object value) {
-        mData.put(key, value);
+        JSONObject o = (JSONObject)mData.get("Data");
+        if (o == null) {
+            o = new JSONObject();
+            mData.put("Data", o);
+        }
+        o.put(key, value);
     }
 
     @Override

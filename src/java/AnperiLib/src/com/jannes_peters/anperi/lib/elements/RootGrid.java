@@ -4,6 +4,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONAware;
 import org.json.simple.JSONObject;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public class RootGrid implements JSONAware {
@@ -12,29 +13,30 @@ public class RootGrid implements JSONAware {
         unspecified, landscape, portrait
     }
 
-    public RootGrid(ScreenOrientation orientation, List<Element> elements) {
-        this.orientation = orientation;
+    public RootGrid() {
+        this.elements = new LinkedList<>();
+    }
+
+    public RootGrid(List<Element> elements) {
         this.elements = elements;
     }
 
-    private ScreenOrientation orientation;
     private List<Element> elements;
 
     @Override
     public String toJSONString() {
         JSONObject o = new JSONObject();
-        o.put("orientation", orientation);
         JSONArray ja = new JSONArray();
         ja.addAll(elements);
         o.put("elements", ja);
         return o.toJSONString();
     }
 
-    public void setElements(List<Element> elements) {
-        this.elements = elements;
+    public void addElement(Element e) {
+        elements.add(e);
     }
 
-    public void setOrientation(ScreenOrientation orientation) {
-        this.orientation = orientation;
+    public void setElements(List<Element> elements) {
+        this.elements = elements;
     }
 }
