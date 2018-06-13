@@ -12,6 +12,14 @@
         android:textAlignment="center"
         android:textSize="30sp" />
 
+    <TextView
+        android:id="@+id/pairingKeyText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:textAlignment="center"
+        android:textSize="25sp" />
+
     <Button
         android:id="@+id/addServerButton"
         android:layout_width="wrap_content"
@@ -20,11 +28,28 @@
         android:text="@string/addServer" />
 
     <LinearLayout
+        android:id="@+id/serverContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:id="@+id/serverContainer">
+        android:orientation="vertical">
 
     </LinearLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/resetBtn"
+            android:text="@string/resetServer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_alignParentBottom="true"
+            />
+    </RelativeLayout>
+
+
+
 
 </LinearLayout>
