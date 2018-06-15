@@ -18,4 +18,5 @@
     <string name="addServer">add server</string>
     <string name="addServerTitle">ADD NEW SERVER</string>
     <string name="settingsTitle">Settings</string>
+    <string name="resetServer">reset app (this will close the app)</string>
 </resources>

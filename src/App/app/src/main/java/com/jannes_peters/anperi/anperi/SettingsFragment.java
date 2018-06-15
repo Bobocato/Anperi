@@ -1,8 +1,10 @@
 package com.jannes_peters.anperi.anperi;
 
+import android.annotation.SuppressLint;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -18,6 +20,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -54,7 +57,26 @@ public class SettingsFragment extends Fragment {
                 openServerDialog();
             }
         });
+
+        Button resetApp = view.findViewById(R.id.resetBtn);
+        resetApp.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getActivity().getSharedPreferences(getString(R.string.preference_file_name), 0).edit().clear().apply();
+                //Kill App completely
+                int pid = android.os.Process.myPid();
+                android.os.Process.killProcess(pid);
+                Intent intent = new Intent(Intent.ACTION_MAIN);
+                intent.addCategory(Intent.CATEGORY_HOME);
+                startActivity(intent);
+            }
+        });
         return view;
+    }
+
+    public void setPairingKey(String code){
+        TextView text = currentView.findViewById(R.id.pairingKeyText);
+        text.setText(code);
     }
 
     private void showServers(String[] server, String favourite, LinearLayout container) {
@@ -68,6 +90,14 @@ public class SettingsFragment extends Fragment {
             TextView urlText = new TextView(getActivity());
             urlText.setText(aServer);
             row.addView(urlText);
+            //Clicklistener for the Text
+            urlText.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    TextView text = (TextView) view;
+                    changeServer(text.getText().toString());
+                }
+            });
 
             LinearLayout innerRow = new LinearLayout(getActivity());
             innerRow.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
@@ -108,6 +138,19 @@ public class SettingsFragment extends Fragment {
             container.addView(row);
         }
 
+    }
+
+    @SuppressLint("ApplySharedPref")
+    private void changeServer(String newServer){
+        //Kill old WS connection
+        MyWebSocket.destroyWS();
+        MyWebSocket.setServer(newServer);
+        //Delete old Token
+        SharedPreferences sharedPref = getActivity().getSharedPreferences(getString(R.string.preference_file_name), Context.MODE_PRIVATE);
+        sharedPref.edit().remove("token").commit();
+        //Connect to new websocket
+        MyWebSocket.connect();
+        ((MainActivity)getActivity()).addWsListeners();
     }
 
     private void openServerDialog() {
@@ -159,14 +202,19 @@ public class SettingsFragment extends Fragment {
     private void removeServer(String server){
         final SharedPreferences sharedPref = getActivity().getSharedPreferences(getString(R.string.preference_file_name), Context.MODE_PRIVATE);
         Set<String> urls = sharedPref.getStringSet("servers", null);
-        urls.remove(server);
-        sharedPref.edit().putStringSet("servers", urls);
-        String fav = sharedPref.getString("favourite", "");
-        if(fav.equals(server) && urls.size() > 0){
-            String[] strings = urls.toArray(new String[urls.size()]);
-            sharedPref.edit().putString("favourite", strings[0]);
-            fav = strings[0];
+        if (urls.size() > 1){
+            urls.remove(server);
+            sharedPref.edit().putStringSet("servers", urls);
+            String fav = sharedPref.getString("favourite", "");
+            if(fav.equals(server) && urls.size() > 0){
+                String[] strings = urls.toArray(new String[urls.size()]);
+                sharedPref.edit().putString("favourite", strings[0]);
+                fav = strings[0];
+            }
+            showServers(urls.toArray(new String[urls.size()]), fav, (LinearLayout) currentView.findViewById(R.id.serverContainer));
+        } else {
+            Toast.makeText(getActivity(), "One server must remain", Toast.LENGTH_SHORT).show();
         }
-        showServers(urls.toArray(new String[urls.size()]), fav, (LinearLayout) currentView.findViewById(R.id.serverContainer));
+
     }
 }

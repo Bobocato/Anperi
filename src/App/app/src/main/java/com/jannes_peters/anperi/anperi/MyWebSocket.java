@@ -45,6 +45,13 @@ public class MyWebSocket {
 
     }
 
+    public static String getServer() {
+       if(server != null && !server.trim().isEmpty()){
+           return server;
+       }
+       return null;
+    }
+
     public static void reconnect() {
         if (StatusObject.shouldReconnect) {
             timer = new Timer();
@@ -79,13 +86,17 @@ public class MyWebSocket {
         instance = null;
     }
 
-    public static void connect() throws IOException {
+    public static void connect() {
         Log.v(TAG, "Connect ws to: " + server);
-        MyWebSocket.instance = new WebSocketFactory()
-                .setConnectionTimeout(timeout)
-                .createSocket(server)
-                .addExtension(WebSocketExtension.PERMESSAGE_DEFLATE)
-                .connectAsynchronously();
+        try {
+            MyWebSocket.instance = new WebSocketFactory()
+                    .setConnectionTimeout(timeout)
+                    .createSocket(server)
+                    .addExtension(WebSocketExtension.PERMESSAGE_DEFLATE)
+                    .connectAsynchronously();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private static com.neovisionaries.ws.client.WebSocket create() throws IOException {

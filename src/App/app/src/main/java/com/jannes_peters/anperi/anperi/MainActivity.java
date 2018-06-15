@@ -254,7 +254,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void addWsListeners() {
+    public void addWsListeners() {
         final Context context = this;
         List<WebSocketListener> webSocketListenerList = new LinkedList<>();
         webSocketListenerList.add(new WebSocketAdapter() {
@@ -356,9 +356,25 @@ public class MainActivity extends AppCompatActivity {
                                             StatusObject.isRegistered = true;
                                             break;
                                         case "get_pairing_code":
-                                            //User has pairing code show it
-                                            if (StatusObject.initialKeyCode) {
-                                                if (!StatusObject.isCustomLayout) {
+                                            //User has pairing code show it in KeyFragment  or the Settings panel
+                                            if (StatusObject.isInSettings) { //Settings
+                                                try {
+                                                    String pairingCode = apiObject.messageData.getString("code");
+                                                    settingsFragment.setPairingKey(pairingCode);
+                                                } catch (JSONException e) {
+                                                    e.printStackTrace();
+                                                }
+                                            } else { // KeyFragment
+                                                if (StatusObject.initialKeyCode) {
+                                                    if (!StatusObject.isCustomLayout) {
+                                                        try {
+                                                            StatusObject.pairingCode = apiObject.messageData.getString("code");
+                                                        } catch (JSONException e) {
+                                                            e.printStackTrace();
+                                                        }
+                                                        if (!debug) showKey();
+                                                    }
+                                                } else {
                                                     try {
                                                         StatusObject.pairingCode = apiObject.messageData.getString("code");
                                                     } catch (JSONException e) {
@@ -366,16 +382,8 @@ public class MainActivity extends AppCompatActivity {
                                                     }
                                                     if (!debug) showKey();
                                                 }
-                                            } else {
-                                                try {
-                                                    StatusObject.pairingCode = apiObject.messageData.getString("code");
-                                                } catch (JSONException e) {
-                                                    e.printStackTrace();
-                                                }
-                                                if (!debug) showKey();
+                                                StatusObject.initialKeyCode = false;
                                             }
-
-                                            StatusObject.initialKeyCode = false;
                                             break;
                                         case "login":
                                             //User was logged in get a pairing code
