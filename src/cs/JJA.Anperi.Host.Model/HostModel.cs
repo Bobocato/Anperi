@@ -170,6 +170,19 @@ namespace JJA.Anperi.Host.Model
             _ipcServer = new NamedPipeIpcServer();               
             _ipcServer.ClientConnected += (sender, args) =>
             {
+                bool CheckHasControl(IIpcClient c)
+                {
+                    if (c != _curIpcClient)
+                    {
+                        c.SendAsync(new IpcMessage(IpcMessageCode.Error)
+                        {
+                            Data = new Dictionary<string, dynamic> { { "msg", "You aren't in control." } }
+                        });
+                        return false;
+                    }
+                    return true;
+                }
+                
                 var client = args.Client;
                 _ipcClients.Add(client);
                 client.Message += (o, eventArgs) =>
@@ -197,6 +210,7 @@ namespace JJA.Anperi.Host.Model
                             SendToWebsocket(DeviceJsonApiObjectFactory.CreateGetInfo().Serialize());
                             break;
                         case IpcMessageCode.SetPeripheralElementParam:
+                            if (!CheckHasControl(senderClient)) return;
                             if (message.Data == null)
                             {
                                 Trace.TraceWarning("Got empty element param data from client.");
@@ -205,6 +219,7 @@ namespace JJA.Anperi.Host.Model
                             SendToWebsocket(DeviceJsonApiObjectFactory.CreateSetElementParam(message.Data).Serialize());
                             break;
                         case IpcMessageCode.SetPeripheralLayout:
+                            if (!CheckHasControl(senderClient)) return;
                             if (message.Data == null)
                             {
                                 Trace.TraceWarning("Got empty set_layout data from client.");
@@ -224,6 +239,7 @@ namespace JJA.Anperi.Host.Model
                             _curIpcClient = senderClient;
                             break;
                         case IpcMessageCode.FreeControl:
+                            if (!CheckHasControl(senderClient)) return;
                             senderClient.SendAsync(new IpcMessage(IpcMessageCode.ControlLost));
                             SendToWebsocket(DeviceJsonApiObjectFactory.CreateDeviceWentAway().Serialize());
                             _curIpcClient = null;
@@ -723,9 +739,9 @@ namespace JJA.Anperi.Host.Model
                 case DeviceRequestCode.get_info:
                     var getInfo = new IpcMessage(IpcMessageCode.GetPeripheralInfo)
                     {
-                        Data = json.data                       
+                        Data = json.data
                     };
-                    _curIpcClient?.SendAsync(getInfo);
+                    _ipcClients.AsParallel().ForAll(c => c.SendAsync(getInfo));
                     break;
                 case DeviceRequestCode.event_fired:
                     var eventFired = new IpcMessage(IpcMessageCode.PeripheralEventFired)
