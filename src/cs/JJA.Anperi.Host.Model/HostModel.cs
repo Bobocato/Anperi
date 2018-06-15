@@ -265,6 +265,7 @@ namespace JJA.Anperi.Host.Model
                 {
                     _curIpcClient = null;
                     SendToWebsocket(DeviceJsonApiObjectFactory.CreateDeviceWentAway().Serialize());
+                    _ipcClients.AsParallel().ForAll(c => c.SendAsync(new IpcMessage(IpcMessageCode.NotClaimed)));
                 }
             };
 
