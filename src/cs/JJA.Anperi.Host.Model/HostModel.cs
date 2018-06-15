@@ -215,10 +215,13 @@ namespace JJA.Anperi.Host.Model
                         case IpcMessageCode.ClaimControl:
                             if (_curIpcClient != null)
                             {
-                                _curIpcClient?.SendAsync(new IpcMessage(IpcMessageCode.ControlLost));
-                                _curIpcClient = null;
+                                if (_curIpcClient != senderClient)
+                                {
+                                    _curIpcClient?.SendAsync(new IpcMessage(IpcMessageCode.ControlLost));
+                                    _curIpcClient = null;
+                                }
                             }
-                            _curIpcClient = (IIpcClient) o;
+                            _curIpcClient = senderClient;
                             break;
                         case IpcMessageCode.FreeControl:
                             senderClient.SendAsync(new IpcMessage(IpcMessageCode.ControlLost));
