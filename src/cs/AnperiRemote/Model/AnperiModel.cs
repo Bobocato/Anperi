@@ -110,6 +110,7 @@ namespace AnperiRemote.Model
         private async void _anperi_HostNotClaimed(object sender, EventArgs e)
         {
             await _anperi.ClaimControl().ConfigureAwait(false);
+            await SetLayout(_settings);
             OnPropertyChanged(nameof(HasControl));
         }
 
