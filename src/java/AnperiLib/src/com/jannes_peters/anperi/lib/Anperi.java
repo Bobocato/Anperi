@@ -97,7 +97,7 @@ public class Anperi {
      * background so it can take the control for the time being. You can always get the control back with claimControl.
      */
     public void freeControl() {
-        if (!hasControl()) {
+        if (hasControl()) {
             if (mIpcClient != null) mIpcClient.send(new IpcMessage(IpcMessageCode.FreeControl));
         }
     }
@@ -175,6 +175,7 @@ public class Anperi {
                     return;
                 }
                 try {
+                    Thread.currentThread().setName("Thread-AnperiLib-connect");
                     Thread.sleep(initialTimeout);
                     boolean success = false;
                     while (!success && !Thread.interrupted()) {

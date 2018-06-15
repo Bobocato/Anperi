@@ -143,7 +143,7 @@ public class NamedPipeIpcClient implements IIpcClient {
     private Runnable threadReceive = new Runnable() {
         @Override
         public void run() {
-            Thread.currentThread().setName("NamedPipeReceiver");
+            Thread.currentThread().setName("Thread-AnperiLib-namedpipe_receiver");
             while (!Thread.interrupted()) {
                 String message = null;
                 try {
@@ -162,7 +162,7 @@ public class NamedPipeIpcClient implements IIpcClient {
     private Runnable threadSendConsumer = new Runnable() {
         @Override
         public void run() {
-            Thread.currentThread().setName("NamedPipeSendConsumer");
+            Thread.currentThread().setName("Thread-AnperiLib-namedpipe_sendConsumer");
             while (!Thread.interrupted()) {
                 try {
                     String message = mMessagesToSend.take();

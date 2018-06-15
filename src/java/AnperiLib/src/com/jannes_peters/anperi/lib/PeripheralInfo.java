@@ -16,15 +16,15 @@ public class PeripheralInfo {
     }
 
     public int getVersion() {
-        return mMessage.getData("version");
+        return (int)(long)mMessage.<Long>getData("version");
     }
 
     public int getScreenWidth() {
-        return mMessage.getData("screen_width");
+        return (int)(long)mMessage.<Long>getData("screen_width");
     }
 
     public int getScreenHeight() {
-        return mMessage.getData("screen_height");
+        return (int)(long)mMessage.<Long>getData("screen_height");
     }
 
     public ScreenType getScreenType() {

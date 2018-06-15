@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/AnperiLib.iml" filepath="$PROJECT_DIR$/AnperiLib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ExampleLibConsumer/ExampleLibConsumer.iml" filepath="$PROJECT_DIR$/ExampleLibConsumer/ExampleLibConsumer.iml" />
     </modules>
   </component>
 </project>

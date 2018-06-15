@@ -28,7 +28,7 @@ public class ElementEvent {
         return mEventType;
     }
 
-    public String ElementId()
+    public String getElementId()
     {
         return mMessage.getData("id");
     }

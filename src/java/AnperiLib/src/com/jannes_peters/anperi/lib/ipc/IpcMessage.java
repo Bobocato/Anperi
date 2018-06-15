@@ -22,7 +22,7 @@ public class IpcMessage implements JSONAware {
 
     public IpcMessageCode getCode() {
         try {
-            return IpcMessageCode.valueOf((Integer) mData.get("MessageCode"));
+            return IpcMessageCode.valueOf((int)(long)mData.get("MessageCode"));
         }
         catch (Exception e) {
             return IpcMessageCode.Unset;
