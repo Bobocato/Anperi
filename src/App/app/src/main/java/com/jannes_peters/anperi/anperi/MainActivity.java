@@ -16,6 +16,7 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -599,6 +600,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Fragment Stuff
     private void showKey() {
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         StatusObject.isInSettings = false;
         //Remove loading text and show pairing key
         SharedPreferences sharedPrefs = this.getSharedPreferences(this.getString(R.string.preference_file_name), Context.MODE_PRIVATE);
@@ -617,6 +619,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showLoad() {
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         StatusObject.isInSettings = false;
         if (getFragmentManager().findFragmentByTag("loadFrag") != null) {
             loadingFragment = (LoadingFragment) getFragmentManager().findFragmentByTag("loadFrag");
@@ -630,6 +633,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showTest() {
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         StatusObject.isInSettings = false;
         if (getFragmentManager().findFragmentByTag("testFrag") != null) {
             testFragment = (TestFragment) getFragmentManager().findFragmentByTag("testFrag");
@@ -641,6 +645,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showCreate() {
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         StatusObject.isInSettings = false;
         if (getFragmentManager().findFragmentByTag("createFrag") != null) {
             try {
@@ -664,6 +669,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showSettings() {
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         StatusObject.isInSettings = true;
         if (getFragmentManager().findFragmentByTag("settingsFrag") != null) {
             settingsFragment = (SettingsFragment) getFragmentManager().findFragmentByTag("settingsFrag");
