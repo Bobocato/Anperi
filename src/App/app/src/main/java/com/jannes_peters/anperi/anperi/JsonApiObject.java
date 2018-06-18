@@ -33,6 +33,8 @@ public class JsonApiObject {
                         switch (messageCode) {
                             case "partner_disconnected":
                                 return Action.reset;
+                            case "partner_connected":
+                                return Action.success;
                             case "error":
                                 return Action.error;
                         }

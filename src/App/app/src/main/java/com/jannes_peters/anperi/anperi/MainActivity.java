@@ -356,6 +356,14 @@ public class MainActivity extends AppCompatActivity {
                                             //Device was registered...
                                             StatusObject.isRegistered = true;
                                             break;
+                                        case "partner_connected":
+                                            try {
+                                                String name = apiObject.messageData.getString("name");
+                                                keyFragment.setConnectedTo(name);
+                                            } catch (JSONException e) {
+                                                e.printStackTrace();
+                                            }
+                                            break;
                                         case "get_pairing_code":
                                             //User has pairing code show it in KeyFragment  or the Settings panel
                                             if (StatusObject.isInSettings) { //Settings

@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 public class KeyFragment extends Fragment {
     private String pairingCode;
+    private String connectedTo = null;
     private Boolean isStarted = false;
     private Boolean isAttached = false;
 
@@ -46,9 +47,17 @@ public class KeyFragment extends Fragment {
         super.onAttach(activity);
     }
 
+    public void setConnectedTo(String name){
+        connectedTo = name;
+        if(isStarted && isAttached){
+            TextView text = this.getView().findViewById(R.id.connectedToText);
+            text.setText(getString(R.string.key_connected_to) + name);
+        }
+    }
 
     public void setCode(String code) {
         pairingCode = code;
+        if (connectedTo != null) setConnectedTo(connectedTo);
         if (isAttached && isStarted) {
             TextView text = this.getView().findViewById(R.id.keyText);
             text.setText(code);
