@@ -44,12 +44,12 @@ public class ElementEvent {
         }
     }
 
-    public int getProgress() {
+    public int getValue() {
         if (mEventType != EventType.on_change) {
             throw new IllegalStateException("The event type is not on_change");
         }
         try {
-            return (Integer)((JSONObject)mMessage.getData("data")).get("progress");
+            return (int)(long)((JSONObject)mMessage.getData("data")).get("progress");
         } catch (Exception e) {
             return -1;
         }

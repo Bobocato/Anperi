@@ -8,9 +8,9 @@ import com.jannes_peters.anperi.lib.ipc.IpcMessage;
 import com.jannes_peters.anperi.lib.ipc.IpcMessageCode;
 import com.jannes_peters.anperi.lib.ipc.namedpipe.NamedPipeIpcClient;
 import org.json.simple.JSONObject;
-import sun.plugin.dom.exception.InvalidStateException;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -112,13 +112,13 @@ public class Anperi {
     /**
      * Creates or changes the layout on the peripheral.
      * @param layout the RootGrid which contains all elements of the layout
-     * @param screenType the screen orientation (should be almost always set)
+     * @param screenOrientation the screen orientation (should be almost always set)
      */
-    public void setLayout(RootGrid layout, PeripheralInfo.ScreenType screenType) {
+    public void setLayout(RootGrid layout, RootGrid.ScreenOrientation screenOrientation) {
         if (mIpcClient != null) {
             IpcMessage msg = new IpcMessage(IpcMessageCode.SetPeripheralLayout);
             msg.setData("grid", layout);
-            msg.setData("orientation", screenType.toString());
+            msg.setData("orientation", screenOrientation.toString());
             mIpcClient.send(msg);
         }
     }
@@ -183,7 +183,7 @@ public class Anperi {
                             mIpcClient.connect(5000);
                             success = true;
                             if (mAnperiListener != null) mAnperiListener.onConnected();
-                        } catch (InvalidStateException e) {
+                        } catch (IllegalStateException e) {
                             e.printStackTrace();
                             System.err.println("THIS IS BAD, CONNECT CALLED ON NOT DISCONNECTED IIPCCLIENT");
                             success = true;
@@ -258,4 +258,11 @@ public class Anperi {
             connect(2000);
         }
     };
+
+    @SuppressWarnings("unchecked")
+    public void sendDebug(String s) {
+        JSONObject jobj = new JSONObject();
+        jobj.put("msg", s);
+        mIpcClient.send(new IpcMessage(IpcMessageCode.Debug, jobj));
+    }
 }

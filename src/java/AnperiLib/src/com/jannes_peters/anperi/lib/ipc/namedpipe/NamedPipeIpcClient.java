@@ -6,7 +6,6 @@ import com.jannes_peters.anperi.lib.ipc.IpcMessage;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import sun.plugin.dom.exception.InvalidStateException;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -49,7 +48,7 @@ public class NamedPipeIpcClient implements IIpcClient {
     public void connect(final int timeout) throws IOException {
         synchronized (mSyncRootState) {
             if (mState == State.Connected) return;
-            if (mState != State.Disconnected) throw new InvalidStateException("Client is not closed.");
+            if (mState != State.Disconnected) throw new IllegalStateException("Client is not closed.");
             mState = State.Connecting;
         }
         try {
@@ -121,10 +120,10 @@ public class NamedPipeIpcClient implements IIpcClient {
             mState = State.Disconnecting;
         }
         try {mMessagesToSend.clear();} catch (Exception ignored) {}
-        try {mInputStream.close();} catch (Exception ignored) {}
-        try {mOutputStream.close();} catch (Exception ignored) {}
-        try {mThreadSend.interrupt();} catch (Exception ignored) {}
         try {mThreadReceive.interrupt();} catch (Exception ignored) {}
+        try {mThreadSend.interrupt();} catch (Exception ignored) {}
+        try {mOutputStream.close();} catch (Exception ignored) {}
+        try {mInputStream.close();} catch (Exception ignored) {}
         mThreadSend = null;
         mThreadReceive = null;
         mInputStream = null;
@@ -150,10 +149,12 @@ public class NamedPipeIpcClient implements IIpcClient {
                     if (mInputStream != null) message = StreamString.readString(mInputStream);
                     if (mMessageListener != null) mMessageListener.OnIpcMessage(new IpcMessage((JSONObject) new JSONParser().parse(message)));
                 } catch (IOException e) {
-                    LOGGER.log(Level.INFO, "Send got exception while reading the stream.");
+                    LOGGER.log(Level.INFO, "Receive got exception while reading the stream.");
                     resetStreams();
                 } catch (ParseException e) {
                     LOGGER.log(Level.WARNING, "Got invalid JSON from Host: " + message);
+                } catch (Exception e) {
+                    System.err.println("Error receiving.");
                 }
             }
         }
