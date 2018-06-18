@@ -234,6 +234,7 @@ namespace JJA.Anperi.Host.Model
                                 {
                                     _curIpcClient?.SendAsync(new IpcMessage(IpcMessageCode.ControlLost));
                                     _curIpcClient = null;
+                                    SendToWebsocket(DeviceJsonApiObjectFactory.CreateDeviceWentAway().Serialize());
                                 }
                             }
                             _curIpcClient = senderClient;
