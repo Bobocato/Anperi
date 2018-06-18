@@ -383,6 +383,12 @@ namespace JJA.Anperi.Server
                 case HostRequestCode.connect_to_peripheral:
                     if (message.data.TryGetValue("id", out int id))
                     {
+                        if (!_db.HostPeripherals.Any(hp => hp.HostId == _device.Id && hp.PeripheralId == id))
+                        {
+                            await _socket.SendJson(
+                                HostJsonApiObjectFactory.CreateConnectToPeripheralResponse(false, -1));
+                            return;
+                        }
                         AuthenticatedWebSocketConnection conn = _anperiManager.GetConnectionForId(id);
                         if (conn != null)
                         {
