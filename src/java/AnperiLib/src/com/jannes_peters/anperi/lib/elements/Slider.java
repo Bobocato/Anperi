@@ -3,12 +3,12 @@ package com.jannes_peters.anperi.lib.elements;
 import org.json.simple.JSONObject;
 
 public class Slider extends Element {
-    public Slider(String id, int min, int max, int value, int stepSize) {
+    public Slider(String id, int min, int max, int value, int step_size) {
         super("slider", id);
         this.min = min;
         this.max = max;
         this.progress = value;
-        this.step_size = stepSize;
+        this.step_size = step_size;
     }
 
     int min, max, progress, step_size;

@@ -4,10 +4,7 @@ import com.jannes_peters.anperi.lib.Anperi;
 import com.jannes_peters.anperi.lib.IAnperiListener;
 import com.jannes_peters.anperi.lib.IAnperiMessageListener;
 import com.jannes_peters.anperi.lib.PeripheralInfo;
-import com.jannes_peters.anperi.lib.elements.Element;
-import com.jannes_peters.anperi.lib.elements.ElementEvent;
-import com.jannes_peters.anperi.lib.elements.RootGrid;
-import com.jannes_peters.anperi.lib.elements.Slider;
+import com.jannes_peters.anperi.lib.elements.*;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -80,11 +77,24 @@ public class ExampleView extends VBox implements IAnperiListener, IAnperiMessage
 
     private void showLayout(ActionEvent event) {
         //TODO: implement
-        List<Element> elements = new ArrayList<>();
-        elements.add(new com.jannes_peters.anperi.lib.elements.Button(ELEM_BUTTON_NAME, "This is a Button").row(0));
-        elements.add(new Slider(ELEM_SLIDER_NAME, 0, 100, (int)(Math.random() * 100.0f), 3).row(1));
-        mAnperiLib.setLayout(new RootGrid(elements), RootGrid.ScreenOrientation.landscape);
-        System.out.println("showLayout is not fully implemented.");
+        List<Element> e = new ArrayList<>();
+        e.add(new com.jannes_peters.anperi.lib.elements.Button(ELEM_BUTTON_NAME, "This is a Button").row(0).column(0));
+        e.add(new Slider(ELEM_SLIDER_NAME, 0, 100, (int)(Math.random() * 100.0f), 3).row(0).column(1));
+        e.add(new Grid()
+                .add(new com.jannes_peters.anperi.lib.elements.Label("Some Text in row 0 col 0").row(0).column(0))
+                .add(new com.jannes_peters.anperi.lib.elements.Label("Some other text in row 1 col 0").row(1).column(0))
+                .add(new Grid()
+                        .add(new com.jannes_peters.anperi.lib.elements.Label("Slider:").column(0))
+                        .add(new Slider("s2", 0, 1, 1, 1).column(1).columnWeight(1.5f))
+                        .row(2).column(0)
+                )
+                .add(new Spacer().row(0).column(1))
+                .add(new com.jannes_peters.anperi.lib.elements.Button("butGrid", "ButtonInAGrid").row(1).column(1))
+                .add(new Spacer().row(2).column(1))
+                .row(1).column(0)
+        );
+        e.add(new CheckBox("cb", true).row(1).column(1));
+        mAnperiLib.setLayout(new RootGrid(e), RootGrid.ScreenOrientation.landscape);
     }
 
     private Node createControlButtons() {
