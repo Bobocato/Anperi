@@ -24,7 +24,7 @@ while(ul.childElementCount > 0){
   "message_type": "request",
   "message_code": "pair",
   "data": {
-    "code": "230398"
+    "code": "818962"
   }
 }
 //Get Peripherals:
@@ -40,7 +40,7 @@ while(ul.childElementCount > 0){
   "message_type": "request",
   "message_code": "connect_to_peripheral",
   "data": {
-    "id": 6
+    "id": 116
   }
 }
 //Debug: 
@@ -65,7 +65,7 @@ while(ul.childElementCount > 0){
   "message_type": "request",
   "message_code": "set_layout",
   "data": {
-  	"orientation" : "landscape",
+  	"orientation" : "portrait",
     "grid": {
       "elements": [
         {
@@ -114,7 +114,17 @@ while(ul.childElementCount > 0){
           "type": "textbox",
           "id": "Textbox",
           "hint": "Dies ist ein HINT..."
-
+        },
+        {
+          "row": 4,
+          "column": 0,
+          "row_span": 1,
+          "column_span": 2,
+          "row_weight": 1,
+          "column_weight": 1,
+          "type": "checkbox",
+          "id": "checkBox",
+          "checked": true
         }
       ]
     }

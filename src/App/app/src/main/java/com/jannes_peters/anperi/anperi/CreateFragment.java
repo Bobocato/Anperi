@@ -3,6 +3,7 @@ package com.jannes_peters.anperi.anperi;
 import android.app.Fragment;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.support.v7.widget.GridLayout;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -320,6 +321,8 @@ public class CreateFragment extends Fragment {
                             break;
                         }
                         TextView label = createTextView(id, text);
+                        label.setTextSize(25);
+                        label.setGravity(Gravity.CENTER);
                         label.setLayoutParams(params);
                         grid.addView(label);
                         break;
