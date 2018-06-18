@@ -89,14 +89,16 @@ namespace JJA.Anperi.Server
             await _socket.SendJson(SharedJsonApiObjectFactory.CreatePartnerDisconnected());
         }
 
-        private bool PartnerConnect(AuthenticatedWebSocketConnection connection)
+        private async Task<bool> PartnerConnect(AuthenticatedWebSocketConnection connection)
         {
             lock (_syncRootPartner)
             {
                 _partner?.PartnerCloseConnection();
                 _partner = connection;
-                return true;
             }
+            await _socket.SendJson(
+                SharedJsonApiObjectFactory.CreatePartnerConnected(connection.Device.Name), CancellationToken.None);
+            return true;
         }
 
         private async void PartnerSendMessage(JsonApiObject msg)
@@ -392,7 +394,7 @@ namespace JJA.Anperi.Server
                         AuthenticatedWebSocketConnection conn = _anperiManager.GetConnectionForId(id);
                         if (conn != null)
                         {
-                            if (conn.PartnerConnect(this))
+                            if (await conn.PartnerConnect(this))
                             {
                                 lock (_syncRootPartner)
                                 {

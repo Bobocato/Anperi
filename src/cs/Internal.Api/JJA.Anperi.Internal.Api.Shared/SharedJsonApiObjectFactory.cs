@@ -7,7 +7,7 @@ namespace JJA.Anperi.Internal.Api.Shared
     public enum SharedJsonMessageCode
     {
         // ReSharper disable InconsistentNaming
-        error, partner_disconnected
+        error, partner_disconnected, partner_connected
     }
 
     public enum SharedJsonRequestCode
@@ -43,6 +43,11 @@ namespace JJA.Anperi.Internal.Api.Shared
         public static JsonApiObject CreatePartnerDisconnected()
         {
             return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.message, SharedJsonMessageCode.partner_disconnected.ToString());
+        }
+
+        public static JsonApiObject CreatePartnerConnected(string partnerName)
+        {
+            return new JsonApiObject(JsonApiContextTypes.server, JsonApiMessageTypes.message, SharedJsonMessageCode.partner_connected.ToString(), new Dictionary<string, dynamic> { { "name", partnerName } });
         }
 
         public static JsonApiObject CreateLoginRequest(string token, SharedJsonDeviceType type)
