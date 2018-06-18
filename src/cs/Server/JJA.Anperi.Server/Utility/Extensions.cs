@@ -40,31 +40,44 @@ namespace JJA.Anperi.Server.Utility
             await SendString(socket, obj.Serialize(), cancellationToken, encoding);
         }
 
-        internal static async Task<WebSocketStringResult> ReceiveString(this WebSocket socket, ArraySegment<byte> buffer, CancellationToken? cancellationToken = null)
+        internal static async Task<WebSocketReceiveResult> ReceiveFullAsync(this WebSocket socket, byte[] buffer, CancellationToken ct)
+        {
+            int bufferPosition = 0;
+            WebSocketReceiveResult wsRes;
+            do
+            {
+                wsRes = await socket.ReceiveAsync(new ArraySegment<byte>(buffer, bufferPosition, buffer.Length - bufferPosition), ct);
+                bufferPosition += wsRes.Count;
+            } while (!wsRes.EndOfMessage && wsRes.CloseStatus == null && !ct.IsCancellationRequested);
+            return new WebSocketReceiveResult(bufferPosition, wsRes.MessageType, wsRes.EndOfMessage, wsRes.CloseStatus, wsRes.CloseStatusDescription);
+        }
+
+        internal static async Task<WebSocketStringResult> ReceiveString(this WebSocket socket, byte[] buffer, CancellationToken? cancellationToken = null)
         {
             if (cancellationToken == null) cancellationToken = CancellationToken.None;
-            WebSocketReceiveResult wsResult = await socket.ReceiveAsync(buffer, cancellationToken.Value);
+            WebSocketReceiveResult wsResult = await socket.ReceiveFullAsync(buffer, cancellationToken.Value);
             string message = null;
             if (wsResult.MessageType == WebSocketMessageType.Text)
             {
-                message = Encoding.UTF8.GetString(buffer.Array, 0, wsResult.Count);
+                message = Encoding.UTF8.GetString(buffer, 0, wsResult.Count);
             }
             return new WebSocketStringResult { Message = message, SocketResult = wsResult };
         }
 
-        internal static async Task<WebSocketApiResult> ReceiveApiMessage(this WebSocket socket, ArraySegment<byte> buffer, CancellationToken? cancellationToken = null)
+        internal static async Task<WebSocketApiResult> ReceiveApiMessage(this WebSocket socket, byte[] buffer, CancellationToken? cancellationToken = null)
         {
+            if (cancellationToken == null) cancellationToken = CancellationToken.None;
             WebSocketStringResult res = await socket.ReceiveString(buffer, cancellationToken);
             var result = new WebSocketApiResult {SocketResult = res.SocketResult};
             if (res.SocketResult.MessageType != WebSocketMessageType.Text)
             {
                 result.JsonException = new JsonException("Can't read binary messages as JSON.");
             }
-            else if (res.Message == "")
+            else if (string.IsNullOrEmpty(res.Message))
             {
                 result.JsonException = new JsonException("The message was empty.");
             }
-            else if (res.Message != null)
+            else
             {
                 try
                 {

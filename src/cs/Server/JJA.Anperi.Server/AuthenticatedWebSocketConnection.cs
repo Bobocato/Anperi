@@ -107,7 +107,7 @@ namespace JJA.Anperi.Server
         public async Task<WebSocketCloseStatus> Run(CancellationToken token)
         {
             WebSocketApiResult apiObjectResult =
-                await _socket.ReceiveApiMessage(new ArraySegment<byte>(_buffer), token);
+                await _socket.ReceiveApiMessage(_buffer, token);
             while (!apiObjectResult.SocketResult.CloseStatus.HasValue && !token.IsCancellationRequested)
             {
                 if (apiObjectResult.Obj == null)
@@ -149,7 +149,7 @@ namespace JJA.Anperi.Server
                 }
                 try
                 {
-                    apiObjectResult = await _socket.ReceiveApiMessage(new ArraySegment<byte>(_buffer), token);
+                    apiObjectResult = await _socket.ReceiveApiMessage(_buffer, token);
                 }
                 catch (WebSocketException wse)
                 {

@@ -70,7 +70,7 @@ namespace JJA.Anperi.Server
             var buffer = new byte[_options.Value.WsBufferSize];
 
             WebSocketApiResult apiObjectResult =
-                await socket.ReceiveApiMessage(new ArraySegment<byte>(buffer), _options.Value.RequestCancelToken);
+                await socket.ReceiveApiMessage(buffer, _options.Value.RequestCancelToken);
             bool authFailed = true;
             WebSocketCloseStatus closeStatus = WebSocketCloseStatus.Empty;
             if (apiObjectResult.Obj == null)
