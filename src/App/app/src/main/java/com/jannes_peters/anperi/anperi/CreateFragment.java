@@ -410,8 +410,8 @@ public class CreateFragment extends Fragment {
     private CheckBox createCheckBox(final String id) {
         CheckBox checkBox = new CheckBox(getActivity());
         checkBox.setTag(id);
-        checkBox.setOnClickListener(onClickListener(id));
-        checkBox.setOnLongClickListener(onLongClickListener(id));
+        ///checkBox.setOnClickListener(onClickListener(id));
+        //checkBox.setOnLongClickListener(onLongClickListener(id));
         checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
