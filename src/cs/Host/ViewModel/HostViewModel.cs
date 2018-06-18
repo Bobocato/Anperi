@@ -13,7 +13,6 @@ namespace JJA.Anperi.Host.ViewModel
     {
         private readonly Dispatcher _dispatcher;
         private readonly HostModel _model;
-        private string _connectedString;
 
         public HostViewModel(Dispatcher dispatcher)
         {
