@@ -5,6 +5,7 @@ using JJA.Anperi.Host.Model;
 using JJA.Anperi.Host.Model.Utility;
 using JJA.Anperi.Host.Utility;
 using JJA.Anperi.Host.ViewModel;
+using JJA.Anperi.WpfUtility;
 
 namespace JJA.Anperi.Host.View
 {
@@ -89,7 +90,7 @@ namespace JJA.Anperi.Host.View
 
         private void ButRestart_Click(object sender, RoutedEventArgs e)
         {
-            throw new System.NotImplementedException();
+            WpfUtil.Restart();
         }
 
         private void ButExit_Click(object sender, RoutedEventArgs e)

@@ -71,6 +71,23 @@ namespace JJA.Anperi.WpfUtility
         }
 
         /// <summary>
+        /// Restarts the current executable. You can use this if you used the WpfUtil Mutex to handle multiple instances.
+        /// </summary>
+        public static void Restart()
+        {
+            Application.Current.Exit += (o, args) =>
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = Util.FullAssemblyPath,
+                    WorkingDirectory = Process.GetCurrentProcess().StartInfo.WorkingDirectory
+                });
+            };
+            Application.Current.Shutdown();
+            Dispose();
+        }
+
+        /// <summary>
         /// Adds the program to the autostart in the registry. You should probably use some command line args to prevent the gui from opening.
         /// If the regkeyname is not set it will use the executable name without the extension.
         /// </summary>
@@ -164,11 +181,13 @@ namespace JJA.Anperi.WpfUtility
             try
             {
                 _evtNotifiedFromOtherProcess?.Dispose();
+                _evtNotifiedFromOtherProcess = null;
                 if (IsFirstInstance)
                 {
                     _mutexCheckIfFirstInstance?.ReleaseMutex();
                 }
                 _mutexCheckIfFirstInstance?.Dispose();
+                _mutexCheckIfFirstInstance = null;
             }
             catch (Exception ex)
             {
