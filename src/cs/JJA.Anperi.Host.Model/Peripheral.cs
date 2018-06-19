@@ -16,6 +16,17 @@ namespace JJA.Anperi.Host.Model
         private readonly HostJsonApiObjectFactory.ApiPeripheral _peripheral;
         private bool _isFavorite = false;
         private bool _isConnected = false;
+        private Dictionary<string, dynamic> _peripheralInfo;
+
+        public Dictionary<string, dynamic> PeripheralInfo
+        {
+            get { return _peripheralInfo; }
+            set
+            {
+                _peripheralInfo = value;
+                OnPropertyChanged();
+            }
+        }
 
         internal Peripheral(HostJsonApiObjectFactory.ApiPeripheral peripheral)
         {

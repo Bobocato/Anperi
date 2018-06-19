@@ -169,8 +169,8 @@ public class ExampleView extends VBox implements IAnperiListener, IAnperiMessage
     }
 
     @Override
-    public void onPeripheralConnected() {
-        setStatusText("A peripheral just connected.");
+    public void onPeripheralConnected(PeripheralInfo pi) {
+        setStatusText(String.format("A peripheral just connected: %s", pi.getScreenType().toString()));
     }
 
     @Override
@@ -179,8 +179,8 @@ public class ExampleView extends VBox implements IAnperiListener, IAnperiMessage
     }
 
     @Override
-    public void onIncompatiblePeripheralConnected() {
-        setStatusText("onIncompatiblePeripheralConnected");
+    public void onIncompatiblePeripheralConnected(PeripheralInfo pi) {
+        setStatusText(String.format("An incompatible peripheral just connected: %s", pi.getScreenType().toString()));
     }
 
     @Override
@@ -219,11 +219,6 @@ public class ExampleView extends VBox implements IAnperiListener, IAnperiMessage
     @Override
     public void onDebug(String message) {
         setStatusText("DEBUG: " + message);
-    }
-
-    @Override
-    public void onPeripheralInfo(PeripheralInfo peripheralInfo) {
-        setStatusText("onPeripheralInfo: " + peripheralInfo.getScreenType() + ", " + peripheralInfo.getVersion());
     }
 
     public void close() {

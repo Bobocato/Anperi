@@ -12,8 +12,7 @@ namespace JJA.Anperi.Ipc.Dto
         /// </summary>
         Debug = 1,
         Error = 2,
-
-        GetPeripheralInfo = 100,
+        
         SetPeripheralLayout = 101,
         SetPeripheralElementParam = 102,
         ClaimControl = 103,

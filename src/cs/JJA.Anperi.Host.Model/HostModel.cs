@@ -119,16 +119,18 @@ namespace JJA.Anperi.Host.Model
             {
                 if (!Equals(value, _connectedPeripheral))
                 {
-                    if (_connectedPeripheral != null) _connectedPeripheral.IsConnected = false;
+                    if (_connectedPeripheral != null)
+                    {
+                        _connectedPeripheral.IsConnected = false;
+                        _connectedPeripheral.PeripheralInfo = null;
+                    }
                     _connectedPeripheral = value;
-                    IpcMessageCode ipcMsg = IpcMessageCode.PeripheralDisconnected;
                     if (_connectedPeripheral != null)
                     {
                         _connectedPeripheral.IsConnected = true;
-                        ipcMsg = IpcMessageCode.PeripheralConnected;
                     }
                     OnPropertyChanged();
-                    _ipcClients.AsParallel().ForAll(c => c.SendAsync(new IpcMessage(ipcMsg)));
+                    if (_connectedPeripheral?.PeripheralInfo != null) _ipcClients.AsParallel().ForAll(c => c.SendAsync(new IpcMessage(IpcMessageCode.PeripheralDisconnected)));
                 }
             }
         }
@@ -141,6 +143,7 @@ namespace JJA.Anperi.Host.Model
                 if (ConfigHandler.Load().Favorite != value)
                 {
                     ConfigHandler.Load().Favorite = value;
+                    ConfigHandler.Save();
                     Peripherals.ForEach(p => p.IsFavorite = false);
                     Peripheral peri = Peripherals.SingleOrDefault(p => p.Id == ConfigHandler.Load().Favorite);
                     if (peri != null) peri.IsFavorite = true;
@@ -206,9 +209,6 @@ namespace JJA.Anperi.Host.Model
                         case IpcMessageCode.Unset:
                             client.SendAsync(message);
                             break;
-                        case IpcMessageCode.GetPeripheralInfo:
-                            SendToWebsocket(DeviceJsonApiObjectFactory.CreateGetInfo().Serialize());
-                            break;
                         case IpcMessageCode.SetPeripheralElementParam:
                             if (!CheckHasControl(senderClient)) return;
                             if (message.Data == null)
@@ -268,9 +268,9 @@ namespace JJA.Anperi.Host.Model
                         new IpcMessage(IpcMessageCode.NotClaimed));
                 }
 
-                if (ConnectedPeripheral != null)
+                if (ConnectedPeripheral?.PeripheralInfo != null)
                 {
-                    client.SendAsync(new IpcMessage(IpcMessageCode.PeripheralConnected));
+                    client.SendAsync(new IpcMessage(IpcMessageCode.PeripheralConnected) {Data = ConnectedPeripheral.PeripheralInfo});
                 }
             };
 
@@ -584,6 +584,10 @@ namespace JJA.Anperi.Host.Model
                             {
                                 QueueMessage("Couldn't find the connected device in peripheral list!");
                             }
+                            else
+                            {
+                                SendToWebsocket(DeviceJsonApiObjectFactory.CreateGetInfo().Serialize());
+                            }
                         }
                     }
                     else
@@ -738,11 +742,8 @@ namespace JJA.Anperi.Host.Model
                     }
                     break;
                 case DeviceRequestCode.get_info:
-                    var getInfo = new IpcMessage(IpcMessageCode.GetPeripheralInfo)
-                    {
-                        Data = json.data
-                    };
-                    _ipcClients.AsParallel().ForAll(c => c.SendAsync(getInfo));
+                    ConnectedPeripheral.PeripheralInfo = json.data;
+                    _ipcClients.AsParallel().ForAll(c => c.SendAsync(new IpcMessage(IpcMessageCode.PeripheralConnected) {Data = ConnectedPeripheral.PeripheralInfo}));
                     break;
                 case DeviceRequestCode.event_fired:
                     var eventFired = new IpcMessage(IpcMessageCode.PeripheralEventFired)

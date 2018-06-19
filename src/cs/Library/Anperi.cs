@@ -14,18 +14,32 @@ using JJA.Anperi.Utility;
 [assembly: ComVisible(true)]
 namespace JJA.Anperi.Lib
 {
+    /// <summary>
+    /// Class for access to all the anperi functionality. After instantiation set the event listeners and call connect.
+    /// Make sure to Dispose it to gracefully disconnect from the IPC server.
+    /// </summary>
     public class Anperi : IDisposable
     {
         public int ApiVersion => 1;
 
+        /// <summary>
+        /// 
+        /// </summary>
         public event EventHandler<AnperiMessageEventArgs> Message;
         public event EventHandler Connected;
         public event EventHandler Disconnected;
-        public event EventHandler<InvalidPeripheralVersionEventArgs> IncompatibleDeviceConnected;
+        public event EventHandler<PeripheralConnectedEventArgs> IncompatibleDeviceConnected;
+        public event EventHandler<PeripheralConnectedEventArgs> PeripheralConnected;
+        public event EventHandler PeripheralDisconnected;
+        public event EventHandler HostNotClaimed;
+        public event EventHandler ControlLost;
 
         private readonly IIpcClient _ipcClient;
         private readonly SemaphoreSlim _semConnecting = new SemaphoreSlim(1, 1);
 
+        /// <summary>
+        /// Creates a new Anperi interface. It will connect to the IPC server automatically. To actually use this class you'll need to subscribe to almost all events.
+        /// </summary>
         public Anperi()
         {
             _ipcClient = new NamedPipeIpcClient();
@@ -44,7 +58,6 @@ namespace JJA.Anperi.Lib
         {
             await _ipcClient.SendAsync(new IpcMessage(IpcMessageCode.ClaimControl)).ConfigureAwait(false);
             HasControl = true;
-            await RequestPeripheralInfo();
         }
 
         public async Task FreeControl()
@@ -53,11 +66,7 @@ namespace JJA.Anperi.Lib
             await _ipcClient.SendAsync(new IpcMessage(IpcMessageCode.FreeControl)).ConfigureAwait(false);
         }
 
-        public async Task RequestPeripheralInfo()
-        {
-            if (!HasControl) throw new InvalidOperationException("We aren't in control of the device.");
-            await _ipcClient.SendAsync(new IpcMessage {MessageCode = IpcMessageCode.GetPeripheralInfo}).ConfigureAwait(false);
-        }
+        public PeripheralInfo PeripheralInfo { get; private set; }
 
         public async Task SetLayout(RootGrid layout, ScreenOrientation orientation = ScreenOrientation.unspecified)
         {
@@ -130,11 +139,6 @@ namespace JJA.Anperi.Lib
                 case IpcMessageCode.Error:
                     OnMessage(new ErrorAnperiMessage(e.Message.Data));
                     break;
-                case IpcMessageCode.GetPeripheralInfo:
-                    PeripheralInfoAnperiMessage pim = new PeripheralInfoAnperiMessage(e.Message.Data);
-                    if (pim.Version < ApiVersion) OnIncompatibleDeviceConnected(pim.Version, ApiVersion);
-                    OnMessage(pim);
-                    break;
                 case IpcMessageCode.PeripheralEventFired:
                     OnMessage(new EventFiredAnperiMessage(e.Message.Data));
                     break;
@@ -144,7 +148,16 @@ namespace JJA.Anperi.Lib
                     break;
                 case IpcMessageCode.PeripheralConnected:
                     IsPeripheralConnected = true;
-                    OnPeripheralConnected();
+                    var pCon = new PeripheralConnectedAnperiMessage(e.Message.Data);
+                    PeripheralInfo = pCon.PeripheralInfo;
+                    if (pCon.PeripheralInfo.Version != ApiVersion)
+                    {
+                        OnIncompatibleDeviceConnected(pCon.PeripheralInfo);
+                    }
+                    else
+                    {
+                        OnPeripheralConnected(new PeripheralConnectedAnperiMessage(e.Message.Data).PeripheralInfo);
+                    }
                     break;
                 case IpcMessageCode.ControlLost:
                     HasControl = false;
@@ -194,29 +207,25 @@ namespace JJA.Anperi.Lib
         {
             HostNotClaimed?.Invoke(this, EventArgs.Empty);
         }
-        public event EventHandler HostNotClaimed;
 
         protected virtual void OnControlLost()
         {
             ControlLost?.Invoke(this, EventArgs.Empty);
         }
-        public event EventHandler ControlLost;
 
-        protected virtual void OnPeripheralConnected()
+        protected virtual void OnPeripheralConnected(PeripheralInfo msg)
         {
-            PeripheralConnected?.Invoke(this, EventArgs.Empty);
+            PeripheralConnected?.Invoke(this, new PeripheralConnectedEventArgs(msg));
         }
-        public event EventHandler PeripheralConnected;
 
         protected virtual void OnPeripheralDisconnected()
         {
             PeripheralDisconnected?.Invoke(this, EventArgs.Empty);
         }
-        public event EventHandler PeripheralDisconnected;
 
-        protected virtual void OnIncompatibleDeviceConnected(int peripheralVersion, int libVersion)
+        protected virtual void OnIncompatibleDeviceConnected(PeripheralInfo msg)
         {
-            IncompatibleDeviceConnected?.Invoke(this, new InvalidPeripheralVersionEventArgs(peripheralVersion, libVersion));
+            IncompatibleDeviceConnected?.Invoke(this, new PeripheralConnectedEventArgs(msg));
         }
 
         public void Dispose()

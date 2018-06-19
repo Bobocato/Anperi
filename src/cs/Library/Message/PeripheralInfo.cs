@@ -5,12 +5,13 @@ using JJA.Anperi.Utility;
 
 namespace JJA.Anperi.Lib.Message
 {
-    public class PeripheralInfoAnperiMessage : AnperiMessage
+    public class PeripheralInfo
     {
-        protected override IpcMessageCode MsgCode => IpcMessageCode.GetPeripheralInfo;
+        public Dictionary<string, dynamic> RawData { get; set; }
 
-        public PeripheralInfoAnperiMessage(Dictionary<string, dynamic> data) : base(data)
+        public PeripheralInfo(Dictionary<string, dynamic> data)
         {
+            RawData = data;
         }
 
         public enum ScreenType
@@ -20,18 +21,18 @@ namespace JJA.Anperi.Lib.Message
 
         public int Version
         {
-            get => base.Data.TryGetValue("version", out int val) ? val : default(int);
-            set => base.Data["version"] = value;
+            get => RawData.TryGetValue("version", out int val) ? val : default(int);
+            set => RawData["version"] = value;
         }
         public int ScreenWidth
         {
-            get => base.Data.TryGetValue("screen_width", out int val) ? val : default(int);
-            set => base.Data["screen_width"] = value;
+            get => RawData.TryGetValue("screen_width", out int val) ? val : default(int);
+            set => RawData["screen_width"] = value;
         }
         public int ScreenHeight
         {
-            get => base.Data.TryGetValue("screen_height", out int val) ? val : default(int);
-            set => base.Data["screen_height"] = value;
+            get => RawData.TryGetValue("screen_height", out int val) ? val : default(int);
+            set => RawData["screen_height"] = value;
         }
 
         public ScreenType Screen
@@ -39,7 +40,7 @@ namespace JJA.Anperi.Lib.Message
             get
             {
                 ScreenType res = ScreenType.generic;
-                if (base.Data.TryGetValue("screen_type", out string st))
+                if (RawData.TryGetValue("screen_type", out string st))
                 {
                     if (Enum.TryParse(st, out ScreenType ste))
                     {

@@ -49,9 +49,15 @@ namespace AnperiRemote.Model
             _anperi.ControlLost += _anperi_ControlLost;
             _anperi.HostNotClaimed += _anperi_HostNotClaimed;
             _anperi.PeripheralConnected += _anperi_PeripheralConnected;
+            _anperi.IncompatibleDeviceConnected += _anperi_IncompatibleDeviceConnected;
             _anperi.PeripheralDisconnected += _anperi_PeripheralDisconnected;
             _settings = SettingsModel.Instance;
             _settings.PropertyChanged += _settings_PropertyChanged;
+        }
+
+        private void _anperi_IncompatibleDeviceConnected(object sender, PeripheralConnectedEventArgs e)
+        {
+            Trace.TraceWarning("Incompatible device connected. Be sure to keep your software updated Lib: {0}, Peri: {1}", _anperi.ApiVersion, e.PeripheralInfo.Version);
         }
 
         private void _settings_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -99,7 +105,7 @@ namespace AnperiRemote.Model
             OnPropertyChanged(nameof(IsPeripheralConnected));
         }
 
-        private async void _anperi_PeripheralConnected(object sender, EventArgs e)
+        private async void _anperi_PeripheralConnected(object sender, PeripheralConnectedEventArgs e)
         {
             OnPropertyChanged(nameof(IsPeripheralConnected));
             await SetLayout(SettingsModel.Instance).ConfigureAwait(false);

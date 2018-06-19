@@ -10,13 +10,12 @@ import com.jannes_peters.anperi.lib.ipc.namedpipe.NamedPipeIpcClient;
 import org.json.simple.JSONObject;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Class for access to all the anperi functionality. After instantiation set the event listeners and call connect.
- * Make sure to call close to gracefully disconnect from the IPC client.
+ * Make sure to call close to gracefully disconnect from the IPC server.
  */
 public class Anperi {
     private static final int ANPERI_VERSION = 1;
@@ -25,6 +24,9 @@ public class Anperi {
     private Thread mConnectThread;
     private IAnperiListener mAnperiListener;
     private IAnperiMessageListener mMessageListener;
+
+    private final Object mSyncRootPeripheralInfo = new Object();
+    private PeripheralInfo mPeripheralInfo;
 
     private volatile boolean mHasControl = false;
     private volatile boolean mIsPeripheralConnected = false;
@@ -100,13 +102,6 @@ public class Anperi {
         if (hasControl()) {
             if (mIpcClient != null) mIpcClient.send(new IpcMessage(IpcMessageCode.FreeControl));
         }
-    }
-
-    /**
-     * Requests the peripheral info of the current peripheral. You will get the response in the IAnperiMessageListener.
-     */
-    public void requestPeripheralInfo() {
-        if (mIpcClient != null) mIpcClient.send(new IpcMessage(IpcMessageCode.GetPeripheralInfo));
     }
 
     /**
@@ -211,27 +206,27 @@ public class Anperi {
                     if (mMessageListener == null) return;
                     mMessageListener.onError(msg.<String>getData("msg"));
                     break;
-                case GetPeripheralInfo:
-                    if (mMessageListener == null) return;
-                    PeripheralInfo pi = new PeripheralInfo(msg);
-                    if (pi.getVersion() > ANPERI_VERSION) {
-                        mAnperiListener.onIncompatiblePeripheralConnected();
-                    }
-                    mMessageListener.onPeripheralInfo(pi);
-                    break;
                 case PeripheralEventFired:
                     if (mMessageListener == null) return;
                     mMessageListener.onEventFired(new ElementEvent(msg));
                     break;
                 case PeripheralDisconnected:
                     mIsPeripheralConnected = false;
+                    mPeripheralInfo = null;
                     if (mAnperiListener == null) return;
                     mAnperiListener.onPeripheralDisconnected();
                     break;
                 case PeripheralConnected:
                     mIsPeripheralConnected = true;
-                    if (mAnperiListener == null) return;
-                    mAnperiListener.onPeripheralConnected();
+                    synchronized (mSyncRootPeripheralInfo) {
+                        mPeripheralInfo = new PeripheralInfo(msg);
+                        if (mAnperiListener == null) return;
+                        if (mPeripheralInfo.getVersion() != ANPERI_VERSION) {
+                            mAnperiListener.onIncompatiblePeripheralConnected(mPeripheralInfo);
+                        } else {
+                            mAnperiListener.onPeripheralConnected(mPeripheralInfo);
+                        }
+                    }
                     break;
                 case ControlLost:
                     mHasControl = false;
@@ -264,5 +259,12 @@ public class Anperi {
         JSONObject jobj = new JSONObject();
         jobj.put("msg", s);
         mIpcClient.send(new IpcMessage(IpcMessageCode.Debug, jobj));
+    }
+
+    /**
+     * Get the PeripheralInfo from the current peripheral.
+     */
+    public PeripheralInfo getPeripheralInfo() {
+        return mPeripheralInfo;
     }
 }
