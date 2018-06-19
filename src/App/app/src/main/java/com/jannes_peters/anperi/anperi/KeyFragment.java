@@ -50,8 +50,10 @@ public class KeyFragment extends Fragment {
     public void setConnectedTo(String name){
         connectedTo = name;
         if(isStarted && isAttached){
-            TextView text = this.getView().findViewById(R.id.connectedToText);
-            text.setText(getString(R.string.key_connected_to) + name);
+            if(this.getView() != null){
+                TextView text = this.getView().findViewById(R.id.connectedToText);
+                text.setText(getString(R.string.key_connected_to) + name);
+            }
         }
     }
 
