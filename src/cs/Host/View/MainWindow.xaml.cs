@@ -85,7 +85,8 @@ namespace JJA.Anperi.Host.View
 
         private void ButAbout_Click(object sender, RoutedEventArgs e)
         {
-            throw new System.NotImplementedException();
+            var win = new AboutWindow();
+            win.ShowDialog();
         }
 
         private void ButRestart_Click(object sender, RoutedEventArgs e)
