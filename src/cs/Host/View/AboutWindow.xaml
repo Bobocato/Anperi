@@ -8,10 +8,10 @@
         Title="About Anperi" ResizeMode="NoResize" SizeToContent="WidthAndHeight">
 	<Grid>
 		<StackPanel HorizontalAlignment="Center" Orientation="Vertical" Width="Auto" Margin="5">
-			<Image VerticalAlignment="Center" Margin="5" Source="../Resources/anperi.ico" Height="50"></Image>
+			<Image VerticalAlignment="Center" Margin="5" Source="/Resources/anperi.ico" Height="50"></Image>
 			<TextBlock FontSize="20" Margin="5" HorizontalAlignment="Center">
 				<Run>You can find the App</Run>
-				<Hyperlink Click="Link_Click" NavigateUri="http://lmgtfy.com/?q=anperi+app">here</Hyperlink>
+				<Hyperlink Click="Link_Click" NavigateUri="https://github.com/Bobocato/Projekt-SS18">here</Hyperlink>
 			</TextBlock>
 			<DockPanel LastChildFill="False">
 				<TextBlock FontSize="12" Margin="5" TextWrapping="Wrap" Text="created by Jannes Peters, Jesse Nis Arff and Adrian Kurth"></TextBlock>
