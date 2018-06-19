@@ -130,7 +130,7 @@ public class CreateFragment extends Fragment {
                         rowSpan,
                         columnSpan,
                         (float) jsonObject.getDouble("row_weight"),
-                        (float) jsonObject.getDouble("column_span"));
+                        (float) jsonObject.getDouble("column_weight"));
                 switch (json.getString("param_name")) {
                     case "row":
                         params.rowSpec = android.support.v7.widget.GridLayout.spec(json.getInt("param_value"), rowSpan, (float) jsonObject.getDouble("column_weight"));
@@ -269,7 +269,7 @@ public class CreateFragment extends Fragment {
                         rowSpan,
                         columnSpan,
                         (float) currentElement.getDouble("row_weight"),
-                        (float) currentElement.getDouble("column_span"));
+                        (float) currentElement.getDouble("column_weight"));
                 String text, hint, id;
                 int min, max, progress, step_size;
                 Boolean checked;
