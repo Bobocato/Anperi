@@ -33,7 +33,7 @@
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="Application">
                 <MenuItem Header="_Settings" Icon="{StaticResource IconSettings}" Click="ButOptions_Click" />
-                <MenuItem Header="_About (Coming soonTM)" Icon="{StaticResource IconAbout}" IsEnabled="False" Click="ButAbout_Click" />
+                <MenuItem Header="_About" Icon="{StaticResource IconAbout}" Click="ButAbout_Click" />
                 <MenuItem Header="_Restart (Coming soonTM)" Icon="{StaticResource IconRestart}" IsEnabled="False" Click="ButRestart_Click" />
                 <MenuItem Header="_Exit" Icon="{StaticResource IconClose}" Click="ButExit_Click" />
             </MenuItem>
