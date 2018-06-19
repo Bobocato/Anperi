@@ -3,6 +3,7 @@ package com.jannes_peters.anperi.anperi;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -359,7 +360,9 @@ public class MainActivity extends AppCompatActivity {
                                         case "partner_connected":
                                             try {
                                                 String name = apiObject.messageData.getString("name");
-                                                keyFragment.setConnectedTo(name);
+                                                if (keyFragment != null){
+                                                    keyFragment.setConnectedTo(name);
+                                                }
                                             } catch (JSONException e) {
                                                 e.printStackTrace();
                                             }
@@ -498,6 +501,15 @@ public class MainActivity extends AppCompatActivity {
         }
         if (createFragment != null)
             getFragmentManager().beginTransaction().remove(createFragment).commit();
+        try {
+            JSONObject str = new JSONObject(StatusObject.layoutString);
+            String ori = str.getString("orientation");
+            if (ori != null){
+                this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         StatusObject.layoutString = "";
         StatusObject.isCustomLayout = false;
         StatusObject.shouldReconnect = false;
