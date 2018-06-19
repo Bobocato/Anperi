@@ -68,13 +68,11 @@ namespace AnperiRemote.Model
                 _currentLayout = new RootGrid();
                 _currentLayout.elements = new List<Element>();
                 int currRow = 0;
-                if (sm.ShutdownControlEnabled) _currentLayout.elements.Add(new Button { id = _elementIds[Elements.ButtonShutdown], column = 0, row = currRow++, text = "Shutdown" });
+                if (sm.ShutdownControlEnabled) _currentLayout.elements.Add(new Button { id = _elementIds[Elements.ButtonShutdown], column = 0, row = currRow++, row_weight = 0.5f, column_weight = 0.5f, text = "Shutdown" });
                 if (sm.VolumeControlEnabled)
                 {
-                    Grid row = new Grid { column = 0, row = currRow++ };
-                    row.elements.Add(new Label { id = "labelVolume", column = 0, row = 0, text = "Volume:" });
-                    row.elements.Add(new Slider { id = _elementIds[Elements.SliderVolume], column = 1, row = 1, min = 0, max = 100, step_size = 2, progress = VolumeModel.Instance.Volume});
-                    _currentLayout.elements.Add(row);
+                    _currentLayout.elements.Add(new Label { id = "labelVolume", column = 0, row = currRow, row_weight = 2.0f, column_weight = 1.0f, text = "Volume:" });
+                    _currentLayout.elements.Add(new Slider { id = _elementIds[Elements.SliderVolume], column = 1, row = currRow++, min = 0, max = 100, step_size = 3, row_weight = 2.0f, column_weight = 3.0f, progress = VolumeModel.Instance.Volume});
                 }
             }
             if (_anperi.HasControl && _anperi.IsPeripheralConnected)
