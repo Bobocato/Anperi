@@ -27,6 +27,9 @@ public class KeyFragment extends Fragment {
         String key = sharedPref.getString("pairingcode", null);
         TextView keyText = view.findViewById(R.id.keyText);
         keyText.setText(key);
+        TextView serverText = view.findViewById(R.id.serverText);
+        serverText.setText(MyWebSocket.getServer());
+        if(MyWebSocket.getServer() != null) setServer(MyWebSocket.getServer());
         sharedPref.edit().putString("pairingcode", null).apply();
         return view;
     }
@@ -43,7 +46,9 @@ public class KeyFragment extends Fragment {
     //Check for Layout and createLayout if anything is ready.
     public void onAttach(Activity activity) {
         isAttached = true;
-        if (pairingCode != null && isStarted) setCode(pairingCode);
+        if (pairingCode != null && isStarted){
+            setCode(pairingCode);
+        }
         super.onAttach(activity);
     }
 
@@ -57,9 +62,19 @@ public class KeyFragment extends Fragment {
         }
     }
 
+    public void setServer(String server){
+        if(isStarted && isAttached){
+            if(this.getView() != null){
+                TextView text = this.getView().findViewById(R.id.serverText);
+                text.setText(server);
+            }
+        }
+    }
+
     public void setCode(String code) {
         pairingCode = code;
         if (connectedTo != null) setConnectedTo(connectedTo);
+        if(MyWebSocket.getServer() != null) setServer(MyWebSocket.getServer());
         if (isAttached && isStarted) {
             TextView text = this.getView().findViewById(R.id.keyText);
             text.setText(code);
