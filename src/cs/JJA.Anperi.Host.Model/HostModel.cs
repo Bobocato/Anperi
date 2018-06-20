@@ -119,6 +119,7 @@ namespace JJA.Anperi.Host.Model
             {
                 if (!Equals(value, _connectedPeripheral))
                 {
+                    _ipcClients.AsParallel().ForAll(c => c.SendAsync(new IpcMessage(IpcMessageCode.PeripheralDisconnected)));
                     if (_connectedPeripheral != null)
                     {
                         _connectedPeripheral.IsConnected = false;
@@ -130,7 +131,6 @@ namespace JJA.Anperi.Host.Model
                         _connectedPeripheral.IsConnected = true;
                     }
                     OnPropertyChanged();
-                    if (_connectedPeripheral?.PeripheralInfo != null) _ipcClients.AsParallel().ForAll(c => c.SendAsync(new IpcMessage(IpcMessageCode.PeripheralDisconnected)));
                 }
             }
         }
