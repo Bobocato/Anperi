@@ -88,7 +88,7 @@ namespace AnperiRemote.Model
                 {
                     grid = _currentLayout;
                 }
-                await _anperi.SetLayout(grid, ScreenOrientation.portrait).ConfigureAwait(false);
+                await _anperi.SetLayout(grid, Anperi.ScreenOrientation.portrait).ConfigureAwait(false);
             }
         }
 
