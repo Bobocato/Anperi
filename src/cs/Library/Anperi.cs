@@ -20,20 +20,6 @@ namespace JJA.Anperi.Lib
     /// </summary>
     public class Anperi : IDisposable
     {
-        public int ApiVersion => 1;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public event EventHandler<AnperiMessageEventArgs> Message;
-        public event EventHandler Connected;
-        public event EventHandler Disconnected;
-        public event EventHandler<PeripheralConnectedEventArgs> IncompatibleDeviceConnected;
-        public event EventHandler<PeripheralConnectedEventArgs> PeripheralConnected;
-        public event EventHandler PeripheralDisconnected;
-        public event EventHandler HostNotClaimed;
-        public event EventHandler ControlLost;
-
         private readonly IIpcClient _ipcClient;
         private readonly SemaphoreSlim _semConnecting = new SemaphoreSlim(1, 1);
 
@@ -50,33 +36,137 @@ namespace JJA.Anperi.Lib
             ReconnectIn(TimeSpan.Zero);
         }
 
+        /// <summary>
+        /// The API version this library got compiled for.
+        /// </summary>
+        public int ApiVersion => 1;
+
+        /// <summary>
+        /// Here will arrive all events that aren't strictly bound to the status of the library.
+        /// </summary>
+        public event EventHandler<AnperiMessageEventArgs> Message;
+        /// <summary>
+        /// Occurs when the library gets connected to the IPC server. <seealso cref="IsConnected"/>
+        /// </summary>
+        public event EventHandler Connected;
+        /// <summary>
+        /// Occurs when the library gets disconnected to the IPC server. <seealso cref="IsConnected"/>
+        /// </summary>
+        public event EventHandler Disconnected;
+        /// <summary>
+        /// Occurs when a peripheral connected that has an incompatible version. 
+        /// You can display this to the user or just use it (beware of sudden nuclear meltdowns).
+        /// </summary>
+        public event EventHandler<PeripheralConnectedEventArgs> IncompatibleDeviceConnected;
+        /// <summary>
+        /// A compatible peripheral connected and is ready to use. This doesn't imply that you have control!
+        /// </summary>
+        public event EventHandler<PeripheralConnectedEventArgs> PeripheralConnected;
+        /// <summary>
+        /// Occurs when a peripheral disconnects. <seealso cref="IncompatibleDeviceConnected"/> <seealso cref="PeripheralConnected"/>
+        /// </summary>
+        public event EventHandler PeripheralDisconnected;
+        /// <summary>
+        /// Send by the IPC server when no client library has control over it at the current time.
+        /// </summary>
+        public event EventHandler HostNotClaimed;
+        /// <summary>
+        /// Somebody claimed control over the peripheral and you lost control.
+        /// !!!DO NOT RETAKE CONTROL HERE BECAUSE THIS COULD LEAD TO A PERMANENT LOOP!!!
+        /// </summary>
+        public event EventHandler ControlLost;
+        
+        /// <summary>
+        /// Defines screen orientations known to anperi.
+        /// </summary>
+        public enum ScreenOrientation
+        {
+            unspecified, landscape, portrait
+        }
+
+        /// <summary>
+        /// If the library is connected to the IPC server.
+        /// </summary>
         public bool IsConnected => _ipcClient?.IsOpen ?? false;
+        /// <summary>
+        /// If you have control at the moment. This doesn't imply that a device is connected at the moment <seealso cref="IsPeripheralConnected"/>
+        /// </summary>
         public bool HasControl { get; private set; } = false;
+        /// <summary>
+        /// If a peripheral is connected at the moment.
+        /// </summary>
         public bool IsPeripheralConnected { get; private set; } = false;
 
+        /// <summary>
+        /// Combines <see cref="HasControl"/> and <see cref="IsPeripheralConnected"/> into one check.
+        /// </summary>
+        public bool CanControl => HasControl && IsPeripheralConnected;
+
+        /// <summary>
+        /// Claim control. After this (obviously awaited) you can control a connected device. 
+        /// </summary>
         public async Task ClaimControl()
         {
             await _ipcClient.SendAsync(new IpcMessage(IpcMessageCode.ClaimControl)).ConfigureAwait(false);
             HasControl = true;
         }
 
-        public async Task FreeControl()
+        private void ThrowIfCantControl()
         {
             if (!HasControl) throw new InvalidOperationException("We aren't in control of the device.");
-            await _ipcClient.SendAsync(new IpcMessage(IpcMessageCode.FreeControl)).ConfigureAwait(false);
+            if (!IsPeripheralConnected) throw new InvalidOperationException("There is no device to control.");
         }
 
+        /// <summary>
+        /// Indicate that you don't need control at the moment to make room for some background application. You can always get control back with <see cref="ClaimControl"/>.
+        /// This won't trigger a <see cref="ControlLost"/> event. If you need that use <see cref="FreeControl(bool)"/>.
+        /// </summary>
+        public async Task FreeControl()
+        {
+            await FreeControl(false).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Indicate that you don't need control at the moment to make room for some background application. You can always get control back with <see cref="ClaimControl"/>.
+        /// </summary>
+        /// <param name="fireControlLost">If the method call should trigger <see cref="ControlLost"/>. Wil only trigger if <see cref="HasControl"/> was true before.</param>
+        public async Task FreeControl(bool fireControlLost)
+        {
+            if (HasControl)
+            {
+                await _ipcClient.SendAsync(new IpcMessage(IpcMessageCode.FreeControl)).ConfigureAwait(false);
+                if (fireControlLost) OnControlLost();
+            }
+        }
+
+        /// <summary>
+        /// The info about the currently connected peripheral, will be null if no peripheral is connected.
+        /// </summary>
         public PeripheralInfo PeripheralInfo { get; private set; }
 
+        /// <summary>
+        /// Set the layout in the connected peripheral.
+        /// </summary>
+        /// <param name="layout">the layout to be displayed</param>
+        /// <param name="orientation">The screen orientation to be used. This should always be set in order to avoid flipping screens when picking up/laying down a device.</param>
+        /// <exception cref="InvalidOperationException">If you don't have control <see cref="HasControl"/> or there is no peripheral connected <see cref="IsPeripheralConnected"/>.</exception>
         public async Task SetLayout(RootGrid layout, ScreenOrientation orientation = ScreenOrientation.unspecified)
         {
-            if (!HasControl) throw new InvalidOperationException("We aren't in control of the device.");
+            ThrowIfCantControl();
             await _ipcClient.SendAsync(new IpcMessage {MessageCode = IpcMessageCode.SetPeripheralLayout, Data = new Dictionary<string, dynamic>{{"grid", layout}, {"orientation", orientation.ToString()}}}).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Updates a parameter of an element that is already displayed on the peripheral.
+        /// Not that you cannot change the layout parameters after the fact. You'll need to recreate a layout for that.
+        /// </summary>
+        /// <param name="elementId">the id you gave the element in <see cref="SetLayout"/></param>
+        /// <param name="paramName">the name of the propery you want to change (same name as the properties in the element classes)</param>
+        /// <param name="value">the value you want to give to the property</param>
+        /// <exception cref="InvalidOperationException">If you don't have control <see cref="HasControl"/> or there is no peripheral connected <see cref="IsPeripheralConnected"/>.</exception>
         public async Task UpdateElementParam(string elementId, string paramName, dynamic value)
         {
-            if (!HasControl) throw new InvalidOperationException("We aren't in control of the device.");
+            ThrowIfCantControl();
             await _ipcClient.SendAsync(new IpcMessage(IpcMessageCode.SetPeripheralElementParam)
             {
                 Data = new Dictionary<string, dynamic>
@@ -90,7 +180,6 @@ namespace JJA.Anperi.Lib
 
         private void _ipcClient_Error(object sender, System.IO.ErrorEventArgs e)
         {
-            //Util.TraceException("IIpcClient encountered error", e.GetException());
             OnDisconnected();
             ReconnectIn(TimeSpan.FromSeconds(1));
         }
@@ -233,10 +322,5 @@ namespace JJA.Anperi.Lib
             _ipcClient?.Dispose();
             _semConnecting?.Dispose();
         }
-    }
-
-    public enum ScreenOrientation
-    {
-        unspecified, landscape, portrait
     }
 }
