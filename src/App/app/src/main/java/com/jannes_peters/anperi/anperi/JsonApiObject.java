@@ -4,8 +4,14 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import com.neovisionaries.ws.client.WebSocketException;
+
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class JsonApiObject {
     private static final String TAG = "jja.anperi";
@@ -57,10 +63,12 @@ public class JsonApiObject {
                                     return Action.error;
                                 }
                             case "get_pairing_code":
-                                SharedPreferences sharedprefs = context.getSharedPreferences(context.getString(R.string.preference_file_name), Context.MODE_PRIVATE);
-                                String pairingcode = messageData.getString("code");
-                                sharedprefs.edit().putString("pairingcode", pairingcode).apply();
-                                return Action.success;
+                                if(!StatusObject.pairingCodeCooldown) {
+                                    SharedPreferences sharedprefs = context.getSharedPreferences(context.getString(R.string.preference_file_name), Context.MODE_PRIVATE);
+                                    String pairingcode = messageData.getString("code");
+                                    sharedprefs.edit().putString("pairingcode", pairingcode).apply();
+                                    return Action.success;
+                                }
                         }
                         break;
                     default:
@@ -72,10 +80,18 @@ public class JsonApiObject {
                     case "message":
                         switch (messageCode) {
                             case "debug":
-                                //TODO: Display message
                                 return Action.debug;
                             case "set_layout":
                                 Log.v(TAG, "set_layout was called");
+                                StatusObject.pairingCodeCooldown = true;
+                                Timer timer = new Timer();
+                                timer.schedule(new TimerTask() {
+                                    @Override
+                                    public void run() {
+                                        //Wait 1 second before accepting pairingcodes when a layout was set
+                                        StatusObject.pairingCodeCooldown = false;
+                                    }
+                                }, 1000);
                                 return Action.success;
                             case "set_element_param":
                                 Log.v(TAG, "set_element_param was called");

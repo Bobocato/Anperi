@@ -12,6 +12,7 @@ public class StatusObject {
     public static String layoutString = "";
     public static boolean isInSettings = false;
     public static boolean isFirstRun = true;
+    public static boolean pairingCodeCooldown = false;
 
     private StatusObject(){ }
 

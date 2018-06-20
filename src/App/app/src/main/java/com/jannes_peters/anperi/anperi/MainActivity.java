@@ -360,7 +360,7 @@ public class MainActivity extends AppCompatActivity {
                                         case "partner_connected":
                                             try {
                                                 String name = apiObject.messageData.getString("name");
-                                                if (keyFragment != null){
+                                                if (keyFragment != null) {
                                                     keyFragment.setConnectedTo(name);
                                                 }
                                             } catch (JSONException e) {
@@ -463,6 +463,8 @@ public class MainActivity extends AppCompatActivity {
                         case debug:
                             showToast(action.toString() + ": " + apiObject.messageData.toString(), Toast.LENGTH_LONG);
                             break;
+                        case invalid:
+                            break;
                         case error:
                             switch (apiObject.messageContext) {
                                 case "server":
@@ -477,6 +479,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                     break;
                             }
+                        default:
+                            break;
                     }
                 }
             });
@@ -504,12 +508,13 @@ public class MainActivity extends AppCompatActivity {
         try {
             JSONObject str = new JSONObject(StatusObject.layoutString);
             String ori = str.getString("orientation");
-            if (ori != null){
+            if (ori != null) {
                 this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
+        StatusObject.pairingCodeCooldown = false;
         StatusObject.layoutString = "";
         StatusObject.isCustomLayout = false;
         StatusObject.shouldReconnect = false;

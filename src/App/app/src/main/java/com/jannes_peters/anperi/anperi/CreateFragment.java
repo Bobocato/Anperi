@@ -3,7 +3,6 @@ package com.jannes_peters.anperi.anperi;
 import android.app.Fragment;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
-import android.support.v7.widget.GridLayout;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
