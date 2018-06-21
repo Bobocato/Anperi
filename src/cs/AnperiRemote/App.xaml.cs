@@ -33,7 +33,6 @@ namespace AnperiRemote
             Trace.Listeners.Add(new FileLogTraceListener("filelistener") { Location = LogFileLocation.Custom, CustomLocation = "logs", Append = true, BaseFileName = "AnperiRemote", AutoFlush = true, TraceOutputOptions = TraceOptions.DateTime, Delimiter = "\t|\t"});
 #endif
             Trace.TraceInformation("OnStartup called.");
-            AliveTrace();
 
             object _ = SettingsModel.Instance;
             this.ShutdownMode = ShutdownMode.OnExplicitShutdown;
@@ -138,15 +137,6 @@ namespace AnperiRemote
             TrayHelper.Instance.IconVisible = false;
             SettingsModel.Instance.Save();
             base.OnExit(e);
-        }
-
-        private async void AliveTrace()
-        {
-            while (true)
-            {
-                await Task.Delay(TimeSpan.FromMinutes(1));
-                Trace.TraceInformation("Still active ...");
-            }
         }
     }
 }
