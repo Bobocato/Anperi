@@ -701,6 +701,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void showSettings() {
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        getPairingCodeWS();
         StatusObject.isInSettings = true;
         if (getFragmentManager().findFragmentByTag("settingsFrag") != null) {
             settingsFragment = (SettingsFragment) getFragmentManager().findFragmentByTag("settingsFrag");
