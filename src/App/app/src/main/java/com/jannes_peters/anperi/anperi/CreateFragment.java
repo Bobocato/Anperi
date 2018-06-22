@@ -418,7 +418,7 @@ public class CreateFragment extends Fragment {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                 try {
-                    dataClick("checkbox", id, new JSONObject().put("checked", b));
+                    dataClick("on_change", id, new JSONObject().put("checked", b));
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
