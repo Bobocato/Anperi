@@ -77,7 +77,12 @@ public class MainActivity extends AppCompatActivity {
         StatusObject.getInstance();
         if (savedInstanceState != null) {
             Log.v(TAG, "The SavedInstance was not null");
-            if (savedInstanceState.getBoolean("isCustomLayout")) {
+            if (savedInstanceState.getBoolean("isInSettings")){
+                Log.v(TAG, "Reload in Settings");
+                addWsListeners();
+                SettingsFragment settingsFragment = (SettingsFragment) getFragmentManager().findFragmentByTag("settingsFrag");
+                showSettings();
+            } else if (savedInstanceState.getBoolean("isCustomLayout")) {
                 Log.v(TAG, "Reload with custom layout");
                 addWsListeners();
                 Log.v(TAG, "The saved Layout is: " + savedInstanceState.getString("layoutString"));
@@ -197,6 +202,7 @@ public class MainActivity extends AppCompatActivity {
         savedInstanceState.putBoolean("shouldReconnect", StatusObject.shouldReconnect);
         savedInstanceState.putBoolean("isCustomLayout", StatusObject.isCustomLayout);
         savedInstanceState.putCharSequence("layoutString", StatusObject.layoutString);
+        savedInstanceState.putBoolean("isInSettings", StatusObject.isInSettings);
         super.onSaveInstanceState(savedInstanceState);
     }
 
