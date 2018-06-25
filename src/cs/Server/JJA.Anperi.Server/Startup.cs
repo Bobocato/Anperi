@@ -49,7 +49,13 @@ namespace JJA.Anperi.Server
             if (Convert.ToBoolean(Configuration["ServerStartupSettings:StartFileServer"]))
             {
                 //make debug website available in webroot
-                app.UseFileServer();
+                app.UseFileServer(new FileServerOptions
+                {
+                    StaticFileOptions =
+                    {
+                        ServeUnknownFileTypes = true
+                    }
+                });
             }
 
             bool webSocketReceiveBufferSizeValid = int.TryParse(Configuration["ServerStartupSettings:WebSocketReceiveBufferSize"], out int webSocketReceiveBufferSize);
